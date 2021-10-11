@@ -1,0 +1,62 @@
+/*******************************************************************************
+*  Copyright (c) 2020 u-blox AG, Thalwil, Switzerland.
+*
+* Licensed under the Apache License, Version 2.0 (the "License");
+* you may not use this file except in compliance with the License.
+* You may obtain a copy of the License at
+* 
+* http://www.apache.org/licenses/LICENSE-2.0
+* 
+* Unless required by applicable law or agreed to in writing, software
+* distributed under the License is distributed on an "AS IS" BASIS,
+* WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+* See the License for the specific language governing permissions and
+* limitations under the License.
+******************************************************************************
+* Synopsis:		cellModem_all_hfc_ctsrts_basic.atl
+* Version:		1.0
+* Author:		hmeh, bkha
+* Description:	
+*		This script has the purpose to test the flow control line status using 
+*		CTS and RTS lines.
+*		bool GETCOMCTS(void): return the status of CTS line
+*		void SETCOMRTS(bool &in): sets the RTS with value = 'in'
+******************************************************************************
+* Modules:		All Products
+******************************************************************************/
+
+void send_AT_command(string cmd, int ms_timeout, string exp_resp){
+	PAUSE(50);
+	string resp = SENDAT(cmd, ms_timeout, exp_resp);
+	ECHO("response = " + resp);
+}
+
+void update_status(){
+	ECHO("GET updated status");
+	ECHO("{DSR:" + GETCOMDSR()+"},{RI:" + GETCOMRI()+"},{DCD:" + GETCOMDCD()+"}");
+}
+
+void RTS_testing(){
+	ECHO("RTS TESTING START");
+
+	ECHO("SET RTS TO FALSE");
+	SETCOMRTS(false);
+
+	PAUSE(3000);
+	send_AT_command("ATI9", 3000, "OK");
+
+	update_status();
+	
+	PAUSE(3000);
+	ECHO("SET RTS TO TRUE");
+	SETCOMRTS(true);
+
+	update_status();
+
+	ECHO("RTS TESTING END");
+}
+
+void main(){
+	update_status();
+	RTS_testing();
+}

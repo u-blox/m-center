@@ -1,0 +1,166 @@
+/******************************************************************************
+*  Copyright (c) 2020 u-blox AG, Thalwil, Switzerland.
+*
+* Licensed under the Apache License, Version 2.0 (the "License");
+* you may not use this file except in compliance with the License.
+* You may obtain a copy of the License at
+* 
+* http://www.apache.org/licenses/LICENSE-2.0
+* 
+* Unless required by applicable law or agreed to in writing, software
+* distributed under the License is distributed on an "AS IS" BASIS,
+* WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+* See the License for the specific language governing permissions and
+* limitations under the License.
+*******************************************************************************
+* Synopsis:		cellModem_all_urc_configuration_basic.atl
+* Version:		1.0
+* Author:		bkha
+* Description:
+*		This script has the general purpose to properly set the unsolicited 
+*		result code (URC) indications in u-blox devices. When a unsolicited 
+*		configuration is not supported by the target module, an error is received 
+*		and the script continues
+*******************************************************************************
+* Modules:  All Products
+*           Comment lines not applicable to the target module
+*******************************************************************************/
+
+ECHO("Comment lines from the script which are not applicable to the target module");
+
+//*******************
+//* NETWORK SERVICE *
+//*******************
+
+// Network registration status (all products series)
+AT+CREG=2
+
+// Signalling connection status (LARA-R2, TOBY-R2 and SARA-R4 series)
+
+AT+CSCON=1
+AT+CSCON=2
+AT+CSCON=3
+
+// Channel and network environment description (TOBY-L2, MPCI-L2, LARA-R3, SARA-R and SARA-N4 series)
+AT+UCGED=2
+
+// Provide cell information (LARA-R3, LARA-R2, TOBY-R, SARA-R5, SARA-U and LISA-U series)
+// AT+UCELLINFO=1
+
+// Cellular IoT (CIoT) optimization configuration (SARA-R and SARA-N series)
+AT+CCIOTOPT=1
+
+
+//*********************************
+//* PACKET SWITCHED DATA SERVICES *
+//*********************************
+// GPRS network registration status (TOBY-L4, TOBY-L2, MPCI-L2, LARA-R2, TOBY-R, SARA-R4, SARA-U, LISA-U, SARA-G and SARA-N4 series)
+AT+CGREG=2
+
+// EPS network registration status (TOBY-L4, TOBY-L2, MPCI-L2, LARA-R, TOBY-R, SARA-R and SARA-N series)
+AT+CEREG=2
+
+// Extended Packet Switched network registration status (TOBY-L4, TOBY-L2, MPCI-L2, LARA-R2, TOBY-R, SARA-U and LISA-U series)
+AT+UREG=1
+
+// GPRS event reporting (all products series)
+AT+CGEREP=1
+
+// Protocol configuration options configuration (TOBY-L4, LARA-R2 and TOBY-R series)
+AT+UPCO=3
+
+
+//***************************************
+//* MOBILE EQUIPMENT CONTROL AND STATUS *
+//***************************************
+// Time zone reporting (all products series)
+AT+CTZR=1
+
+// Mobile termination event reporting (all products series)
+AT+CMER=1
+
+
+//****************
+//* CALL CONTROL *
+//****************
+
+// Set reporting call status (TOBY-L4, TOBY-L2, MPCI-L2, LARA-R2, TOBY-R, SARA-U, LISA-U and SARA-G series)
+AT+UCALLSTAT=1
+
+// Call waiting (TOBY-L4, TOBY-L2, MPCI-L2, LARA-R2, TOBY-R, SARA-U, LISA-U and SARA-G series)
+AT+CCWA=1
+
+// Information to in-band-tones availability (TOBY-L4, TOBY-L2, MPCI-L2, LARA-R2, TOBY-R, SARA-U and LISA-U series)
+AT+UPROGRESS=1
+
+
+//**********************************
+//* CIRCUIT SWITCHED DATA SERVICES *
+//**********************************
+
+// Service reporting control (LARA-R2, TOBY-R, SARA-U, LISA-U and SARA-G3 series)
+AT+CR=1
+
+
+//*************************
+//* SHORT MESSAGE SERVICE *
+//*************************
+
+// New message indication (all products series)
+AT+CNMI=1,1
+
+// Enable/disable the 3GPP2 SMS URC (LARA-R204 series)
+AT+UCMT3GPP2=1
+
+
+//************************
+//* IP MULTIMEDIA SYSTEM *
+//************************
+
+// IMS registration information (TOBY-L2, MPCI-L2, LARA-R2 and TOBY-R series)
+AT+CIREG=2
+
+// IMS network reporting (TOBY-L2, LARA-R2 and TOBY-R series)
+AT+CIREP=1
+
+
+//******************
+//* SIM MANAGEMENT *
+//******************
+
+// SIM states reporting (LARA-R, TOBY-R, SARA-R, SARA-U, LISA-U and SARA-N series)
+AT+USIMSTAT=7
+
+
+//***************
+//* SIM TOOLKIT *
+//***************
+
+// Bearer Independent Protocol (BIP) status indication (all products series)
+AT+UBIP=1
+AT+UBIP=2
+
+
+//*******************
+//* SYSTEM FEATURES *
+//*******************
+
+// Power saving mode status report (SARA-N series)
+AT+NPSMR=1
+
+// Power saving mode indication (SARA-R series)
+AT+UPSMR=1
+
+// Enable/disable OMA-DM unsolicited status messages (TOBY-L4, TOBY-L2, MPCI-L2, LARA-R2, TOBY-R, SARA-U and LISA-U series)
+AT+UOMASTAT=1
+
+// Sets FOTA status URCs +UFOTASTAT (SARA-R series)
+AT+UFOTASTAT=1
+
+
+//*******************
+//* LIGHTWEIGHT M2M *
+//*******************
+
+// LwM2M URCs configuration (SARA-R and SARA-N series)
+AT+ULWM2MSTAT=1

@@ -1,0 +1,102 @@
+/*******************************************************************************
+*  Copyright (c) 2020 u-blox AG, Thalwil, Switzerland.
+*
+* Licensed under the Apache License, Version 2.0 (the "License");
+* you may not use this file except in compliance with the License.
+* You may obtain a copy of the License at
+* 
+* http://www.apache.org/licenses/LICENSE-2.0
+* 
+* Unless required by applicable law or agreed to in writing, software
+* distributed under the License is distributed on an "AS IS" BASIS,
+* WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+* See the License for the specific language governing permissions and
+* limitations under the License.
+******************************************************************************
+* Synopsis:   cellModem_all_network_registrationCommands_advance.atl
+* Version:    1.0
+* Author:     bkha
+* Description:	
+*		This script has the purpose to test network related advance commands.
+******************************************************************************
+* Modules:		All Products
+*         Comment lines not applicable to the target module
+******************************************************************************/
+
+ECHO("Comment lines from the script which are not applicable to the target module");
+
+/****************************************
+ check current setup & network scenario 
+*****************************************/
+
+ATE0;+CMEE=2;I0I9I5;+CIMI;+CCID
+AT+CPIN?
+AT+CREG=2;+CREG?
+AT+CGREG=2;+CGREG?
+AT+CEREG=2;+CEREG?
+AT+UREG=1;+UREG?
+AT+CPOL?
+AT+URAT?
+AT+UBANDSEL?
+
+// read EF LOCI (CS)
+AT+CRSM=176,28542,0,0,11
+// read EF PS LOCI (PS)
+AT+CRSM=176,28531,0,0,14
+// read EF EPS LOCI (4G)
+AT+CRSM=176,28643,0,0,18
+AT+CSQ
+AT+COPS?
+AT+COPS=5
+AT+COPS=2
+AT+CTZR=1
+AT+COPS=0
+AT+CCLK?
+AT+CGED=1
+PAUSE 180000
+AT+CGED=2
+
+
+/************************
+ clean network history 
+************************/
+
+AT+COPS=2
+AT&W0
+// clean EF LOCI (CS)
+// for -G3, -U2, -R2, -L4 modules
+AT+CRSM=214,28542,136,0,11,"FFFFFFFFFFFFFFFFFFFFFF"
+// for -G4, -L2, -R5, -N3, -R4 modules
+AT+CRSM=214,28542,0,0,11,"FFFFFFFFFFFFFFFFFFFFFF"
+
+// clean EF PS LOCI (PS)
+// for -G3, -U2, -R2, -L4 modules
+AT+CRSM=214,28531,136,0,14,"FFFFFFFFFFFFFFFFFFFFFFFFFFFF" 
+// for -G4, -L2, -R5, -N3, -R4 modules
+AT+CRSM=214,28531,0,0,14,"FFFFFFFFFFFFFFFFFFFFFFFFFFFF"
+
+// clean EF EPS LOCI (4G)
+// for -R2, -L4 modules
+AT+CRSM=214,28643,136,0,18,"FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF"
+// for -G4, -L2, -R5, -N3, -R4 modules
+AT+CRSM=214,28643,0,0,18,"FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF"
+
+/****************************************
+ Network registration from scratch      
+****************************************/
+
+AT+CFUN=16
+PAUSE 5000
+ATE0;+CMEE=2;I0I9I5;+CIMI;+CCID
+AT+CPIN?
+AT+CSQ
+AT+CREG=2
+AT+CGREG=2
+AT+CEREG=2
+AT+UREG=1
+AT+COPS=0
+PAUSE 100
+PAUSE 180000
+AT+CCLK?
+PAUSE 100
+ECHO "End of test"
