@@ -5,7 +5,7 @@
 # you may not use this file except in compliance with the License.
 # You may obtain a copy of the License at
 # 
-# http://www.apache.org/licenses/LICENSE-2.0
+# http:// www.apache.org/licenses/LICENSE-2.0
 # 
 # Unless required by applicable law or agreed to in writing, software
 # distributed under the License is distributed on an "AS IS" BASIS,
@@ -18,53 +18,181 @@
 # Author:		bkha
 # Description:	
 #		This script has the general purpose to collect debug info from
-#		the target module.
+#		the target module without changing any settings.
+#		After the execution of this script, some Unsolicited Result Code (URC) 
+#		will be actived. 
 #******************************************************************************
 # Modules:		SARA-R5
 #******************************************************************************
 
+
 #########################
 # MODULE IDENTIFICATION #
 #########################
+// returns the manufactor identificator 
 AT+CGMI
+
+// returns the model identificator 
 AT+CGMM
+
+// returns the firmware identificator 
 AT+CGMR
+
+// returns the modem,application version
 ATI9
+
+// returns the type number
 ATI
-AT+CIMI
+
+// returns the serial number identificator 
 AT+CGSN
+
+
+##################
+# URC ACTIVATION #
+##################
+// enables verbose mobile termination error
+AT+CMEE=2
+
+// enables the SIM states reporting
+AT+USIMSTAT=7
+
+// enables the BIP status indication
+AT+UBIP=1
+
+// enables the network registration and location information URC status
+AT+CEREG=2
+
+// enables network registation status 
+AT+CREG=2
+
+// enables GPRS registration status
+AT+CGREG=2
+
+// enables the signaling connection status URC
+AT+CSCON=1
+
+// enables the packet switched event reporting
+AT+CGEREP=2,1
+
+
+#####################
+# SIM CONFIGURATION #
+#####################
+// returns International Mobile Subscriber Identification (IMSI)
+AT+CIMI
+
+// returns the Integrated Circuit Card ID (ICCID)
+AT+CCID
+
+// returns the SIM status
+AT+CPIN?
+
 
 ########################
 # MODULE CONFIGURATION #
 ########################
+// returns info about the profiles
 AT&V
+
+// returns info about the serial interfaces configuration
+AT+USIO?
+
 
 ###########################
 # MOBILE EQUIPMENT STATUS #
 ###########################
+// returns the modem functionality
 AT+CFUN?
+
 
 ###################
 # NETWORK SERVICE #
 ###################
-AT+CEREG=2
-AT+CREG=2
-AT+CGREG=2
-AT+CSCON=1
-AT+CGEREP=2,1
-AT+CEREG?
-AT+CREG?
-AT+CGREG?
-AT+COPS?
-AT+CSQ
-AT+CESQ
-AT+URAT?
-AT+UBANDMASK?
+// returns the selected Mobile Network Operator (MNO) profile
 AT+UMNOPROF?
+
+// returns the Evolved Packet System (EPS) network registation status
+AT+CEREG?
+
+// returns the CS network registation status
+AT+CREG?
+
+// returns the GPRS (PS) registration status 
+AT+CGREG?
+
+// returns the operator selection
+AT+COPS?
+
+// returns the signal quality
+AT+CSQ
+
+// returns the extended signal quality
+AT+CESQ
+
+// returns the configured Radio Access Technology (RAT)
+AT+URAT?
+
+// returns the enabled bands
+AT+UBANDMASK?
+
 
 #################################
 # PACKET SWITCHED DATA SERVICES #
 #################################
+// returns info about PDP context
 AT+CGDCONT?
+
+// returns info about primary active PDP context 
 AT+CGCONTRDP=1
+
+// returns the status of the defined PDP contexts
 AT+CGACT?
+
+
+####################
+# SECURITY SERVICE #
+####################
+// returns the seal device information
+AT+USECDEVINFO?
+
+// returns X.509 device certificate status
+AT+USECDEVCERT? 
+
+// checks the ZTP feature authorization status
+AT+USECAFA=0
+
+// checks the LocalC2CKeyPairing feature authorization status
+AT+USECAFA=2
+
+// checks the LocalC2C feature authorization status
+AT+USECAFA=3
+
+
+########################
+# DESIGN FOR LOW POWER #
+########################
+// returns the power saving status 
+AT+UPSV?
+
+// returns the used power saving mode settings 
+AT+CPSMS?
+
+// returns the eDRX setting 
+AT+CEDRXS?
+
+// returns eDRX dynamic parameters
+AT+CEDRXRDP
+
+// returns the power saving mode version
+AT+UPSMVER?
+
+
+##################
+# OTHER SERVICES #
+##################
+// returns the LwM2M activation status
+AT+ULWM2M?
+
+
+

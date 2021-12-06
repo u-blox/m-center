@@ -38,6 +38,7 @@ AT+CGSN
 # MODULE CONFIGURATION #
 ########################
 AT&V
+AT+USIO?
 
 ###########################
 # MOBILE EQUIPMENT STATUS #

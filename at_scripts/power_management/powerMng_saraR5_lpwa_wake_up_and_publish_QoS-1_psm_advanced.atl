@@ -1,0 +1,85 @@
+/*******************************************************************************
+*  Copyright (c) 2020 u-blox AG, Thalwil, Switzerland.
+*
+* Licensed under the Apache License, Version 2.0 (the "License");
+* you may not use this file except in compliance with the License.
+* You may obtain a copy of the License at
+* 
+* http://www.apache.org/licenses/LICENSE-2.0
+* 
+* Unless required by applicable law or agreed to in writing, software
+* distributed under the License is distributed on an "AS IS" BASIS,
+* WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+* See the License for the specific language governing permissions and
+* limitations under the License.
+******************************************************************************
+* Synopsis:		powerMng_saraR5_lpwa_wake_up_and_publish_QoS-1_pms_advanced.atl
+* Version:		1.0
+* Author:		pwar
+* Description:	
+*		This script is used to publish a message to the Thingstream 
+*		MQTT-Anywhere IoT Platform using QoS: -1
+*		QoS: -1 does not require to connect to the broker, so the 
+*		message is sent very soon after waking up. The module then uses
+*		RAI to go back into PSM.
+*		The powerMng_saraR5_lpwa_first_configuration_psm_advanced.atl
+*		script needs to be run first to configure the device. 
+*		This script assumes the module is in the PSM state and waits
+*		for the "Ready" greeting message after waking up from PSM.
+*
+*		You MUST configure the IdentityID parameter below from your Thingstream 
+*		thing device.
+*
+******************************************************************************
+* Modules:		SARA-R510-01B
+******************************************************************************/
+
+/*****************************************************************************/
+/* Please use your IdentityID parameter of the MQTT-Anywhere thing           */
+string client_id = "identity:xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx";
+/*****************************************************************************/
+
+/*****************************************************************************/
+/* Please set the IP Address of the MQTT-Anywhere broker                     */
+string ip_address = "10.7.0.55";
+/*****************************************************************************/
+
+/*****************************************************************************/
+/* Please set the Port Number of the MQTT-Anywhere broker                    */
+string ip_port = "2442";
+/*****************************************************************************/
+
+// Make sure DTR line is set
+SETCOMDTR(true);
+
+// Tell the user they need to press the PWR_ON button
+ECHO("Waiting for the module ready... Turn on with PWR_ON");
+WAIT("Ready", 60000);
+
+// No need to configure the internal context when coming out of PSM
+// Activate the internal context
+AT+UPSDA=0,3
+
+// Set the MQTT-SN profile (see above for parameters)
+SENDAT('AT+UMQTTSN=0,"' + client_id + '"', 1000, "OK");
+SENDAT('AT+UMQTTSN=2,"' + ip_address + '",' + ip_port, 1000, "OK");
+
+/*****************************************************************************/
+/* Parameters for the publishing of a message to the MQTT-Anywhere broker    */
+string topic_alias = "1";
+string QoS = "3";
+string message = "Hello World";
+
+// Publish the message
+SENDAT('AT+UMQTTSNC=4,' + QoS + ',0,0,1,"' + topic_alias + '","' + message + '"', 1000, "OK");
+
+// Wait for the message to be sent by waiting for +CSCON: 1
+WAIT("+CSCON: 1", 10000);
+
+// Request RAI to drop the RRC connection
+AT+UDCONF=89,1
+
+// drop the DTR line for the module to go into deep sleep
+SETCOMDTR(false);
+
+ECHO("Run script again and press PWR_ON button");

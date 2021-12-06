@@ -1,0 +1,260 @@
+/*******************************************************************************
+*  Copyright (c) 2020 u-blox AG, Thalwil, Switzerland.
+*
+* Licensed under the Apache License, Version 2.0 (the "License");
+* you may not use this file except in compliance with the License.
+* You may obtain a copy of the License at
+* 
+* http://www.apache.org/licenses/LICENSE-2.0
+* 
+* Unless required by applicable law or agreed to in writing, software
+* distributed under the License is distributed on an "AS IS" BASIS,
+* WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+* See the License for the specific language governing permissions and
+* limitations under the License.
+******************************************************************************
+* Synopsis:   gnss_saraR5_saraR42_aiding_advanced.atl
+* Version:    1.0
+* Author:     mace
+* Description:	
+*		This script has the purpose to demonstrate the use of the GNSS chip 
+*		Integrated into the modules. 
+*		This script needs a "Start!" greeting message active on boot. The
+*		greeting text can be activated using the command AT+CSGT=1,"Start!"
+*		and using a fixed baud rate. 
+******************************************************************************
+* Modules:		SARA-R510M8S SARA-R422M8S
+******************************************************************************/
+
+// to check if it is the first round
+bool first_round = true;
+
+// iteration cycles
+int iteration_number = 500;
+
+// modem type
+// 0 - SARA-R510M8S
+// 1 - SARA-R422M8S
+
+int modem_type = 0;
+
+// aiding type to be configured, values allowed are:
+// • 0 (default value): no aiding
+// • 1: automatic local aiding
+// • 2: AssistNow Offline
+// • 4: AssistNow Online
+// • 8: AssistNow Autonomous
+
+int aiding_type = 2;
+
+
+// gnss system to be actived
+// • 1: GPS
+// • 2: SBAS
+// • 4: Galileo
+// • 8: BeiDou
+// • 16: IMES
+// • 32: QZSS
+// • 64: GLONASS
+
+int gnss_system = 67;
+
+
+
+string gnss_command;
+
+// APN for initial default bearer
+string apn_initial_def_bearer = "";
+
+// function to wait for AT interface ready
+// it looks for the string 'Start!'
+void wait_for_at_ready(void)
+{
+	string command = "Start!";
+	string resp = WAIT(command, 60000);
+
+	if(FIND(resp, "Start!") != -1)
+	{
+		ECHO("Module ready");
+	}
+	else
+	{
+		ECHO("Module not ready");
+		STOP("************ SCRIPT STOPPED **************");
+	}
+}
+
+void modem_initialization (void)
+{
+	string command, resp;
+		
+	ECHO("Waiting for registration");
+	command = "AT+CFUN=4";
+	resp = SENDAT(command, 200, "OK");	
+	PAUSE 20
+	command = "AT+CMEE=2";
+	resp = SENDAT(command, 200, "OK");
+	PAUSE 20
+	command = "AT+CREG=2";
+	resp = SENDAT(command, 200, "OK");
+	PAUSE 20
+	command = "AT+CGREG=2";
+	resp = SENDAT(command, 200, "OK");
+	PAUSE 20
+	command = "AT+CEREG=2";
+	resp = SENDAT(command, 200, "OK");
+	PAUSE 200
+	command = "AT+CGDCONT=1,\"IP\",\"" + apn_initial_def_bearer + "\"";
+	resp = SENDAT(command, 200, "OK");
+	PAUSE 20
+	command = "AT+CFUN=1";
+	resp = SENDAT(command, 200, "OK");	
+}
+
+void wait_for_registration(void)
+{
+	string command, resp;
+	int registration = 0;	
+	
+	
+	while (registration < 1)
+	{
+		ECHO("Waiting for registration");
+		// wait for URC
+		string command1 = "+C";
+		string resp1 = WAIT(command1, 300000);
+		if(FIND(resp1, "+CREG: 1") != -1)
+		{
+			ECHO("Registered on network (HPLMN)");
+			registration=1;
+		}
+		else if(FIND(resp1, "+CREG: 5") != -1)
+		{
+			ECHO("Registered on roaming (VPLMN)");
+			registration=1;
+		}
+		else if(FIND(resp1, "+CEREG: 1") != -1)
+		{
+			ECHO("Registered on network (HPLMN)");
+			registration=1;
+		}
+		else if(FIND(resp1, "+CEREG: 5") != -1)
+		{
+			ECHO("Registered on roaming (VPLMN)");
+			registration=1;
+		}
+		else
+		{
+			ECHO("Registration status to be checked (not HPLMN)");
+		}
+	}
+	
+	if (modem_type == 0)
+	{
+		command = "AT+CGACT=1,1";
+		resp = SENDAT(command, 10000, "OK");
+		command = "AT+UPSD=0,0,0";
+		resp = SENDAT(command, 10000, "OK");
+		command = "AT+UPSD=0,100,1";
+		resp = SENDAT(command, 10000, "OK");
+		command = "AT+UPSDA=0,3";
+		resp = SENDAT(command, 10000, "OK");
+	}
+}
+
+
+
+void main()
+{	
+	string command, resp;
+	int aiding_online;
+	int max_iteration = 200;
+	int aiding = aiding_type;
+	
+	ECHO("*************************************************************************************************************");
+	ECHO("This script needs 'Start!' greeting message active on boot");
+	ECHO("The greeting text can be actived using the command +CSGT=1,\"Start!\" and using a fixed baud rate (+IPR)");
+	ECHO("");
+	ECHO("");
+	ECHO("*************************************************************************************************************");
+	ECHO("REMEMBER TO HAVE ALREADY SET A VALID TOKEN on the module with +UGSRV for accessing online aiding");
+	ECHO("*************************************************************************************************************");
+	ECHO("");
+	ECHO("");
+	ECHO("*************************************************************************************************************");
+	ECHO("REMEMBER TO CONFIGURE THE GNSS SYSTEM AND THE AIDING MODE");
+	ECHO("*************************************************************************************************************");
+	
+	wait_for_at_ready();	
+	modem_initialization();
+		
+	command ="AT+UGIND=1";
+	resp = SENDAT(command, 1000, "OK");
+	command ="AT+UGRMC=1";
+	resp = SENDAT(command, 1000, "OK");
+	command ="AT+ULOCIND=1";
+	resp = SENDAT(command, 1000, "OK");
+	
+	/*
+	if (first_round)
+	{
+		aiding = 15;
+		first_round = false;
+	}
+	*/
+	
+	if ((aiding & 4) == 4 || (aiding & 2) == 2)
+	{
+		ECHO("AIDING CONFIGURED REQUIRES DATA CONNECTION");
+		wait_for_registration();
+	}
+	else 
+	{
+		ECHO("AIDING CONFIGURED DOES NOT REQUIRE DATA CONNECTION");
+	}
+	
+	ECHO("*************************************************************************************************************");
+	ECHO("STARTING GNSS");
+	ECHO("*************************************************************************************************************");
+	gnss_command ="AT+UGPS=1," + aiding + "," + gnss_system;
+	resp = SENDAT(gnss_command, 6000, "OK");
+	PAUSE 2000;
+		
+	for (int i = 0; i < max_iteration; i++)
+	{
+		command ="AT+UGRMC?";
+		resp = SENDAT(command, 1000, "OK");
+		PAUSE 200
+	}
+	
+	// read twice TTFF value from UBX-NAV-STATUS
+	command = "AT+UGUBX=\"B56201030000040D\"";
+	resp = SENDAT(command, 1000, "OK");
+	PAUSE 200
+	resp = resp.substr(37,8);
+	// ECHO("TTFF in UBX-NAV-STATUS is " + resp);
+	resp = SWAPENDIAN(resp);
+	ECHO("TTFF in UBX-NAV-STATUS is " + resp);
+	float ttff = parseUInt(resp, 16);	
+	ttff = ttff / 1000;
+	ECHO("TTFF in UBX-NAV-STATUS is " + ttff +" s");
+	PAUSE 1000
+	command = "AT+UGUBX=\"B56201030000040D\"";
+	resp = SENDAT(command, 1000, "OK");
+	PAUSE 200
+	resp = resp.substr(37,8);
+	//ECHO("TTFF in UBX-NAV-STATUS is " + resp);
+	resp = SWAPENDIAN(resp);
+	ECHO("TTFF in UBX-NAV-STATUS is " + resp);
+	ttff = parseUInt(resp, 16);	
+	ttff = ttff / 1000;
+	ECHO("TTFF in UBX-NAV-STATUS is " + ttff +" s");
+	PAUSE 1000
+
+	
+	command ="AT+UGPS=0";
+	resp = SENDAT(command, 5000, "OK");
+	PAUSE 1000
+	command ="AT+CPWROFF";
+	resp = SENDAT(command, 10000, "OK");	
+}

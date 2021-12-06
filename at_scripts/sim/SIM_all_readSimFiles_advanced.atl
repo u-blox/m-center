@@ -1,0 +1,617 @@
+/******************************************************************************
+* Copyright (c) 2021 u-blox AG, Thalwil, Switzerland.
+*
+* Licensed under the Apache License, Version 2.0 (the "License");
+* you may not use this file except in compliance with the License.
+* You may obtain a copy of the License at
+*
+* http://www.apache.org/licenses/LICENSE-2.0\
+*
+* Unless required by applicable law or agreed to in writing, software
+* distributed under the License is distributed on an "AS IS" BASIS,
+* WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+* See the License for the specific language governing permissions and
+* limitations under the License.
+******************************************************************************
+* Synopsis: sim_all_readSimFiles_advanced.atl
+* Version: 	3.2
+* Author: 	mrod
+* Description:
+*		This scripts search for all the possible SIM Elementary Files and reads their content 
+*		using +CRSM command.
+*		At the end, prints on AT terminal window a report having the following syntax:
+*		|<Path Name>|<EF name>|<Path hex ID>|<EF hex ID>|<EF dec ID>|<Record>|<EF content>|
+*		e.g.,
+*		|MF|EF ICCID|3F00|2FE2|12258|0|"989388435801009549F4"|
+*		The files to be read are listed in the code: see ## EF list ##  section.
+* Requirements:
+*		m-center 02.04.01 or newer
+*		modem supporting +CRSM
+******************************************************************************
+* Tested modules: 
+*		TOBY-L210-03
+*		LARA-R211-02
+*		SARA-R422M8S-00
+*		SARA-R510M8S-01
+*		SARA-U201-04
+*		SARA-G350-02
+*******************************************************************************
+* Revision History:
+*		3.1 - first public release
+*		3.2 - splitted concatenated AT commands (not supported by all modules)
+*			- added registration status preliminary check
+* Known issue and limitations:
+*		- SARA-R412M-02 does not properly address a lot of EFs
+*		- SARA-G450-01 responses to +CRSM commands have unexpected content
+*		- m-center 2.03.00 truncates ECHO strings to 70 chars
+*		- ADF(ISIM) files cannot be read
+******************************************************************************/
+
+
+
+void main()
+{
+
+// script init
+int timeoutM            = 10000;
+ 
+string aat_cmd          = "";
+string aat_cmd0         = "";
+string aat_cmd1         = "";
+string ef_root_id       = "";  // Root Path (MF/ADF) id [hex or string]
+string adf_id           = "";
+string ef_sub_id        = "";  // Sub Path id [hex]
+string ef_full_id       = "";
+string ef_id_h          = "";  // EF ID [hex]
+int    ef_id_d          = 0;   // EF ID [dec]
+int    ef_struct_id     = 0;
+string ef_full_path     = "";  // EF Full Path Name
+string ef_name          = "";
+string ef_desc          = "";
+string adf_isim_id      = "A0000000871004";
+
+int    crsm_cmd         = 0;  // AT+CRSM=<command>[,<fileid>[,<P1>,<P2>,<P3>[,<data>[,<pathid>]]]]
+int    crsm_p1          = 0;
+int    crsm_p2          = 0;
+int    crsm_p3          = 0;
+string crsm_data        = "\"\"";
+int    crsm_sw1         = 0;
+int    crsm_sw2         = 0;
+int    max_allowed_rec  = 25;   // 250;   // max number of records for each EF
+
+string aid_len_h        = "";
+int    aid_len_d        = 0;
+string aid_app_code     = "";
+string aid_whole        = "";
+
+bool another_rec_2_read = false;
+bool reading_2_log      = true;
+string crsm_response    = "";
+
+string aat_resp         = "";
+string aat_resp_prefix  = "";
+string aat_resp_payload = "";
+
+string report_row       = "";
+
+array<string> ef;
+array<string> report_all;
+array<string> ef_prm;
+
+/*******************************************************************************
+* ## EF list ##
+********************************************************************************
+* list of EFs to be read
+*   syntax  : 
+*     <MF/ADF_ID>,<Sub_Path_ID>,<EF_ID>,<Structure_ID>,<Full_Path_Name>,<EF_Name>,<Description>
+*   example : 3F00,,2FE2,0,MF,EF(ICCID),ICC Identification
+*     <MF/ADF_ID>     : hex/string
+*                        3F00     : hex path of MF
+*                        7FFF     : hex path of ADF_USIM
+*                        ADF_ISIM : string to be substituted with ADF_ISIM hex ID read from EF_DIR
+*     <Sub_Path_ID>: hex
+*     <EF_ID>         : hex 
+*     <Structure_ID>  : dec
+*                        0: transparent
+*                        1: linear fixed (possible multiple records)
+*                        3: cyclic (possible multiple records)
+*     <Path_name>     : string (<MF/ADF_ID> & <Sub_Path_ID> names)
+*     <EF_Name>       : string
+*     <Description>   : string
+* 
+*   3GPP references: 
+*     ETSI TS 102 221; ETSI TS 102 222; ETSI TS 131 101; ETSI TS 131 102 (USIM); 
+*     ETSI TS 131 103 (ISIM); TS 51.011
+*******************************************************************************/
+
+// first element in the array (i.e. ef[0]) shall be EF DIR
+ef.insertLast("3F00,,2F00,1,MF,EF(DIR),DIRectory");
+ef.insertLast("3F00,,2FE2,0,MF,EF_ICCID,ICC Identification");
+ef.insertLast("3F00,,2F05,0,MF,EF_PL,Preferred Languages");
+ef.insertLast("3F00,,2F06,1,MF,EF_ARR,Access Rule Reference");
+ef.insertLast("3F00,,6F01,0,MF,EF_LAUNCH PAD,");
+ef.insertLast("3F00,,2F08,0,MF,EF_UMPC,UICC Maximum Power Consumption");
+ef.insertLast("3F00,7F20,6F05,0,MF / DF_GSM,EF_LP,Language preference");
+ef.insertLast("3F00,7F20,6F07,0,MF / DF_GSM,EF_IMSI,IMSI");
+ef.insertLast("3F00,7F20,6F20,0,MF / DF_GSM,EF_Kc,Ciphering key Kc");
+ef.insertLast("3F00,7F20,6F30,0,MF / DF_GSM,EF_PLMNsel,PLMN selector");
+ef.insertLast("3F00,7F20,6F31,0,MF / DF_GSM,EF_HPPLMN,Higher Priority PLMN search period");
+ef.insertLast("3F00,7F20,6F37,0,MF / DF_GSM,EF_ACMmax,ACM maximum value");
+ef.insertLast("3F00,7F20,6F38,0,MF / DF_GSM,EF_SST,SIM service table");
+ef.insertLast("3F00,7F20,6F39,3,MF / DF_GSM,EF_ACM,Accumulated call meter");
+ef.insertLast("3F00,7F20,6F3E,0,MF / DF_GSM,EF_GID1,Group Identifier Level 1");
+ef.insertLast("3F00,7F20,6F3F,0,MF / DF_GSM,EF_GID2,Group Identifier Level 2");
+ef.insertLast("3F00,7F20,6F46,0,MF / DF_GSM,EF_SPN,Service Provider Name");
+ef.insertLast("3F00,7F20,6F41,0,MF / DF_GSM,EF_PUCT,Price per unit and currency table");
+ef.insertLast("3F00,7F20,6F45,0,MF / DF_GSM,EF_CBMI,Cell broadcast message identifier selection");
+ef.insertLast("3F00,7F20,6F74,0,MF / DF_GSM,EF_BCCH,Broadcast control channels");
+ef.insertLast("3F00,7F20,6F78,0,MF / DF_GSM,EF_ACC,Access control class");
+ef.insertLast("3F00,7F20,6F7B,0,MF / DF_GSM,EF_FPLMN,Forbidden PLMNs");
+ef.insertLast("3F00,7F20,6F7E,0,MF / DF_GSM,EF_LOCI,Location information");
+ef.insertLast("3F00,7F20,6FAD,0,MF / DF_GSM,EF_AD,Administrative data");
+ef.insertLast("3F00,7F20,6FAE,0,MF / DF_GSM,EF_Phase,Phase identification");
+ef.insertLast("3F00,7F20,6FB1,0,MF / DF_GSM,EF_VGCS,Voice Group Call Service");
+ef.insertLast("3F00,7F20,6FB2,0,MF / DF_GSM,EF_VGCSS,Voice Group Call Service Status");
+ef.insertLast("3F00,7F20,6FB3,0,MF / DF_GSM,EF_VBS,Voice Broadcast Service");
+ef.insertLast("3F00,7F20,6FB4,0,MF / DF_GSM,EF_VBSS,Voice Broadcast Service Status");
+ef.insertLast("3F00,7F20,6FB5,0,MF / DF_GSM,EF_eMLPP,enhanced Multi Level Pre-emption and Priority");
+ef.insertLast("3F00,7F20,6FB6,0,MF / DF_GSM,EF_AAeM,Automatic Answer for eMLPP Service");
+ef.insertLast("3F00,7F20,6F48,0,MF / DF_GSM,EF_CBMID,Cell Broadcast Message Identifier for Data Download");
+ef.insertLast("3F00,7F20,6FB7,0,MF / DF_GSM,EF_ECC,Emergency Call Codes");
+ef.insertLast("3F00,7F20,6F50,0,MF / DF_GSM,EF_CBMIR,Cell broadcast message identifier range selection");
+ef.insertLast("3F00,7F20,6F2C,0,MF / DF_GSM,EF_DCK,De-personalization Control Keys");
+ef.insertLast("3F00,7F20,6F32,0,MF / DF_GSM,EF_CNL,Co-operative Network List");
+ef.insertLast("3F00,7F20,6F51,1,MF / DF_GSM,EF_NIA,Network's Indication of Alerting");
+ef.insertLast("3F00,7F20,6F52,0,MF / DF_GSM,EF_KcGPRS,GPRS Ciphering key KcGPRS");
+ef.insertLast("3F00,7F20,6F53,0,MF / DF_GSM,EF_LOCIGPRS,GPRS location information");
+ef.insertLast("3F00,7F20,6F54,0,MF / DF_GSM,EF_SUME,SetUpMenu Elements");
+ef.insertLast("3F00,7F20,6F60,0,MF / DF_GSM,EF_PLMNwAcT,User controlled PLMN Selector with Access Technology");
+ef.insertLast("3F00,7F20,6F61,0,MF / DF_GSM,EF_OPLMNwAcT,Operator controlled PLMN Selector with Access");
+ef.insertLast("3F00,7F20,6F62,0,MF / DF_GSM,EF_HPLMNwAcT,HPLMN Selector with Access Technology");
+ef.insertLast("3F00,7F20,6F63,0,MF / DF_GSM,EF_CPBCCH,CPBCCH Information");
+ef.insertLast("3F00,7F20,6F64,0,MF / DF_GSM,EF_InvScan,Investigation Scan");
+ef.insertLast("3F00,7F20,6FC5,1,MF / DF_GSM,EF_PNN,PLMN Network Name");
+ef.insertLast("3F00,7F20,6FC6,1,MF / DF_GSM,EF_OPL,Operator PLMN List");
+ef.insertLast("3F00,7F20,6FC7,1,MF / DF_GSM,EF_MBDN,Mailbox Dialling Numbers");
+ef.insertLast("3F00,7F20,6FC9,1,MF / DF_GSM,EF_MBI,Mailbox Identifier");
+ef.insertLast("3F00,7F20,6FCA,1,MF / DF_GSM,EF_MWIS,Message Waiting Indication Status");
+ef.insertLast("3F00,7F20,6FCB,1,MF / DF_GSM,EF_CFIS,Call Forwarding Indication Status");
+ef.insertLast("3F00,7F20,6FC8,1,MF / DF_GSM,EF_EXT6,Extension6");
+ef.insertLast("3F00,7F20,6FCC,1,MF / DF_GSM,EF_EXT7,Extension7");
+ef.insertLast("3F00,7F20,6FCD,0,MF / DF_GSM,EF_SPDI,Service Provider Display Information");
+ef.insertLast("3F00,7F20,6FCE,1,MF / DF_GSM,EF_MMSN,MMS Notification");
+ef.insertLast("3F00,7F20,6FCF,1,MF / DF_GSM,EF_EXT8,Extension 8");
+ef.insertLast("3F00,7F20,6FD0,0,MF / DF_GSM,EF_MMSICP,MMS Issuer Connectivity Parameters");
+ef.insertLast("3F00,7F20,6FD1,1,MF / DF_GSM,EF_MMSUP,MMS User Preferences");
+ef.insertLast("3F00,7F20,6FD2,0,MF / DF_GSM,EF_MMSUCP,MMS User Connectivity Parameters");
+ef.insertLast("3F00,7F205F870,4F30,0,MF / DF_GSM / DF_SoLSA,EF_SAI,SoLSA Access Indicator");
+ef.insertLast("3F00,7F205F870,4F31,1,MF / DF_GSM / DF_SoLSA,EF_SLL,SoLSA LSA List");
+// Not supported // ef.insertLast("3F00,7F205F870,4FXX,1,MF / DF_GSM / DF_SoLSA,EF_...,LSA Descriptor files");
+ef.insertLast("3F00,7F205F3C,4F40,0,MF / DF_GSM / DF_MExE,EF_MExE-ST,MExE Service table");
+ef.insertLast("3F00,7F205F3C,4F41,1,MF / DF_GSM / DF_MExE,EF_ORPK,Operator Root Public Key");
+ef.insertLast("3F00,7F205F3C,4F42,1,MF / DF_GSM / DF_MExE,EF_ARPK,Administrator Root Public Key");
+ef.insertLast("3F00,7F205F3C,4F43,1,MF / DF_GSM / DF_MExE,EF_TPRPK,Third Party Root Public key");
+ef.insertLast("3F00,7F10,6F06,1,MF / DF_TELECOM,EF_ARR,Access Rule Reference");
+ef.insertLast("3F00,7F10,6FE0,1,MF / DF_TELECOM,EF_ICE_DN,In Case of Emergency – Dialling Number");
+ef.insertLast("3F00,7F10,6FE1,1,MF / DF_TELECOM,EF_ICE_FF,In Case of Emergency – Free Format");
+ef.insertLast("3F00,7F10,6FE5,1,MF / DF_TELECOM,EF_PSISMSC,Public Service Identity of the SM-SC");
+ef.insertLast("3F00,7F105F50,4F20,1,MF / DF_TELECOM / DF_GRAPHICS,EF_IMG,Image");
+// Not supported // ef.insertLast("3F00,7F105F50,4FXX,0,MF / DF_TELECOM / DF_GRAPHICS,EF_IIDF,Image Instance Data Files");
+ef.insertLast("3F00,7F105F3A,4F30,1,MF / DF_TELECOM / DF_PHONEBOOK,EF_PBR,Phone Book Reference file");
+// Not supported // ef.insertLast("3F00,7F105F3A,4FXX,1,MF / DF_TELECOM / DF_PHONEBOOK,EF_IAP,Index Administration Phone book");
+// Not supported // ef.insertLast("3F00,7F105F3A,4FXX,1,MF / DF_TELECOM / DF_PHONEBOOK,EF_ADN,Abbreviated dialling numbers");
+// Not supported // ef.insertLast("3F00,7F105F3A,4FXX,1,MF / DF_TELECOM / DF_PHONEBOOK,EF_EXT1,Extension1");
+// Not supported // ef.insertLast("3F00,7F105F3A,4FXX,1,MF / DF_TELECOM / DF_PHONEBOOK,EF_PBC,Phone Book Control");
+// Not supported // ef.insertLast("3F00,7F105F3A,4FXX,1,MF / DF_TELECOM / DF_PHONEBOOK,EF_GRP,Grouping file");
+// Not supported // ef.insertLast("3F00,7F105F3A,4FXX,1,MF / DF_TELECOM / DF_PHONEBOOK,EF_AAS,Additional number Alpha String");
+// Not supported // ef.insertLast("3F00,7F105F3A,4FXX,1,MF / DF_TELECOM / DF_PHONEBOOK,EF_GAS,Grouping information Alpha String");
+// Not supported // ef.insertLast("3F00,7F105F3A,4FXX,1,MF / DF_TELECOM / DF_PHONEBOOK,EF_ANR,Additional Number");
+// Not supported // ef.insertLast("3F00,7F105F3A,4FXX,1,MF / DF_TELECOM / DF_PHONEBOOK,EF_SNE,Second Name Entry");
+// Not supported // ef.insertLast("3F00,7F105F3A,4FXX,1,MF / DF_TELECOM / DF_PHONEBOOK,EF_CCP1,Capability Configuration Parameters 1");
+// Not supported // ef.insertLast("3F00,7F105F3A,4FXX,1,MF / DF_TELECOM / DF_PHONEBOOK,EF_UID,Unique Identifier");
+ef.insertLast("3F00,7F105F3A,4F22,0,MF / DF_TELECOM / DF_PHONEBOOK,EF_PSC,Phone book Synchronisation Counter");
+ef.insertLast("3F00,7F105F3A,4F23,0,MF / DF_TELECOM / DF_PHONEBOOK,EF_CC,Change Counter");
+ef.insertLast("3F00,7F105F3A,4F24,0,MF / DF_TELECOM / DF_PHONEBOOK,EF_PUID,Previous Unique Identifier");
+// Not supported // ef.insertLast("3F00,7F105F3A,4FXX,1,MF / DF_TELECOM / DF_PHONEBOOK,EF_EMAIL,e-mail address");
+// Not supported // ef.insertLast("3F00,7F105F3A,4FXX,1,MF / DF_TELECOM / DF_PHONEBOOK,EF_PURI,Phonebook URIs");
+ef.insertLast("3F00,7F105F3D,4F01,0,MF / DF_TELECOM / DF_MCS,EF_MST,MCS Service Table");
+ef.insertLast("3F00,7F105F3E,4F01,0,MF / DF_TELECOM / DF_V2X,EF_VST,V2X Service Table");
+ef.insertLast("3F00,7F105F3E,4F03,0,MF / DF_TELECOM / DF_V2X,EF_V2XP_PC5,V2X data policy over PC5");
+ef.insertLast("3F00,7F105F3E,4F04,0,MF / DF_TELECOM / DF_V2X,EF_V2XP_Uu,V2X data policy over Uu");
+ef.insertLast("7FFF,,6F05,0,ADF_USIM,EF_LI,Language Indication");
+ef.insertLast("7FFF,,6F07,0,ADF_USIM,EF_IMSI,IMSI");
+ef.insertLast("7FFF,,6F08,0,ADF_USIM,EF_Keys,Ciphering and Integrity Keys");
+ef.insertLast("7FFF,,6F09,0,ADF_USIM,EF_KeysPS,Ciphering and Integrity Keys for Packet Switched domain");
+ef.insertLast("7FFF,,6F60,0,ADF_USIM,EF_PLMNwAcT,User controlled PLMN selector with Access Technology");
+ef.insertLast("7FFF,,6F31,0,ADF_USIM,EF_HPPLMN,Higher Priority PLMN search period");
+ef.insertLast("7FFF,,6F37,0,ADF_USIM,EF_ACMmax,ACM maximum value");
+ef.insertLast("7FFF,,6F38,0,ADF_USIM,EF_UST,USIM Service Table");
+ef.insertLast("7FFF,,6F39,3,ADF_USIM,EF_ACM,Accumulated Call Meter");
+ef.insertLast("7FFF,,6F3E,0,ADF_USIM,EF_GID1,Group Identifier Level 1");
+ef.insertLast("7FFF,,6F3F,0,ADF_USIM,EF_GID2,Group Identifier Level 2");
+ef.insertLast("7FFF,,6F46,0,ADF_USIM,EF_SPN,Service Provider Name");
+ef.insertLast("7FFF,,6F41,0,ADF_USIM,EF_PUCT,Price per Unit and Currency Table");
+ef.insertLast("7FFF,,6F45,0,ADF_USIM,EF_CBMI,Cell Broadcast Message identifier selection");
+ef.insertLast("7FFF,,6F78,0,ADF_USIM,EF_ACC,Access Control Class");
+ef.insertLast("7FFF,,6F7B,0,ADF_USIM,EF_FPLMN,Forbidden PLMNs");
+ef.insertLast("7FFF,,6F7E,0,ADF_USIM,EF_LOCI,Location Information");
+ef.insertLast("7FFF,,6FAD,0,ADF_USIM,EF_AD,Administrative Data");
+ef.insertLast("7FFF,,6F48,0,ADF_USIM,EF_CBMID,Cell Broadcast Message Identifier for Data Download");
+ef.insertLast("7FFF,,6FB7,1,ADF_USIM,EF_ECC,Emergency Call Codes");
+ef.insertLast("7FFF,,6F50,0,ADF_USIM,EF_CBMIR,Cell Broadcast Message Identifier Range selection");
+ef.insertLast("7FFF,,6F73,0,ADF_USIM,EF_PSLOCI,Packet Switched location information");
+ef.insertLast("7FFF,,6F3B,1,ADF_USIM,EF_FDN,Fixed Dialling Numbers");
+ef.insertLast("7FFF,,6F3C,1,ADF_USIM,EF_SMS,Short messages");
+ef.insertLast("7FFF,,6F40,1,ADF_USIM,EF_MSISDN,MSISDN");
+ef.insertLast("7FFF,,6F42,1,ADF_USIM,EF_SMSP,Short message service parameters");
+ef.insertLast("7FFF,,6F43,0,ADF_USIM,EF_SMSS,SMS status");
+ef.insertLast("7FFF,,6F49,1,ADF_USIM,EF_SDN,Service Dialling Numbers");
+ef.insertLast("7FFF,,6F4B,1,ADF_USIM,EF_EXT2,Extension2");
+ef.insertLast("7FFF,,6F4C,1,ADF_USIM,EF_EXT3,Extension3");
+ef.insertLast("7FFF,,6F47,1,ADF_USIM,EF_SMSR,Short message status reports");
+ef.insertLast("7FFF,,6F80,3,ADF_USIM,EF_ICI,Incoming Call Information");
+ef.insertLast("7FFF,,6F81,3,ADF_USIM,EF_OCI,Outgoing Call Information");
+ef.insertLast("7FFF,,6F82,3,ADF_USIM,EF_ICT,Incoming Call Timer");
+ef.insertLast("7FFF,,6F83,3,ADF_USIM,EF_OCT,Outgoing Call Timer");
+ef.insertLast("7FFF,,6F4E,1,ADF_USIM,EF_EXT5,Extension5");
+ef.insertLast("7FFF,,6F4F,1,ADF_USIM,EF_CCP2,Capability Configuration Parameters 2");
+ef.insertLast("7FFF,,6FB5,0,ADF_USIM,EF_eMLPP,enhanced Multi Level Precedence and Pre-emption");
+ef.insertLast("7FFF,,6FB6,0,ADF_USIM,EF_AaeM,Automatic Answer for eMLPP Service");
+ef.insertLast("7FFF,,6FC3,0,ADF_USIM,EF_Hiddenkey,Key for hidden phone book entries");
+ef.insertLast("7FFF,,6F4D,1,ADF_USIM,EF_BDN,Barred Dialling Numbers");
+ef.insertLast("7FFF,,6F55,1,ADF_USIM,EF_EXT4,Extension4");
+ef.insertLast("7FFF,,6F58,1,ADF_USIM,EF_CMI,Comparison Method Information");
+ef.insertLast("7FFF,,6F56,0,ADF_USIM,EF_EST,Enabled Services Table");
+ef.insertLast("7FFF,,6F57,0,ADF_USIM,EF_ACL,Access Point Name Control List");
+ef.insertLast("7FFF,,6F2C,0,ADF_USIM,EF_DCK,Depersonalisation Control Keys");
+ef.insertLast("7FFF,,6F32,0,ADF_USIM,EF_CNL,Co-operative Network List");
+ef.insertLast("7FFF,,6F5B,0,ADF_USIM,EF_START-HFN,Initialisation values for Hyperframe number");
+ef.insertLast("7FFF,,6F5C,0,ADF_USIM,EF_THRESHOLD,Maximum value of START");
+ef.insertLast("7FFF,,6F61,0,ADF_USIM,EF_OPLMNwACT,Operator controlled PLMN selector with Access");
+ef.insertLast("7FFF,,6F62,0,ADF_USIM,EF_HPLMNwAcT,HPLMN selector with Access Technology");
+ef.insertLast("7FFF,,6F06,1,ADF_USIM,EF_ARR,Access Rule Reference");
+ef.insertLast("7FFF,,6FC4,0,ADF_USIM,EF_NETPAR,Network Parameters");
+ef.insertLast("7FFF,,6FC5,1,ADF_USIM,EF_PNN,PLMN Network Name");
+ef.insertLast("7FFF,,6FC6,1,ADF_USIM,EF_OPL,Operator PLMN List");
+ef.insertLast("7FFF,,6FC7,1,ADF_USIM,EF_MBDN,Mailbox Dialling Numbers");
+ef.insertLast("7FFF,,6FC8,1,ADF_USIM,EF_EXT6,Extension6");
+ef.insertLast("7FFF,,6FC9,1,ADF_USIM,EF_MBI,Mailbox Identifier");
+ef.insertLast("7FFF,,6FCA,1,ADF_USIM,EF_MWIS,Message Waiting Indication Status");
+ef.insertLast("7FFF,,6FCB,1,ADF_USIM,EF_CFIS,Call Forwarding Indication Status");
+ef.insertLast("7FFF,,6FCC,1,ADF_USIM,EF_EXT7,Extension7");
+ef.insertLast("7FFF,,6FCD,0,ADF_USIM,EF_SPDI,Service Provider Display Information");
+ef.insertLast("7FFF,,6FCE,1,ADF_USIM,EF_MMSN,MMS Notification");
+ef.insertLast("7FFF,,6FCF,1,ADF_USIM,EF_EXT8,Extension 8");
+ef.insertLast("7FFF,,6FD0,0,ADF_USIM,EF_MMSICP,MMS Issuer Connectivity Parameters");
+ef.insertLast("7FFF,,6FD1,1,ADF_USIM,EF_MMSUP,MMS User Preferences");
+ef.insertLast("7FFF,,6FD2,0,ADF_USIM,EF_MMSUCP,MMS User Connectivity Parameters");
+ef.insertLast("7FFF,,6FD3,1,ADF_USIM,EF_NIA,Network's Indication of Alerting");
+ef.insertLast("7FFF,,6FB1,0,ADF_USIM,EF_VGCS,Voice Group Call Service");
+ef.insertLast("7FFF,,6FB2,0,ADF_USIM,EF_VGCSS,Voice Group Call Service Status");
+ef.insertLast("7FFF,,6FB3,0,ADF_USIM,EF_VBS,Voice Broadcast Service");
+ef.insertLast("7FFF,,6FB4,0,ADF_USIM,EF_VBSS,Voice Broadcast Service Status");
+ef.insertLast("7FFF,,6FD4,0,ADF_USIM,EF_VGCSCA,Voice Group Call Service Ciphering Algorithm");
+ef.insertLast("7FFF,,6FD5,0,ADF_USIM,EF_VBSCA,Voice Broadcast Service Ciphering Algorithm");
+ef.insertLast("7FFF,,6FD6,0,ADF_USIM,EF_GBABP,GBA Bootstrapping parameters");
+ef.insertLast("7FFF,,6FD7,1,ADF_USIM,EF_MSK,MBMS Service Keys List");
+ef.insertLast("7FFF,,6FD8,1,ADF_USIM,EF_MUK,MBMS User Key");
+ef.insertLast("7FFF,,6FDA,1,ADF_USIM,EF_GBANL,GBA NAF List");
+ef.insertLast("7FFF,,6FD9,0,ADF_USIM,EF_EHPLMN,Equivalent HPLMN");
+ef.insertLast("7FFF,,6FDB,0,ADF_USIM,EF_EHPLMNPI,Equivalent HPLMN Presentation Indication");
+ef.insertLast("7FFF,,6FDC,0,ADF_USIM,EF_LRPLMNSI,Last RPLMN Selection Indication");
+ef.insertLast("7FFF,,6FDD,1,ADF_USIM,EF_NAFKCA,NAF Key Centre Address");
+ef.insertLast("7FFF,,6FDE,0,ADF_USIM,EF_SPNI,Service Provider Name Icon");
+ef.insertLast("7FFF,,6FDF,1,ADF_USIM,EF_PNNI,PLMN Network Name Icon");
+ef.insertLast("7FFF,,6FE2,1,ADF_USIM,EF_NCP-IP,Network Connectivity Parameters for USIM IP connections");
+ef.insertLast("7FFF,,6FE3,0,ADF_USIM,EF_EPSLOCI,EPS location information");
+ef.insertLast("7FFF,,6FE4,1,ADF_USIM,EF_EPSNSC,EPS NAS Security Context");
+ef.insertLast("7FFF,,6FE6,0,ADF_USIM,EF_UFC,USAT Facility Control");
+ef.insertLast("7FFF,,6FE8,0,ADF_USIM,EF_NASCONFIG,Non Access Stratum Configuration");
+ef.insertLast("7FFF,,6FE7,1,ADF_USIM,EF_UICCIARI,UICC IARI");
+ef.insertLast("7FFF,,6FEC,0,ADF_USIM,EF_PWS,Public Warning System");
+ef.insertLast("7FFF,,6FED,1,ADF_USIM,EF_FDNURI,Fixed Dialling Numbers URI");
+ef.insertLast("7FFF,,6FEE,1,ADF_USIM,EF_BDNURI,Barred Dialling Numbers URI");
+ef.insertLast("7FFF,,6FEF,1,ADF_USIM,EF_SDNURI,Service Dialling Numbers URI");
+ef.insertLast("7FFF,,6FF0,1,ADF_USIM,EF_IWL,IMEI(SV) White Lists");
+ef.insertLast("7FFF,,6FF1,3,ADF_USIM,EF_IPS,IMEI(SV) Pairing Status");
+ef.insertLast("7FFF,,6FF2,1,ADF_USIM,EF_IPD,IMEI(SV) of Pairing Device");
+ef.insertLast("7FFF,,6FF3,0,ADF_USIM,EF_ePDGId,Home ePDG Identifier");
+ef.insertLast("7FFF,,6FF4,0,ADF_USIM,EF_ePDGSelection,ePDG Selection Information");
+ef.insertLast("7FFF,,6FF5,0,ADF_USIM,EF_ePDGIdEm,Emergency ePDG Identifier");
+ef.insertLast("7FFF,,6FF6,0,ADF_USIM,EF_ePDGSelectionEm,ePDG Selection Information for Emergency");
+ef.insertLast("7FFF,,6FF7,0,ADF_USIM,EF_FromPreferred,From Preferred");
+ef.insertLast("7FFF,,6FFB,1,ADF_USIM,EF_TVCONFIG,TV Configuration");
+ef.insertLast("7FFF,,6FF9,0,ADF_USIM,EF_3GPPPSDATAOFF,3GPP PS Data Off");
+ef.insertLast("7FFF,,6FFA,1,ADF_USIM,EF_3GPPPSDATAOFFservicelist,3GPP PS Data Off Service List");
+ef.insertLast("7FFF,,6FFD,0,ADF_USIM,EF_EARFCNList,EARFCN list for MTC/NB-IOT UEs");
+ef.insertLast("7FFF,5F3A,4F30,1,ADF_USIM / DF_PHONEBOOK,EF_PBR,Phone Book Reference file");
+// Not supported // ef.insertLast("7FFF,5F3A,4FXX,1,ADF_USIM / DF_PHONEBOOK,EF_IAP,Index Administration Phone book");
+// Not supported // ef.insertLast("7FFF,5F3A,4FXX,1,ADF_USIM / DF_PHONEBOOK,EF_ADN,Abbreviated dialling numbers");
+// Not supported // ef.insertLast("7FFF,5F3A,4FXX,1,ADF_USIM / DF_PHONEBOOK,EF_EXT1,Extension1");
+// Not supported // ef.insertLast("7FFF,5F3A,4FXX,1,ADF_USIM / DF_PHONEBOOK,EF_PBC,Phone Book Control");
+// Not supported // ef.insertLast("7FFF,5F3A,4FXX,1,ADF_USIM / DF_PHONEBOOK,EF_GRP,Grouping file");
+// Not supported // ef.insertLast("7FFF,5F3A,4FXX,1,ADF_USIM / DF_PHONEBOOK,EF_AAS,Additional number Alpha String");
+// Not supported // ef.insertLast("7FFF,5F3A,4FXX,1,ADF_USIM / DF_PHONEBOOK,EF_GAS,Grouping information Alpha String");
+// Not supported // ef.insertLast("7FFF,5F3A,4FXX,1,ADF_USIM / DF_PHONEBOOK,EF_ANR,Additional Number");
+// Not supported // ef.insertLast("7FFF,5F3A,4FXX,1,ADF_USIM / DF_PHONEBOOK,EF_SNE,Second Name Entry");
+// Not supported // ef.insertLast("7FFF,5F3A,4FXX,1,ADF_USIM / DF_PHONEBOOK,EF_CCP1,Capability Configuration Parameters 1");
+// Not supported // ef.insertLast("7FFF,5F3A,4FXX,1,ADF_USIM / DF_PHONEBOOK,EF_UID,Unique Identifier");
+ef.insertLast("7FFF,5F3A,4F22,0,ADF_USIM / DF_PHONEBOOK,EF_PSC,Phone book Synchronisation Counter");
+ef.insertLast("7FFF,5F3A,4F23,0,ADF_USIM / DF_PHONEBOOK,EF_CC,Change Counter");
+ef.insertLast("7FFF,5F3A,4F24,0,ADF_USIM / DF_PHONEBOOK,EF_PUID,Previous Unique Identifier");
+// Not supported // ef.insertLast("7FFF,5F3A,4FXX,1,ADF_USIM / DF_PHONEBOOK,EF_EMAIL,e-mail address");
+// Not supported // ef.insertLast("7FFF,5F3A,4FXX,1,ADF_USIM / DF_PHONEBOOK,EF_PURI,Phonebook URIs");
+ef.insertLast("7FFF,5F3B,4F20,0,ADF_USIM / DF_GSM-ACCESS,EF_Kc,GSM Ciphering key Kc");
+ef.insertLast("7FFF,5F3B,4F52,0,ADF_USIM / DF_GSM-ACCESS,EF_KcGPRS,GPRS Ciphering key KcGPRS");
+ef.insertLast("7FFF,5F3B,4F63,0,ADF_USIM / DF_GSM-ACCESS,EF_CPBCCH,CPBCCH Information");
+ef.insertLast("7FFF,5F3B,4F64,0,ADF_USIM / DF_GSM-ACCESS,EF_InvScan,Investigation Scan");
+ef.insertLast("7FFF,5F3C,4F40,0,ADF_USIM / DF_MexE,EF_MexE-ST,MexE Service table");
+ef.insertLast("7FFF,5F3C,4F41,1,ADF_USIM / DF_MexE,EF_ORPK,Operator Root Public Key");
+ef.insertLast("7FFF,5F3C,4F42,1,ADF_USIM / DF_MexE,EF_ARPK,Administrator Root Public Key");
+ef.insertLast("7FFF,5F3C,4F43,1,ADF_USIM / DF_MexE,EF_TPRPK,Third Party Root Public Key");
+// Not supported // ef.insertLast("7FFF,5F3C,4FXX,0,ADF_USIM / DF_MexE,EF_TKCDF,Trusted Key/Certificates Data Files");
+ef.insertLast("7FFF,5F70,4F30,0,ADF_USIM / DF_SoLSA,EF_SAI,SoLSA Access Indicator");
+ef.insertLast("7FFF,5F70,4F31,1,ADF_USIM / DF_SoLSA,EF_SLL,SoLSA LSA List");
+// Not supported // ef.insertLast("7FFF,5F70,4FXX,1,ADF_USIM / DF_SoLSA,EF_LSA,LSA Descriptor files");
+ef.insertLast("7FFF,5F40,4F41,0,ADF_USIM / DF_WLAN,EF_Pseudo,Pseudonym");
+ef.insertLast("7FFF,5F40,4F42,0,ADF_USIM / DF_WLAN,EF_UPLMNWLAN,User controlled PLMN selector for I-WLAN Access");
+ef.insertLast("7FFF,5F40,4F43,0,ADF_USIM / DF_WLAN,EF_OPLMNWLAN,Operator controlled PLMN selector for I-WLAN Access");
+ef.insertLast("7FFF,5F40,4F44,1,ADF_USIM / DF_WLAN,EF_UWSIDL,User controlled WLAN Specific Identifier List");
+ef.insertLast("7FFF,5F40,4F45,1,ADF_USIM / DF_WLAN,EF_OWSIDL,Operator controlled WLAN Specific IdentifierList");
+ef.insertLast("7FFF,5F40,4F46,0,ADF_USIM / DF_WLAN,EF_WRI,WLAN Reauthentication Identity");
+ef.insertLast("7FFF,5F40,4F47,1,ADF_USIM / DF_WLAN,EF_HWSIDL,Home I-WLAN Specific Identifier List");
+ef.insertLast("7FFF,5F40,4F48,0,ADF_USIM / DF_WLAN,EF_WEHPLMNPI,I-WLAN Equivalent HPLMN Presentation Indication");
+ef.insertLast("7FFF,5F40,4F49,0,ADF_USIM / DF_WLAN,EF_WHPI,I-WLAN HPLMN Priority Indication");
+ef.insertLast("7FFF,5F40,4F4A,0,ADF_USIM / DF_WLAN,EF_WLRPLMN,I-WLAN Last Registered PLMN");
+ef.insertLast("7FFF,5F40,4F4B,0,ADF_USIM / DF_WLAN,EF_HPLMNDAI,HPLMN Direct Access Indicator");
+ef.insertLast("7FFF,5F50,4F81,1,ADF_USIM / DF_HNB,EF_ACSGL,Allowed CSG Lists");
+ef.insertLast("7FFF,5F50,4F82,1,ADF_USIM / DF_HNB,EF_CSGT,CSG Type");
+ef.insertLast("7FFF,5F50,4F83,1,ADF_USIM / DF_HNB,EF_HNBN,Home NodeB Name");
+ef.insertLast("7FFF,5F50,4F84,1,ADF_USIM / DF_HNB,EF_OCSGL,Operator CSG Lists");
+ef.insertLast("7FFF,5F50,4F85,1,ADF_USIM / DF_HNB,EF_OCSGT,Operator CSG Type");
+ef.insertLast("7FFF,5F50,4F86,1,ADF_USIM / DF_HNB,EF_OHNBN,Operator Home NodeB Name");
+ef.insertLast("7FFF,5F90,4F01,1,ADF_USIM / DF_ProSe,EF_PROSE_MON,ProSe Monitoring Parameters");
+ef.insertLast("7FFF,5F90,4F02,1,ADF_USIM / DF_ProSe,EF_PROSE_ANN,ProSe Announcing Parameters");
+ef.insertLast("7FFF,5F90,4F03,1,ADF_USIM / DF_ProSe,EF_PROSEFUNC,HPLMN ProSe Function");
+ef.insertLast("7FFF,5F90,4F04,0,ADF_USIM / DF_ProSe,EF_PROSE_RADIO_COM,ProSe Direct Communication Radio Parameters");
+ef.insertLast("7FFF,5F90,4F05,0,ADF_USIM / DF_ProSe,EF_PROSE_RADIO_MON,ProSe Direct Discovery Monitoring Radio Parameters");
+ef.insertLast("7FFF,5F90,4F06,0,ADF_USIM / DF_ProSe,EF_PROSE_RADIO_ANN,ProSe Direct Discovery Announcing Radio Parameters");
+ef.insertLast("7FFF,5F90,4F07,1,ADF_USIM / DF_ProSe,EF_PROSE_POLICY,ProSe Policy Parameters");
+ef.insertLast("7FFF,5F90,4F08,1,ADF_USIM / DF_ProSe,EF_PROSE_PLMN,ProSe PLMN Parameters");
+ef.insertLast("7FFF,5F90,4F09,0,ADF_USIM / DF_ProSe,EF_PROSE_GC,ProSe Group Counter");
+ef.insertLast("7FFF,5F90,4F10,0,ADF_USIM / DF_ProSe,EF_PST,ProSe Service Table");
+ef.insertLast("7FFF,5F90,4F11,0,ADF_USIM / DF_ProSe,EF_PROSE_UIRC,ProSe UsageInformationReportingConfiguration");
+ef.insertLast("7FFF,5F90,4F12,1,ADF_USIM / DF_ProSe,EF_PROSE_GM_DISCOVERY,ProSe Group Member Discovery Parameters");
+ef.insertLast("7FFF,5F90,4F13,1,ADF_USIM / DF_ProSe,EF_PROSE_RELAY,ProSe Relay Parameters");
+ef.insertLast("7FFF,5F90,4F14,0,ADF_USIM / DF_ProSe,EF_PROSE_RELAY_DISCOVERY,ProSe Relay Discovery Parameters");
+ef.insertLast("7FFF,5FA0,4F01,0,ADF_USIM / DF_ACDC,EF_ACDC_LIST,ACDC List");
+// Not supported // ef.insertLast("7FFF,5FA0,4FXX,0,ADF_USIM / DF_ACDC,EF_ACDC_OS_CONFIG,ACDC OS configuration");
+// Not supported // ef.insertLast("7FFF,5FB0,4FXX,0,ADF_USIM / DF_TV,EF_TVUSD,TV User Service Description");
+ef.insertLast("7FFF,5FC0,4F01,0,ADF_USIM / DF5GS,EF_5GS3GPPLOCI,5GS 3GPP location information");
+ef.insertLast("7FFF,5FC0,4F02,0,ADF_USIM / DF5GS,EF_5GSN3GPPLOCI,5GS non-3GPP location information");
+ef.insertLast("7FFF,5FC0,4F03,1,ADF_USIM / DF5GS,EF_5GS3GPPNSC,5GS 3GPP Access NAS Security Context");
+ef.insertLast("7FFF,5FC0,4F04,1,ADF_USIM / DF5GS,EF_5GSN3GPPNSC,5GS non-3GPP Access NAS Security Context");
+ef.insertLast("7FFF,5FC0,4F05,0,ADF_USIM / DF5GS,EF_5GAUTHKEYS,5G authentication keys");
+ef.insertLast("7FFF,5FC0,4F06,0,ADF_USIM / DF5GS,EF_UAC_AIC,UAC Access Identities Configuration");
+ef.insertLast("7FFF,5FC0,4F07,0,ADF_USIM / DF5GS,EF_SUCI_Calc_Info,Subscription Concealed Identifier Calculation Information EF");
+ef.insertLast("7FFF,5FC0,4F08,1,ADF_USIM / DF5GS,EF_OPL5G,5GS Operator PLMN List");
+ef.insertLast("7FFF,5FC0,4F09,0,ADF_USIM / DF5GS,EF_SUPI_NAI,SUPI as Network Access Identifier");
+ef.insertLast("7FFF,5FC0,4F0A,0,ADF_USIM / DF5GS,EF_Routing_Indicator,Routing Indicator EF");
+ef.insertLast("7FFF,5FC0,4F0C,0,ADF_USIM / DF5GS,EF_TN3GPPSNN,Trusted non-3GPP Serving network names list");
+// // Not supported yet // ef.insertLast("ADF_ISIM,,6F02,0,ADF_ISIM,EF_IMPI,IMS private user identity");
+// // Not supported yet // ef.insertLast("ADF_ISIM,,6F03,0,ADF_ISIM,EF_DOMAIN,Home Network Domain Name");
+// // Not supported yet // ef.insertLast("ADF_ISIM,,6F04,1,ADF_ISIM,EF_IMPU,IMS public user identity");
+// // Not supported yet // ef.insertLast("ADF_ISIM,,6FAD,0,ADF_ISIM,EF_AD,Administrative Data");
+// // Not supported yet // ef.insertLast("ADF_ISIM,,6F06,1,ADF_ISIM,EF_ARR,Access Rule Reference");
+// // Not supported yet // ef.insertLast("ADF_ISIM,,6F07,0,ADF_ISIM,EF_IST,ISIM Service Table");
+// // Not supported yet // ef.insertLast("ADF_ISIM,,6F09,1,ADF_ISIM,EF_P-CSCF,P-CSCF Address");
+// // Not supported yet // ef.insertLast("ADF_ISIM,,6FD5,0,ADF_ISIM,EF_GBABP,GBA Bootstrapping parameters");
+// // Not supported yet // ef.insertLast("ADF_ISIM,,6FD7,1,ADF_ISIM,EF_GBANL,GBA NAF List");
+// // Not supported yet // ef.insertLast("ADF_ISIM,,6FDD,1,ADF_ISIM,EF_NAFKCA,NAF Key Centre Address");
+// // Not supported yet // ef.insertLast("ADF_ISIM,,6F3C,1,ADF_ISIM,EF_SMS,Short messages");
+// // Not supported yet // ef.insertLast("ADF_ISIM,,6F43,0,ADF_ISIM,EF_SMSS,SMS status");
+// // Not supported yet // ef.insertLast("ADF_ISIM,,6F47,1,ADF_ISIM,EF_SMSR,Short message status reports");
+// // Not supported yet // ef.insertLast("ADF_ISIM,,6F42,1,ADF_ISIM,EF_SMSP,Short message service parameters");
+// // Not supported yet // ef.insertLast("ADF_ISIM,,6FE7,1,ADF_ISIM,EF_UICCIARI,UICC IARI");
+// // Not supported yet // ef.insertLast("ADF_ISIM,,6FFA,1,ADF_ISIM,EF_WebRTCURI,WebRTC URI");
+
+/*******************************************************************************
+* end of EF list
+*******************************************************************************/
+
+
+// DUT basic settings init and identification
+ATE0
+AT+CMEE=2
+ATI0
+ATI9
+AT+CGSN
+AT+CIMI
+AT+CCID
+
+// DUT registration status request
+AT+CFUN?
+AT+COPS?
+
+// main
+for( uint  n = 0; n < ef.length(); n++ ) {
+	// read each field of the array item
+	// [0]          [1]           [2]     [3]            [4]              [5]       [6]
+	// <MF/ADF_ID>,<Sub_Path_ID>,<EF_ID>,<Structure_ID>,<Full_Path_Name>,<EF_Name>,<Description>
+	// 3F00       , 7F20        , 6F07  , 0            , MF / DF GSM    , EF(IMSI), IMSI
+	ef_prm       = ef[n].split(',');
+	ef_root_id   = ef_prm[0];            // Root Path (MF/ADF) id [hex or string]
+	ef_sub_id    = ef_prm[1];            // Sub Path [hex]
+	ef_id_h      = ef_prm[2];            // EF ID [hex]
+	ef_id_d      = parseInt(ef_id_h,16); // EF ID [dec]
+	ef_struct_id = parseInt(ef_prm[3]);  // EF Structure Id
+	ef_full_path = ef_prm[4];            // EF Full Path Name
+	ef_name      = ef_prm[5];            // EF name
+	ef_desc      = ef_prm[6];            // EF description
+
+	reading_2_log = true;
+	
+	// ef_full_id  = ef_root_id + ef_sub_id; 	// EF full path id [hex] = MF/ADF_id[hex] & Sub_path_id_[hex]
+	if ( ef_root_id == "3F00") {				// MF
+		ef_full_id  = ef_root_id + ef_sub_id;
+	}
+	else if ( ef_root_id == "7FFF") {			// ADF_USIM
+		ef_full_id  = ef_root_id + ef_sub_id;
+	}
+	else if ( ef_root_id == "ADF_ISIM") {		// ADF_ISIM
+		ef_full_id  = adf_isim_id + ef_sub_id;	//// TO DO: implement the reading of adf_isim_id from +CUAD
+
+	}
+	
+	switch (ef_struct_id) 
+	{
+		case 0:
+			// structure = transparent --> BINARY access mode
+			another_rec_2_read = false;  // no Records are expected in this type
+			crsm_cmd = 176;
+			crsm_p1  = 0;
+			crsm_p2  = 0;
+			crsm_p3  = 0;
+			break;
+		case 1:
+		case 3:
+		// structure = linear fixed or cyclic --> RECORD access mode
+			another_rec_2_read = true;  // possible multiple records to read
+			crsm_cmd = 178;
+			crsm_p1  = 1;  // record nr
+			crsm_p2  = 4;
+			crsm_p3  = 0;
+			break;
+		default:
+			// structure value not expected
+			another_rec_2_read = false;
+			ECHO("ERROR: EF structure value not expected");
+			break;
+	}
+	PAUSE 10;
+
+
+
+	do {
+		report_row = "";
+		aat_cmd = "AT+CRSM=" + crsm_cmd + "," + ef_id_d + "," + crsm_p1 + "," + crsm_p2 + "," ;
+		if (ef_full_id == "") {
+			aat_cmd0 = aat_cmd + crsm_p3;
+		}
+		else {
+			aat_cmd0 = aat_cmd + crsm_p3 + "," + crsm_data + ",\"" + ef_full_id + "\"" ;
+		}
+		PAUSE 40;  
+		// needed to avoid overlapping in the m-center terminal window
+		aat_resp = SENDAT(aat_cmd0, timeoutM, "+");
+
+		array<string> Params;
+		
+		if(!aat_resp.isEmpty()) {
+			// it could be: +CRSM: <sw1>,<sw2>[,<Response>]
+			//	            +CME ERROR: <err>
+			//              ERROR
+			aat_resp_prefix = aat_resp.split(': ')[0]; 
+			if (aat_resp_prefix.length() < aat_resp.length() ) { 
+				aat_resp_payload = aat_resp.split(': ')[1]; 
+			}
+
+			if (aat_resp_prefix == "+CRSM") {
+				Params = aat_resp_payload.split(',');
+				crsm_sw1 = parseInt(Params[0]);
+				crsm_sw2 = parseInt(Params[1]);
+
+				switch (crsm_sw1) {
+					case 144:
+					case 145:
+						crsm_response = Params[2];
+						break;
+					case 103:
+						aat_cmd1 = aat_cmd + Params[1];
+						PAUSE 10;
+						aat_resp = SENDAT(aat_cmd1, timeoutM, "+CRSM:");
+						aat_resp_payload = aat_resp.split(': ')[1]; 
+						Params = aat_resp_payload.split(',');
+						crsm_response = Params[2];
+						break;
+					case 106:                        // file/record not found; incorrect parameters P1 to P2 
+						if (crsm_p1 <= 1) {
+							crsm_response = "+CRSM: not found / wrong params";
+						}
+						else {
+							reading_2_log = false;
+						}
+						another_rec_2_read = false;
+						break;
+					default:
+						crsm_response = "+CRSM: " + crsm_sw1 + "," + crsm_sw2;
+						// another_rec_2_read = false;
+						break;
+				}
+			}
+			else {
+											// if crsm_response does not start with "+CRSM" ...
+				crsm_response = aat_resp;	// ... the whole response is reported (for debugging) ...
+				another_rec_2_read = false; // ... and next EF is read.
+			}
+			// message for ANALYSYS RECAP:
+			//		|<Full Path Name>|<EF name>|<Full Path ID hex>|<EF ID hex >|<EF ID dec>|<Record Nr>|<EF content>|
+			//		e.g.
+			//		|MF|EF ICCID|3F00|2FE2|12258|0|"989388435801009549F4"|
+
+			if (reading_2_log) {
+				report_row = " | " + ef_full_path + " | " + ef_name + " | " +  ef_full_id + " | " + ef_id_h + " | " + ef_id_d + " | " + crsm_p1 + " | " + crsm_response + " | ";
+				ECHO(report_row);
+				report_all.insertLast(report_row);
+			}
+
+			if (ef_id_h == "2F00") {     // if EF_DIR [12032(dec)] read out the ADF(*SIM) adresses
+				aid_len_h = crsm_response.substr(7,2);
+				aid_len_d = parseInt(aid_len_h,16)*2;
+				aid_app_code = crsm_response.substr(19,4);	
+				aid_whole = crsm_response.substr(9,aid_len_d);	
+				
+				// ECHO("----aid_len_d----->>> " + aid_len_d);
+				// ECHO("----aid_app_code-->>> " + aid_app_code);
+				// ECHO("----aid_whole----->>> " + aid_whole);
+				
+				if (aid_app_code=="1002") {
+					ECHO("--record " + crsm_p1 + " is ADF(USIM)");
+				}
+				else if(aid_app_code=="1004") {
+					ECHO("--record " + crsm_p1 + " is ADF(ISIM)");
+				}
+				else {
+					ECHO("--record " + crsm_p1 + " is something else");
+				}
+				PAUSE 100;
+			}
+			
+			crsm_p1++;    // next record
+		}
+		else {
+			ECHO("ERROR: No Response or unexpected response");
+		}
+		aat_resp_prefix = "";		// clean work variable
+		aat_resp_payload = "";		// clean work variable
+	} while (another_rec_2_read and crsm_p1<max_allowed_rec); 
+}
+
+PAUSE 10;
+
+
+/****************************************************************************** 
+* Print the final recap of readings 
+******************************************************************************/
+ECHO("+--------------------------------------------------------");
+ECHO("|                 FINAL REPORT                          .");
+ECHO("+--------------------------------------------------------");
+
+PAUSE 10;
+report_row = " | EF path | EF Name | EF Path Id | EF Id(h) | EF Id(dec) | Record | Response Content / Error | ";
+ECHO(report_row);
+for( uint nn = 0; nn < report_all.length(); nn++ ) {
+	ECHO report_all[nn];
+	}
+ECHO("+--------------------------------------------------------");
+}

@@ -65,7 +65,6 @@ void edit_contact(string index, string number, string name){
 	command = command + name;
 	command = command + "\"";
 	send_AT_command(command,resp_timeout ,"OK");
-
 }
 
 void delete_contact(string index){

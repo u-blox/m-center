@@ -1,0 +1,129 @@
+/******************************************************************************
+*  Copyright (c) 2020 u-blox AG, Thalwil, Switzerland.
+*
+* Licensed under the Apache License, Version 2.0 (the "License");
+* you may not use this file except in compliance with the License.
+* You may obtain a copy of the License at
+* 
+* http://www.apache.org/licenses/LICENSE-2.0
+* 
+* Unless required by applicable law or agreed to in writing, software
+* distributed under the License is distributed on an "AS IS" BASIS,
+* WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+* See the License for the specific language governing permissions and
+* limitations under the License.
+******************************************************************************
+* Synopsis:   internetApplications_all_socketEchoTest_advance.atl
+* Version:    1.0
+* Author:     dtro
+* Description:
+*		This script has the purpose to demonstrate a TCP/UDP socket connection
+*		with an ECHO server test. 
+*		The module must be connected to internet and the internal context 
+*		must be activated. 
+******************************************************************************
+* Modules:		All products
+******************************************************************************/
+
+// Configurable parameters
+string protocol = "TCP";
+string server_ip = "185.215.195.137";
+int server_port = 7;
+string echo_text = "Hello world!";
+int length_greeting_server = 28;
+int waiting_time_at = 5000;
+int waiting_timeout = 180000;
+bool hex_mode_enabled = false;
+string command;
+
+
+ECHO("*************************************************************************************************************");
+ECHO("This script needs an internet connection and an activated internal context.");
+ECHO("*************************************************************************************************************");
+ECHO("");
+ECHO("");
+ECHO("*************************************************************************************************************");
+ECHO("TESTING THE REACHABILITY OF THE ECHO SERVER");
+ECHO("*************************************************************************************************************");
+
+command = "AT+UPING=\"" + server_ip + "\"";
+send_at_command(command, 200, "OK");
+
+string check_ping = WAIT("+UUPINGER", waiting_time_at);
+string check_rtt = WAIT("+UUPING", waiting_time_at);
+
+if(check_ping.findFirst("+UUPINGER") == -1 && check_rtt.findFirst("-1") == -1) {
+    
+    ECHO("*************************************************************************************************************");
+    ECHO("ECHO SERVER REACHED");
+    ECHO("*************************************************************************************************************");
+
+    string echo_text_hex;
+    // Configuration hex_mode
+    if (hex_mode_enabled) {
+        AT+UDCONF=1,1
+        AT+UDCONF=1
+        echo_text_hex = STRING2HEX(echo_text);
+    } else {
+        AT+UDCONF=1,0
+        AT+UDCONF=1
+    }
+    
+    string resp, socket_id;
+    if (protocol == "TCP") {
+        resp = SENDAT('AT+USOCR=6', 200, '+USOCR');
+        socket_id = resp.split(':')[1];
+    }
+    if (protocol == "UDP") {
+        resp = SENDAT('AT+USOCR=17', 200, '+USOCR');
+        socket_id = resp.split(':')[1];
+    }
+
+    command = "AT+USOCO=" + socket_id + ",\"" + server_ip + "\"," + server_port;
+    send_at_command(command, 180000, "OK");
+
+    PAUSE(waiting_time_at);
+    
+    // greeting message only with TCP
+    if (protocol == "TCP") {
+        command = "AT+USORD=" + socket_id + "," + length_greeting_server;
+        send_at_command("AT+USORD=" + socket_id + "," + length_greeting_server, 1000, "OK");
+    }
+    
+    string returned_echo;
+    if (hex_mode_enabled) {
+        command = "AT+USOWR=" + socket_id + "," + echo_text_hex.length()/2 + ",\"" + echo_text_hex + "\"";
+        send_at_command(command, 120000, "OK");
+        WAIT("+UUSORD", waiting_timeout);
+
+        command = "AT+USORD=" + socket_id + "," + echo_text_hex.length()/2;
+        returned_echo = HEX2STRING(SENDAT(command, 1000, "OK"));
+    } else {
+        command = "AT+USOWR=" + socket_id + "," + echo_text.length() + ",\"" + echo_text + "\"";
+        send_at_command(command, 120000, "OK");
+        WAIT("+UUSORD", waiting_timeout);
+
+        command = "AT+USORD=" + socket_id + "," + echo_text.length();
+        returned_echo = SENDAT(command, 1000, "OK");
+        ECHO(returned_echo);
+    }
+    
+
+    // Closing the socket
+    send_at_command("AT+USOCL=" + socket_id, 120000, "OK");
+    
+    if(returned_echo.findFirst(echo_text) != -1) {
+        ECHO("*************************************************************************************************************");
+        ECHO("TEST PASSED!");
+        ECHO("*************************************************************************************************************");
+    } else {
+        ECHO("*************************************************************************************************************");
+        ECHO("TEST NOT PASSED!");
+        ECHO("*************************************************************************************************************");
+    }
+} else {
+    ECHO("*************************************************************************************************************");
+	ECHO("THE ECHO SERVER CANNOT BE REACHED!");
+	ECHO("*************************************************************************************************************");
+}
+

@@ -31,6 +31,7 @@ AT+CGMM
 AT+CGMR
 ATI9
 ATI
+ATI0
 AT+CIMI
 AT+CGSN
 
@@ -62,3 +63,12 @@ AT+USVCDOMAIN?
 # PACKET SWITCHED DATA SERVICES #
 #################################
 AT+CGDCONT?
+AT+CGCONTRDP=1
+AT+CGACT?
+
+##################
+# OTHER SERVICES #
+##################
+AT+USECDEVINFO?
+AT+ULWM2M?
+AT+CPSMS?

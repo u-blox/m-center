@@ -1,0 +1,113 @@
+/*******************************************************************************
+*  Copyright (c) 2020 u-blox AG, Thalwil, Switzerland.
+*
+* Licensed under the Apache License, Version 2.0 (the "License");
+* you may not use this file except in compliance with the License.
+* You may obtain a copy of the License at
+* 
+* http://www.apache.org/licenses/LICENSE-2.0
+* 
+* Unless required by applicable law or agreed to in writing, software
+* distributed under the License is distributed on an "AS IS" BASIS,
+* WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+* See the License for the specific language governing permissions and
+* limitations under the License.
+******************************************************************************
+* Synopsis:   internetApplications_saraR5_saraR42_mqttAnywhereDemo_basic.atl
+* Version:    1.0
+* Author:     mreb
+* Description:
+*		This script has the purpose to demonstrate the MQTT Anywhere service 
+*		provided by u-blox Thingstream. Thingstream IoT SIM card is required
+*		for the correct execution of this script.
+* Product page:
+*		https://www.u-blox.com/en/product/mqtt-anywhere
+*		https://www.u-blox.com/en/product/iot-sim-card
+******************************************************************************
+* Modules:		SARA-R5 and SARA-R42
+******************************************************************************/
+
+// Variables
+string command, resp, identity, product_in_use;
+
+// Configurable parameters
+identity = "identity:xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx";
+product_in_use = "saraR5"; // Possible options are "saraR5" or "saraR42" 
+
+// Initialization
+ECHO("This script requires to set some configurable parameters.");
+ECHO("Be sure those are correctly configured before the initialization of this.");
+ECHO("Thingstream IoT SIM card needs to used for the correct execution of it.");
+ECHO("Configuring...");
+AT+CMEE=2
+AT+CREG=2
+AT+CGREG=2
+AT+CEREG=2
+AT+CGEREP=2,1
+AT+CSCON=1
+AT+CFUN=0
+AT+CGDCONT=1,"IP","TSUDP"
+
+// Network registration
+ECHO("Registering to the network.");
+AT+CFUN=1
+PAUSE 10000
+
+if(product_in_use == "saraR5"){
+    AT+UPSD=0,0,0
+    AT+UPSDA=0,3
+}
+else if (product_in_use == "saraR42"){
+    AT+UPSD=0,0,0
+    AT+UPSD=0,100,1
+    AT+CGACT=1,1
+}
+else{
+    STOP("Wrong product configured.");
+}
+
+// Network registration
+ECHO("Get status of the module.");
+AT+COPS?
+AT+UPSV?
+AT+CPIN?
+AT+CCLK?
+AT+CGDCONT?
+
+// MQTT Anywhere configuration
+ECHO("Configuring MQTT-SN.");
+command = "AT+UMQTTSN=0,\"" + identity + "\"";
+SENDAT(command, 5000, "OK");
+AT+UMQTTSN=2,"10.7.0.55",2442
+AT+UMQTTSN=8,600
+AT+UMQTTSN=10,1
+
+// MQTT Anywhere connection
+ECHO("Connecting...");
+command = "AT+UMQTTSNC=1";
+resp = SENDAT(command,300000,"+UUMQTTSNC:");
+resp=resp.split(':')[1];
+
+if (FIND(resp,"1,1") == -1){
+    STOP("Unable to connect");
+}
+
+// MQTT Anywhere communication
+ECHO("MQTT Anywhere communication...");
+command = "AT+UMQTTSNC=2,\"my/publish/topic\"";
+SENDAT(command, 20000,"+UUMQTTSNC: 2,1,1");
+AT+UMQTTSNC=4,1,0,0,0,"1","My message"
+PAUSE 5000
+AT+UMQTTSNC=5,1,0,"my/subscribe/topic"
+PAUSE 5000
+AT+UMQTTSNC=9
+PAUSE 5000
+AT+UMQTTSNC=4,1,0,0,0,"2","Good morning"
+PAUSE 6000
+AT+UMQTTSNC=9,1
+PAUSE 5000
+AT+UMQTTSNC=4,1,0,0,0,"2","I am SARA"
+PAUSE 5000
+AT+UMQTTSNC=4,1,0,0,0,"2","Bye"
+PAUSE 5000
+AT+UMQTTSNC=9
