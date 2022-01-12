@@ -13,18 +13,38 @@
 * See the License for the specific language governing permissions and
 * limitations under the License.
 ******************************************************************************
-* Synopsis:		cellModem_all_settings_genericCommands_basic.atl
+* Synopsis:		cell_all_hexCmd_networkReg_basic.atl
+* Topic:		cell_modem
 * Version:		1.0
-* Author:		bkha
+* Author:		hmeh, bkha
 * Description:	
-*		This script has the general purpose to check few settings of the modem.
+*		This script has the purpose to test the network registration 
+*		using SENDHEX() macro.
 ******************************************************************************
 * Modules:		All Products
 ******************************************************************************/
 
+// sending AT command in HEX
+bool resp_bool = SENDHEX("41 54 0d");
+ECHO("Response of AT: "+ resp_bool);
+PAUSE(50);
 
-AT+CLCK="SC",2
-AT+CPIN?
-AT+CFUN?
-AT+UPSV?
-AT+CCLK?
+// sending AT+COPS? command in HEX
+resp_bool = SENDHEX("41 54 2b 43 4f 50 53 3f 0d ");
+ECHO("Response of AT+COPS?: "+ resp_bool);
+PAUSE(50);
+
+// sending AT+CREG? command in HEX
+resp_bool = SENDHEX("41 54 2b 43 52 45 47 3f 0d");
+ECHO("Response of AT+CREG?: "+ resp_bool); 
+PAUSE(50);
+
+// sending AT+CGREG? command in HEX
+resp_bool = SENDHEX("41 54 2b 43 47 52 45 47 3f 0d");
+ECHO("Response of AT+CGREG?: "+ resp_bool); 
+PAUSE(50);
+
+// sending AT+CEREG? command in HEX
+resp_bool = SENDHEX("41 54 2b 43 45 52 45 47 3f 0d");
+ECHO("Response of AT+CEREG?: "+ resp_bool); 
+PAUSE(50);

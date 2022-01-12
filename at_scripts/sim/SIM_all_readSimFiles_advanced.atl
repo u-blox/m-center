@@ -13,9 +13,10 @@
 * See the License for the specific language governing permissions and
 * limitations under the License.
 ******************************************************************************
-* Synopsis: sim_all_readSimFiles_advanced.atl
-* Version: 	3.2
-* Author: 	mrod
+* Synopsis:		sim_all_readSimFiles_advanced.atl
+* Topic:		sim
+* Version:		3.2
+* Author:		mrod
 * Description:
 *		This scripts search for all the possible SIM Elementary Files and reads their content 
 *		using +CRSM command.

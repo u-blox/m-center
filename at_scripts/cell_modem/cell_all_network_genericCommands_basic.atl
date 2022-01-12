@@ -13,28 +13,18 @@
 * See the License for the specific language governing permissions and
 * limitations under the License.
 ******************************************************************************
-* Synopsis:		cellModem_all_readNameAndFirmware_basic.atl
+* Synopsis:		cell_all_network_genericCommands_basic.atl
+* Topic:		cell_modem
 * Version:		1.0
-* Author:		hmeh, bkha
+* Author:		bkha
 * Description:	
-*		This Script has a purpose to read modem name, firmware version 
-*		and submodule series.
+*		This script has the purpose to test network related generic commands.
 ******************************************************************************
 * Modules:		All Products
 ******************************************************************************/
 
-
-void send_AT_command(string cmd, int ms_timeout, string exp_resp){
-	PAUSE(50);
-	string resp = SENDAT(cmd, ms_timeout, exp_resp);
-	ECHO("response = " + resp);
-}
-
-
-void main(){
-	send_AT_command("ATI0", 100, "OK");
-	send_AT_command("ATI9", 100, "OK");
-	send_AT_command("AT+CGMM", 100, "OK");
-	send_AT_command("AT+CGMR", 100, "OK");
-	send_AT_command("AT+CGSN", 100, "OK");
-}
+AT+COPS?
+AT+CSQ
+AT+CREG?
+AT+CGREG?
+AT+UBANDSEL?

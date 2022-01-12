@@ -13,9 +13,10 @@
 * See the License for the specific language governing permissions and
 * limitations under the License.
 ******************************************************************************
-* Synopsis:   internetApplications_all_socketEchoTest_advance.atl
-* Version:    1.0
-* Author:     dtro
+* Synopsis:		ipApp_all_socketEchoTest_advance.atl
+* Topic:		internet_application
+* Version:		1.0
+* Author:		dtro
 * Description:
 *		This script has the purpose to demonstrate a TCP/UDP socket connection
 *		with an ECHO server test. 

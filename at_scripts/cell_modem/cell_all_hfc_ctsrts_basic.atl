@@ -13,21 +13,18 @@
 * See the License for the specific language governing permissions and
 * limitations under the License.
 ******************************************************************************
-* Synopsis:		cellModem_all_sms_functionality_advance.atl
+* Synopsis:		cell_all_hfc_ctsrts_basic.atl
+* Topic:		cell_modem
 * Version:		1.0
-* Author:		bkha
+* Author:		hmeh, bkha
 * Description:	
-*		This script has the purpose to test the SMS behavior with proper connected
-*		SIM and antenna.
+*		This script has the purpose to test the flow control line status using 
+*		CTS and RTS lines.
+*		bool GETCOMCTS(void): return the status of CTS line
+*		void SETCOMRTS(bool &in): sets the RTS with value = 'in'
 ******************************************************************************
 * Modules:		All Products
 ******************************************************************************/
-
-
-// configurations
-string phone_number = "+1234567891";
-string sms_body = "TextBodyRandomSize";
-int loop_count = 50;
 
 void send_AT_command(string cmd, int ms_timeout, string exp_resp){
 	PAUSE(50);
@@ -35,41 +32,32 @@ void send_AT_command(string cmd, int ms_timeout, string exp_resp){
 	ECHO("response = " + resp);
 }
 
-
-// sms sending
-void SMS_sending(int i){
-	// setting text mode
-	send_AT_command("AT+CMGF=1", 100, "OK");
-	// set the number to which sms should be sent
-	string phone_number_cmd  ="AT+CMGS=\"" + phone_number + "\"";
-	send_AT_command(phone_number_cmd ,1000, ">");
-	// reset the string
-	string body = sms_body;
-	body = body + i;
-	body = body + 1;
-	body[body.length()-1] = 26;
-	// set the body of text message.
-	send_AT_command(body, 180000, "OK");
+void update_status(){
+	ECHO("GET updated status");
+	ECHO("{DSR:" + GETCOMDSR()+"},{RI:" + GETCOMRI()+"},{DCD:" + GETCOMDCD()+"}");
 }
 
-// sms deleting
-void SMS_deleting(){
-	send_AT_command("AT+CMGR=1", 1000, "OK");
-	send_AT_command("AT+CMGD=1", 1000, "OK");
-}
+void RTS_testing(){
+	ECHO("RTS TESTING START");
 
-// display all messages
-void SMS_display_all_messages(){
-	send_AT_command("AT+CMGL=ALL", 1000, "OK");
+	ECHO("SET RTS TO FALSE");
+	SETCOMRTS(false);
+
+	PAUSE(3000);
+	send_AT_command("ATI9", 3000, "OK");
+
+	update_status();
+	
+	PAUSE(3000);
+	ECHO("SET RTS TO TRUE");
+	SETCOMRTS(true);
+
+	update_status();
+
+	ECHO("RTS TESTING END");
 }
 
 void main(){
-
-	ECHO("Add valid number in string phone_number");
-	for(int i =0; i<loop_count; i++){
-		SMS_deleting();
-		SMS_sending(i);
-		SMS_display_all_messages();
-	}
+	update_status();
+	RTS_testing();
 }
-

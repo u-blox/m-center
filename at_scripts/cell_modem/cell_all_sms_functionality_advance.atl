@@ -13,20 +13,22 @@
 * See the License for the specific language governing permissions and
 * limitations under the License.
 ******************************************************************************
-* Synopsis:		cellModem_all_hfc_dsrdtr_basic.atl
+* Synopsis:		cell_all_sms_functionality_advance.atl
+* Topic:		cell_modem
 * Version:		1.0
-* Author:		hmeh, bkha
+* Author:		bkha
 * Description:	
-*		This script has the purpose to test the flow control line status
-*		using DSR and DTR lines.
-*		bool GETCOMDSR(void): return the status of DSR line
-*		bool GETCOMRI(void): return the status of RI line
-*		bool GETCOMDCD(void): return the status of DCD line
-*		void SETCOMDTR(bool &in): sets the DTR with value = 'in'
+*		This script has the purpose to test the SMS behavior with proper connected
+*		SIM and antenna.
 ******************************************************************************
 * Modules:		All Products
 ******************************************************************************/
 
+
+// configurations
+string phone_number = "+1234567891";
+string sms_body = "TextBodyRandomSize";
+int loop_count = 50;
 
 void send_AT_command(string cmd, int ms_timeout, string exp_resp){
 	PAUSE(50);
@@ -34,39 +36,41 @@ void send_AT_command(string cmd, int ms_timeout, string exp_resp){
 	ECHO("response = " + resp);
 }
 
-void update_status(){
-	ECHO("GET updated status");
-	ECHO("{DSR:" + GETCOMDSR()+"},{RI:" + GETCOMRI()+"},{DCD:" + GETCOMDCD()+"}");
+
+// sms sending
+void SMS_sending(int i){
+	// setting text mode
+	send_AT_command("AT+CMGF=1", 100, "OK");
+	// set the number to which sms should be sent
+	string phone_number_cmd  ="AT+CMGS=\"" + phone_number + "\"";
+	send_AT_command(phone_number_cmd ,1000, ">");
+	// reset the string
+	string body = sms_body;
+	body = body + i;
+	body = body + 1;
+	body[body.length()-1] = 26;
+	// set the body of text message.
+	send_AT_command(body, 180000, "OK");
 }
 
-void DTR_testing(){
-	ECHO("DTR TESTING START");
+// sms deleting
+void SMS_deleting(){
+	send_AT_command("AT+CMGR=1", 1000, "OK");
+	send_AT_command("AT+CMGD=1", 1000, "OK");
+}
 
-	send_AT_command("AT+UPSV=3", 1000, "OK");
-
-	send_AT_command("AT+UPSV?", 1000, "OK");
-
-	ECHO("SET DTR TO FALSE");
-	SETCOMDTR(false);
-	PAUSE(100);
-	update_status();
-
-	send_AT_command("AT", 100, "OK");
-
-	update_status();
-	PAUSE(2000);
-
-	ECHO("SET DTR TO TRUE");
-	SETCOMDTR(true);
-
-	update_status();
-	PAUSE(2000);
-	send_AT_command("AT+UPSV=0", 1000, "OK");
-
-	ECHO("DTR TESTING END");
+// display all messages
+void SMS_display_all_messages(){
+	send_AT_command("AT+CMGL=ALL", 1000, "OK");
 }
 
 void main(){
-	update_status();
-	DTR_testing();
+
+	ECHO("Add valid number in string phone_number");
+	for(int i =0; i<loop_count; i++){
+		SMS_deleting();
+		SMS_sending(i);
+		SMS_display_all_messages();
+	}
 }
+

@@ -13,19 +13,19 @@
 * See the License for the specific language governing permissions and
 * limitations under the License.
 ******************************************************************************
-* Synopsis:		cellModem_all_startup_genericCommands_basic.atl
+* Synopsis:		cell_all_settings_genericCommands_basic.atl
+* Topic:		cell_modem
 * Version:		1.0
 * Author:		bkha
 * Description:	
-*		This script has the general purpose to send some AT commands that are 
-*		send on startup 
-*
+*		This script has the general purpose to check few settings of the modem.
 ******************************************************************************
 * Modules:		All Products
 ******************************************************************************/
 
-AT+CGMI
-AT+CGMM
-AT+CGMR
-ATI9
-AT+CGSN
+
+AT+CLCK="SC",2
+AT+CPIN?
+AT+CFUN?
+AT+UPSV?
+AT+CCLK?

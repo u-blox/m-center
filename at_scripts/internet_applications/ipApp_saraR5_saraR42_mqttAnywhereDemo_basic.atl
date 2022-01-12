@@ -13,9 +13,10 @@
 * See the License for the specific language governing permissions and
 * limitations under the License.
 ******************************************************************************
-* Synopsis:   internetApplications_saraR5_saraR42_mqttAnywhereDemo_basic.atl
-* Version:    1.0
-* Author:     mreb
+* Synopsis:		ipApp_saraR5_saraR42_mqttAnywhereDemo_basic.atl
+* Topic:		internet_application
+* Version:		1.0
+* Author:		mreb
 * Description:
 *		This script has the purpose to demonstrate the MQTT Anywhere service 
 *		provided by u-blox Thingstream. Thingstream IoT SIM card is required
@@ -55,12 +56,18 @@ PAUSE 10000
 
 if(product_in_use == "saraR5"){
     AT+UPSD=0,0,0
-    AT+UPSDA=0,3
+    resp = SENDAT("AT+UPSDA=0,3",10000,"OK");
+    if (FIND(resp,"ERROR") != -1){
+        STOP("Error in the context activation.");
+    }
 }
 else if (product_in_use == "saraR42"){
     AT+UPSD=0,0,0
     AT+UPSD=0,100,1
-    AT+CGACT=1,1
+    resp = SENDAT("AT+CGACT=1,1",10000,"OK");
+    if (FIND(resp,"ERROR") != -1){
+        STOP("Error in the context activation.");
+    }
 }
 else{
     STOP("Wrong product configured.");
