@@ -36,9 +36,17 @@ identity = "identity:xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx";
 product_in_use = "saraR5"; // Possible options are "saraR5" or "saraR42" 
 
 // Initialization
+ECHO("*************************************************************************************************************");
 ECHO("This script requires to set some configurable parameters.");
 ECHO("Be sure those are correctly configured before the initialization of this.");
+ECHO("*************************************************************************************************************");
+ECHO("");
+ECHO("");
+ECHO("*************************************************************************************************************");
 ECHO("Thingstream IoT SIM card needs to used for the correct execution of it.");
+ECHO("*************************************************************************************************************");
+ECHO("");
+
 ECHO("Configuring...");
 AT+CMEE=2
 AT+CREG=2

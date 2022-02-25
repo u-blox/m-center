@@ -1,0 +1,113 @@
+/*******************************************************************************
+*  Copyright (c) 2020 u-blox AG, Thalwil, Switzerland.
+*
+* Licensed under the Apache License, Version 2.0 (the "License");
+* you may not use this file except in compliance with the License.
+* You may obtain a copy of the License at
+* 
+* http://www.apache.org/licenses/LICENSE-2.0
+* 
+* Unless required by applicable law or agreed to in writing, software
+* distributed under the License is distributed on an "AS IS" BASIS,
+* WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+* See the License for the specific language governing permissions and
+* limitations under the License.
+******************************************************************************
+* Synopsis:		lib_bitwise_operation.atl
+* Topic:		common_lib
+* Version:		1.0
+* Author:		hmeh, bkha
+* Description:	
+*		This script has the purpose to perform various bitwise operation 
+*		functions.
+******************************************************************************/
+
+// Converts int 'n' to boolean format and return it in string format. 
+// size is the minimum size required for the output string.
+string int_to_bitstream_converter(int n, int size){
+	bool negVal = false;
+	string s = "";
+	if (n < 0){
+		n *= -1;
+		n -= 1;
+		negVal = true;
+	}
+	while(n != 0){ 
+		s = formatInt(n % 2) + s; 
+		n = n >> 1; 
+	}
+	int l = s.length();
+	if (l < size){ 
+		s = formatInt(0, '0', size - l) + s; 
+	}
+	if (negVal == true)
+	{
+		string r = ""; 
+		for (int i = 0; i < s.length(); i++){
+			if (s[i] == 0x30)
+				r +="1";
+			else
+				r += "0";
+		}
+		s = r;
+	}
+	return s;
+}
+
+// Converts bitstream in string format to int type.
+// returns -1 if the input is not in bitstream format.
+int bitstream_to_int_converter(string bitstream){
+	int ret_val = 0; 
+	int len = bitstream.length();
+	int mul_factor = 1;
+	for(int j = 0; j < len - 1; j++){
+		mul_factor *= 2;
+	}
+	for(int i = 0; i < len; i++){
+		if(bitstream[i] == 0x30 || bitstream[i] == 0x31){
+			ret_val +=  (mul_factor * (bitstream[i] - 0x30));
+			mul_factor /= 2;
+		}
+		else{
+			return -1;
+		}
+	}
+	return ret_val;
+}
+
+
+// compute xor of two numbers and returns it
+int compute_XOR(int x, int y)
+{
+	return x^y;
+}
+
+
+// compute and of two numbers and returns it
+int compute_AND(int x, int y)
+{
+	return x & y;
+}
+
+
+// compute and of two numbers and returns it
+int compute_OR(int x, int y)
+{
+	return x | y;
+}
+
+// return left bit shift (<< , 010 -> 100) of a number
+int compute_left_bit_shift(int num, int shift){
+	for(int i = 0; i < shift; i++){
+		num *= 2;
+	}
+	return num;
+}
+
+// return right bit shift (>> , 010 -> 001) of a number
+int compute_right_bit_shift(int num, int shift){
+	for(int i = 0; i < shift; i++){
+		num /= 2;
+	}
+	return num;
+}

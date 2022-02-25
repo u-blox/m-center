@@ -1,0 +1,87 @@
+/*******************************************************************************
+*  Copyright (c) 2020 u-blox AG, Thalwil, Switzerland.
+*
+* Licensed under the Apache License, Version 2.0 (the "License");
+* you may not use this file except in compliance with the License.
+* You may obtain a copy of the License at
+* 
+* http://www.apache.org/licenses/LICENSE-2.0
+* 
+* Unless required by applicable law or agreed to in writing, software
+* distributed under the License is distributed on an "AS IS" BASIS,
+* WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+* See the License for the specific language governing permissions and
+* limitations under the License.
+******************************************************************************
+* Synopsis:		ipApp_saraR5_saraR42_FTP_retrieve_basic.atl
+* Topic:		internet_application
+* Version:		1.0
+* Author:		dtro
+* Description:	
+* 		This script has the purpose to present a simple FTP retrieve.
+* 		Some configurations, such as FTP server address, username and password
+* 		must be set.
+******************************************************************************
+* Modules:		SARA-R5 and SARA-R42
+******************************************************************************/
+
+ECHO("******************************************************************************");
+ECHO("This script requires the configuration of address,");
+ECHO("username and password of the FTP server!");
+ECHO("******************************************************************************");
+
+// ftp server 
+string ftp_server = "****************";
+
+// username for the login 
+string username = "****************";
+
+// username for the password 
+string password = "****************";
+
+// name of the file to download 
+string file_to_retrieve = "****************";
+int waiting_time = 30000;
+
+string resp,command;
+
+command = "AT+UFTP=1,\"" + ftp_server + "\"";
+resp = SENDAT(command, 200, "OK");
+
+command = "AT+UFTP=2,\"" + username + "\"";
+resp = SENDAT(command, 200, "OK");
+
+command = "AT+UFTP=3,\"" + password + "\"";
+resp = SENDAT(command, 200, "OK");
+
+command = "AT+UFTP=6,1";
+resp = SENDAT(command, 200, "OK");
+
+command = "AT+UDNSRN=0,\"" + ftp_server + "\"";
+resp = SENDAT(command, 200, "OK");
+command = "+UDNSRN:";
+resp = WAIT(command, waiting_time);
+
+command = "AT+UFTPC=1";
+resp = SENDAT(command, 200, "OK");
+
+command = "+UUFTPCR:";
+resp = WAIT(command, waiting_time);
+if(resp.findFirst("1,1") != -1) {
+    ECHO("******************************************************************************");
+    ECHO("CONNECTED TO FTP SERVER");
+    ECHO("******************************************************************************");
+    command = "AT+UFTPC=6,\"" + file_to_retrieve + "\"";
+    resp = SENDAT(command, 200, "OK");
+    command = "CONNECT";
+    resp = WAIT(command, waiting_time);
+    ECHO("******************************************************************************");
+    ECHO("RECEIVED FILE");
+    ECHO("******************************************************************************");
+    command = "DISCONNECT";
+    resp = WAIT(command, waiting_time);
+} else {
+    ECHO("******************************************************************************");
+    ECHO("UNABLE TO CONNECT TO THE FTP SERVER");
+    STOP("******************************************************************************");
+}

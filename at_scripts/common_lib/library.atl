@@ -14,14 +14,13 @@
 * limitations under the License.
 ******************************************************************************
 * Synopsis:		library.atl
+* Topic:		common_lib
 * Version:		1.0
 * Author:		hmeh, bkha
 * Description:	
 *		This script has the purpose to maintain common functions to be use in
 *		all the scripts. All lib functions should be defined in the 
 *		library.atl file.
-******************************************************************************
-* Modules:		All Products
 ******************************************************************************/
 
 // Properly sending AT command. Pausing for 50 seconds. Sending AT command and ECHOing the response.

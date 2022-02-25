@@ -1,0 +1,95 @@
+/******************************************************************************
+*  Copyright (c) 2020 u-blox AG, Thalwil, Switzerland.
+*
+* Licensed under the Apache License, Version 2.0 (the "License");
+* you may not use this file except in compliance with the License.
+* You may obtain a copy of the License at
+* 
+* http://www.apache.org/licenses/LICENSE-2.0
+* 
+* Unless required by applicable law or agreed to in writing, software
+* distributed under the License is distributed on an "AS IS" BASIS,
+* WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+* See the License for the specific language governing permissions and
+* limitations under the License.
+******************************************************************************
+* Synopsis:		con_all_fileManagement_basic.atl
+* Topic:		local_connectivity
+* Version:		1.0
+* Author:		dtro
+* Description:
+*		This script has the purpose to demonstrate a basic file system read/write. 
+******************************************************************************
+* Modules:		All products
+******************************************************************************/
+
+
+
+string name_file = "example.txt";
+string string_to_write = "Hello world!!!";
+
+
+string resp, command;
+
+// read the files in the memory
+command = "AT+ULSTFILE=";
+resp = SENDAT(command, 200, "OK");
+
+ECHO("**************************************************************************");
+ECHO("Files in memory: ");
+ECHO((resp.split("+ULSTFILE: ")[1]).split("OK")[0]);
+ECHO("**************************************************************************");
+
+
+
+
+// write a new file in the memory
+command = "AT+UDWNFILE=\"" + name_file + "\"," + string_to_write.length();
+resp = SENDAT(command, 200, "");
+PAUSE(200);
+resp = SENDAT(string_to_write, 1000, "OK"); 
+ECHO(resp);
+
+
+
+// read the files in the memory
+command = "AT+ULSTFILE=";
+resp = SENDAT(command, 200, "OK");
+
+ECHO("**************************************************************************");
+ECHO("Files in memory: ");
+ECHO((resp.split("+ULSTFILE: ")[1]).split("OK")[0]);
+ECHO("**************************************************************************");
+
+
+
+
+// read the new created file
+command = "AT+URDFILE=\"" + name_file + "\"";
+resp = SENDAT(command, 200, "OK");
+
+ECHO("**************************************************************************");
+ECHO("Created file: " + (resp.split("+URDFILE: ")[1]).split("OK")[0]);
+ECHO("**************************************************************************");
+
+
+
+
+// read the size of the new created file
+command = "AT+ULSTFILE=2,\"" + name_file + "\"";
+resp = SENDAT(command, 200, "OK");
+
+ECHO("**************************************************************************");
+ECHO("Size " + name_file + ": " + (resp.split(" ")[1]).split("OK")[0] + "Byte");
+ECHO("**************************************************************************");
+
+
+
+
+// delete the created file
+command = "AT+UDELFILE=\"" + name_file + "\"";
+resp = SENDAT(command, 200, "OK");
+
+ECHO("**************************************************************************");
+ECHO("File: " + name_file + " erased.");
+ECHO("**************************************************************************");

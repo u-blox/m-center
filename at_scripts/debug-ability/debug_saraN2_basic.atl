@@ -24,36 +24,72 @@
 # Modules:		SARA-N2
 #******************************************************************************
 
+
 #########################
 # MODULE IDENTIFICATION #
 #########################
+// returns the manufactor identificator 
 AT+CGMI
+
+// returns the model identificator 
 AT+CGMM
+
+// returns the firmware identificator 
 AT+CGMR
+
+// returns the modem and application version
 ATI9
+
+// returns the type number
 ATI
+
+// returns International Mobile Subscriber Identification (IMSI)
 AT+CIMI
+
+// returns the serial number identificator 
 AT+CGSN=1
+
 
 ###########################
 # MOBILE EQUIPMENT STATUS #
 ###########################
+// returns the modem functionality
 AT+CFUN?
+
+// returns the UE current behavior
 AT+NCONFIG?
+
 
 ###################
 # NETWORK SERVICE #
 ###################
+// enables the network registration and location information URC status
 AT+CEREG=2
+
+// returns the Evolved Packet System (EPS) network registation status
 AT+CEREG?
+
+// returns the operator selection
 AT+COPS?
+
+// returns the signal quality
 AT+CSQ
+
+// returns the supported bands configuration
 AT+NBAND?
+
+// returns the UE statistics
 AT+NUESTATS
+
 
 #################################
 # PACKET SWITCHED DATA SERVICES #
 #################################
+// returns info about PDP context
 AT+CGDCONT?
+
+// returns the GPRS attach status
 AT+CGATT?
+
+// returns the status of the defined PDP contexts
 AT+CGACT?

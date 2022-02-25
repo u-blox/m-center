@@ -1,0 +1,97 @@
+/*******************************************************************************
+*  Copyright (c) 2020 u-blox AG, Thalwil, Switzerland.
+*
+* Licensed under the Apache License, Version 2.0 (the "License");
+* you may not use this file except in compliance with the License.
+* You may obtain a copy of the License at
+* 
+* http://www.apache.org/licenses/LICENSE-2.0
+* 
+* Unless required by applicable law or agreed to in writing, software
+* distributed under the License is distributed on an "AS IS" BASIS,
+* WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+* See the License for the specific language governing permissions and
+* limitations under the License.
+******************************************************************************
+* Synopsis:     cell_all_registrationTime_basic.atl
+* Topic:        cell_modem
+* Version:      1.0
+* Author:       dtro
+* Description:	
+*		This script has the purpose to measure the time elapsed for the network 
+*       registation. Some initial configurations are necessary in order to run 
+*       the script.  
+******************************************************************************
+* Modules:		All products
+******************************************************************************/
+
+// insert apn name here
+string apn_name = "";
+int mno_prof = 100;
+int rat = 8;
+int waiting_time = 600000;
+int pause_time = 5000;
+
+ECHO("*************************************************************************************************************");
+ECHO("This script requires to set some configurable parameters.");
+ECHO("*************************************************************************************************************");
+
+string resp, command;
+
+command = "AT+CFUN=4";
+resp = SENDAT(command, 1000, "OK");
+
+command = "AT+UMNOPROF?";
+resp = SENDAT(command, 1000, "OK");
+
+if(FIND(resp, "+UMNOPROF: " + mno_prof) == -1){
+    command = "AT+UMNOPROF=" + mno_prof;
+    resp = SENDAT(command, 1000, "OK");
+
+    command = "AT+CFUN=16";
+    resp = SENDAT(command, 5000, "OK");
+    PAUSE(pause_time);
+}
+
+command = "AT+URAT?";
+resp = SENDAT(command, 1000, "OK");
+
+if(FIND(resp, "+URAT: " + rat) == -1){
+    command = "AT+URAT=" + rat;
+    resp = SENDAT(command, 200, "OK");
+
+    command = "AT+CFUN=16";
+    resp = SENDAT(command, 5000, "OK");
+
+    PAUSE(pause_time);
+}
+
+command = "AT+CMEE=2";
+resp = SENDAT(command, 200, "OK");
+
+command = "AT+CREG=2";
+resp = SENDAT(command, 200, "OK");
+
+command = "AT+CEREG=2";
+resp = SENDAT(command, 200, "OK");
+
+command = "AT+CGREG=2";
+resp = SENDAT(command, 200, "OK");
+
+command = "AT+CGEREP=2,1";
+resp = SENDAT(command, 200, "OK");
+
+PAUSE(pause_time);
+
+command = "AT+CGDCONT=1,\"IP\",\"" + apn_name + "\"";
+resp = SENDAT(command, 200, "OK");
+
+command = "AT+CFUN=1";
+resp = SENDAT(command, 200, "OK");
+
+datetime d1;
+command = "+CEREG: 1,";
+resp = WAIT(command, waiting_time);
+datetime d2;
+ECHO("Elapsed registration time: " + (d2 - d1) + " seconds");
+

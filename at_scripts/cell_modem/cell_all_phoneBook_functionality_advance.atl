@@ -82,7 +82,11 @@ void get_last_dialed_calls(){
 }
 
 void main(){
-	ECHO("Please configure all the script parameters befor using it");
+	ECHO("*************************************************************************************************************");
+	ECHO("Please configure all the script parameters before using it");
+	ECHO("*************************************************************************************************************");
+	ECHO("");
+	ECHO("");
 	ECHO("Read phone book");
 	get_phonebook();
 	ECHO("Add new contact in phone book");

@@ -24,56 +24,122 @@
 # Modules:		LARA-R2/TOBY-R2
 #******************************************************************************
 
+
 #########################
 # MODULE IDENTIFICATION #
 #########################
+// returns the manufactor identificator 
 AT+CGMI
+
+// returns the model identificator 
 AT+CGMM
+
+// returns the firmware identificator 
 AT+CGMR
+
+// returns the modem and application version
 ATI9
+
+// returns the type number
 ATI
-AT+CIMI
+
+// returns the serial number identificator 
 AT+CGSN
 
 ########################
 # MODULE CONFIGURATION #
 ########################
+// returns info about the profiles
 AT&V
+
+// returns info about the serial interfaces configuration
 AT+USIO?
+
 
 ###########################
 # MOBILE EQUIPMENT STATUS #
 ###########################
+// returns the modem functionality
 AT+CFUN?
+
 
 ###################
 # NETWORK SERVICE #
 ###################
-AT+CEREG=2
-AT+CREG=2
-AT+CGREG=2
+// returns the selected Mobile Network Operator (MNO) profile
+AT+UMNOPROF?
+
+// returns the Evolved Packet System (EPS) network registation status
 AT+CEREG?
+
+// returns the CS network registation status
 AT+CREG?
+
+// returns the GPRS (PS) registration status 
 AT+CGREG?
+
+// returns the operator selection
 AT+COPS?
+
+// returns the signal quality
 AT+CSQ
+
+// returns the extended signal quality
 AT+CESQ
+
+// returns the configured Radio Access Technology (RAT)
 AT+URAT?
-AT+UBANDSEL?
-AT+UMNOCONF?
+
+// returns the enabled bands
+AT+UBANDMASK?
+
+// returns the Verizon wireless APN table
 AT+VZWAPNE?
+
+
+##################
+# URC ACTIVATION #
+##################
+// enables verbose mobile termination error
+AT+CMEE=2
+
+// enables the network registration and location information URC status
+AT+CEREG=2
+
+// enables network registation status 
+AT+CREG=2
+
+// enables GPRS registration status
+AT+CGREG=2
+
+// enables the signaling connection status URC
+AT+CSCON=1
+
 
 #################################
 # PACKET SWITCHED DATA SERVICES #
 #################################
+// returns info about PDP context
 AT+CGDCONT?
+
+// returns info about primary active PDP context 
 AT+CGCONTRDP=1
+
+// returns the status of the defined PDP contexts
 AT+CGACT?
+
+// returns the UE mode of operation for EPS
 AT+CEMODE?
+
 
 ##############################
 # IP MULTIMEDIA SYSTEM (IMS) #
 ##############################
+// returns the IMS client configuration
 AT+UIMSCFG=1
+
+// returns the IMS registration information
 AT+CIREG?
+
+// returns the IMS network reporting
 AT+CIREP?

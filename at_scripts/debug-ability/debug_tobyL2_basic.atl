@@ -24,75 +24,161 @@
 # Modules:		TOBY-L2
 #******************************************************************************
 
+
 #########################
 # MODULE IDENTIFICATION #
 #########################
+// returns the manufactor identificator 
 AT+CGMI
+
+// returns the model identificator 
 AT+CGMM
+
+// returns the firmware identificator 
 AT+CGMR
+
+// returns the modem and application version
 ATI9
+
+// returns the type number
 ATI
-AT+CIMI
+
+// returns the serial number identificator 
 AT+CGSN
+
+// returns International Mobile Subscriber Identification (IMSI)
+AT+CIMI
+
 
 ########################
 # MODULE CONFIGURATION #
 ########################
+// returns info about the profiles
 AT&V
+
 
 ###########################
 # MOBILE EQUIPMENT STATUS #
 ###########################
+// returns the modem functionality
 AT+CFUN?
+
+
+##################
+# URC ACTIVATION #
+##################
+// enables verbose mobile termination error
+AT+CMEE=2
+
+// enables the network registration and location information URC status
+AT+CEREG=2
+
+// enables network registation status 
+AT+CREG=2
+
+// enables GPRS registration status
+AT+CGREG=2
+
+// enables the packet switched event reporting
+AT+CGEREP=2,1
+
+// enables the IMS registration status 
+AT+CIREG=2
+
+// enables reporting call status
+AT+UCALLSTAT=1
+
 
 ###################
 # NETWORK SERVICE #
 ###################
-AT+CMEE=2
-AT+CEREG=3
-AT+CREG=2
-AT+CGREG=2
-AT+CGEREP=2,1
-AT+CIREG=2
-AT+UCALLSTAT=1
+// returns the Evolved Packet System (EPS) network registation status
 AT+CEREG?
+
+// returns the CS network registation status
 AT+CREG?
+
+// returns the GPRS (PS) registration status 
 AT+CGREG?
+
+// returns the operator selection
 AT+COPS?
+
+// returns the signal quality
 AT+CSQ
+
+// returns the extended signal quality
 AT+CESQ
-AT+URXDIV?             # To check number of antennas configuration (not supported by all L2 products)#
+
+// returns the number of antennas configuration (not supported by all L2 products)
+AT+URXDIV?  
+
+// returns the configured Radio Access Technology (RAT)
 AT+URAT?
+
+// returns the selected band
 AT+UBANDSEL?
+
+// returns the LTE category configuration
 AT+ULTECAT?
-AT+UMNOCONF?
+
+// returns the selected Mobile Network Operator (MNO) profile
+AT+UMNOPROF?
+
+// returns the Verizon wireless APN table
 AT+VZWAPNE?
+
 
 #################################
 # PACKET SWITCHED DATA SERVICES #
 #################################
+// returns the initial EPS bearer 
 AT+UCGDFLT?
+
+// returns info about PDP context
 AT+CGDCONT?
+
+// returns the PDP context dynamic parameters
 AT+CGCONTRDP=4
+
+// returns the status of the defined PDP contexts
 AT+CGACT?
-AT+UCGATT?
+
+// returns the GPRS attach status
+AT+CGATT?
+
+// returns the UE modes of operation for EPS
 AT+CEMODE?
+
 
 ##############################
 # IP MULTIMEDIA SYSTEM (IMS) #
 ##############################
+// set the IMS configuration to "KEY_IMS_SUPPORT"
 AT+UIMSRCONF="KEY_IMS_SUPPORT"
+
+// returns the IMS registration information
 AT+CIREG?
+
+// returns the IMS network reporting
 AT+CIREP?
+
 
 ###################
 # SYSTEM FEATURES #
 ###################
+// returns the USB profiles configuration
 AT+UUSBCONF?
+
+// returns the boot mode configuration
 AT+UBMCONF?
+
 
 ##############
 # NETWORKING #
 ##############
+// returns the Ethernet over USB status 
 AT+UIPCONF?
+
+// returns the IP firewall tables configuratio
 AT+UIPTABLES?

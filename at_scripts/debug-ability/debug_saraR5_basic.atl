@@ -39,7 +39,7 @@ AT+CGMM
 // returns the firmware identificator 
 AT+CGMR
 
-// returns the modem,application version
+// returns the modem and application version
 ATI9
 
 // returns the type number
