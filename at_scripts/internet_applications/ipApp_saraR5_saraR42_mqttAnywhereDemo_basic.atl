@@ -81,7 +81,7 @@ else{
     STOP("Wrong product configured.");
 }
 
-// Network registration
+// Collect module status
 ECHO("Get status of the module.");
 AT+COPS?
 AT+UPSV?

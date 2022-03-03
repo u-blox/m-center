@@ -1,0 +1,118 @@
+/*******************************************************************************
+*  Copyright (c) 2020 u-blox AG, Thalwil, Switzerland.
+*
+* Licensed under the Apache License, Version 2.0 (the "License");
+* you may not use this file except in compliance with the License.
+* You may obtain a copy of the License at
+* 
+* http://www.apache.org/licenses/LICENSE-2.0
+* 
+* Unless required by applicable law or agreed to in writing, software
+* distributed under the License is distributed on an "AS IS" BASIS,
+* WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+* See the License for the specific language governing permissions and
+* limitations under the License.
+******************************************************************************
+* Synopsis:		ipApp_laraR6_httpDemo_basic.atl
+* Topic:		internet_application
+* Version:		1.0
+* Author:		mreb
+* Description:
+*		This script has the purpose to demonstrate the use of internal HTTP 
+*		application avaible in u-blox LARA-R6.
+******************************************************************************
+* Modules:		LARA-R6
+******************************************************************************/
+
+// Variables
+string command, resp, rat;
+int cid, long_wait_time;
+bool registered;
+
+// Configurable parameters
+cid = 2;
+long_wait_time = 10000;
+registered = false;
+
+// Initialization
+ECHO("This script requires to specify the internal context ID <cid>.");
+ECHO("If not specified, default <cid>=1 will be used.\n");
+ECHO("Moreover, the APN of the context need to be properly configured before the script execution.\n");
+ECHO("This script is an example to understand how to handle and use the internal application context for HTTP in LARA-R6.");
+
+// URCs initialization
+AT+CMEE=2
+AT+CREG=2
+AT+CGREG=2
+AT+CEREG=2
+AT+CGEREP=2,1
+AT+CSCON=1
+
+// Network registration
+ECHO("Registering to the network.");
+AT+CFUN=1
+PAUSE 5000;
+
+// Collect module status
+ECHO("Get status of the module.");
+AT+UPSV?
+AT+CPIN?
+AT+CCLK?
+AT+CGDCONT?
+
+// Check registration
+resp = SENDAT("AT+CEREG?", 200, 'OK');
+if (resp.split(',')[1] == "1" || resp.split(',')[1] == "5"){
+    registered = true;
+}
+resp = SENDAT("AT+CGREG?", 200, 'OK');
+if (resp.split(',')[1] == "1" || resp.split(',')[1] == "5"){
+    registered = true;
+}
+
+if (!registered){
+    STOP("Module not registered to the network.");
+}
+
+resp = SENDAT("AT+COPS?", 200, 'OK');
+rat = resp.split(',')[3].split('\r')[0];
+
+// If GSM or UMTS, 2G or 3G respectively, RAT are adopted 
+// additional AT+CGACT command is necessary
+if (rat != "7"){
+    command = "AT+CGACT=1," + cid;
+    send_at_command(command, 200, "OK");
+}
+
+// Configure HTTP internal application
+AT+UHTTP=0
+AT+UHTTP=0,1,"httpbin.org"
+AT+UHTTP=0,5,80
+
+// If <cid> used is different than default, the mapping is necessary
+if (cid != 1){
+    command = 'AT+UHTTP=0,20,' + cid;
+    send_at_command(command, 200, "OK");
+}
+
+// HEAD request of the default page and store the result into the "head.ffs" file on the local file system
+resp = SENDAT('AT+UHTTPC=0,0,"/","head.ffs"', long_wait_time, '+UUHTTPCR');
+
+// The +UUHTTPCR URC notifies the success/failure of the operation
+if (resp.split(',')[2] == "1"){
+    ECHO("Connection successful.");
+}
+else{
+    STOP("Connection not successful.");
+}
+
+// Terminating and closing
+PAUSE(1000);
+
+// If GSM or UMTS, 2G or 3G respectively, RAT are adopted 
+// additional AT+CGACT command is necessary
+if (rat != "7"){
+    ECHO("Once communication is termianted, release by deactivating the context used.");
+    command = "AT+CGACT=0," + cid;
+    send_at_command(command, 200, "OK");
+}

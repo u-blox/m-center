@@ -5,7 +5,7 @@
 # you may not use this file except in compliance with the License.
 # You may obtain a copy of the License at
 # 
-# http:// www.apache.org/licenses/LICENSE-2.0
+# http://www.apache.org/licenses/LICENSE-2.0
 # 
 # Unless required by applicable law or agreed to in writing, software
 # distributed under the License is distributed on an "AS IS" BASIS,
@@ -13,17 +13,15 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #******************************************************************************
-# Synopsis:		debug_saraR5_basic.atl
+# Synopsis:		debug_saraR41_basic.atl
 # Topic:		debug-ability
 # Version:		1.0
 # Author:		bkha
 # Description:	
 #		This script has the general purpose to collect debug info from
-#		the target module without changing any settings.
-#		After the execution of this script, some Unsolicited Result Code (URC) 
-#		will be actived. 
+#		the target module.
 #******************************************************************************
-# Modules:		SARA-R5
+# Modules:		SARA-R41
 #******************************************************************************
 
 
@@ -55,14 +53,11 @@ AT+CGSN
 // enables verbose mobile termination error
 AT+CMEE=2
 
-// enables the SIM states reporting
-AT+USIMSTAT=7
-
 // enables the BIP status indication
 AT+UBIP=1
 
 // enables the network registration and location information URC status
-AT+CEREG=2
+AT+CEREG=3
 
 // enables network registation status 
 AT+CREG=2
@@ -88,16 +83,6 @@ AT+CCID
 
 // returns the SIM status
 AT+CPIN?
-
-
-########################
-# MODULE CONFIGURATION #
-########################
-// returns info about the profiles
-AT&V
-
-// returns info about the serial interfaces configuration
-AT+USIO?
 
 
 ###########################
@@ -137,6 +122,18 @@ AT+URAT?
 // returns the enabled bands
 AT+UBANDMASK?
 
+// returns the device service domain configuration
+AT+USVCDOMAIN?
+
+// enables the protocol stack and network environment information collection
+// some later SARA-R41x products will support +UCGED mode 2.
+AT+UCGED=5
+
+PAUSE 5000;
+
+// returns the channel and network environment descriptions 
+AT+UCGED? 
+
 
 #################################
 # PACKET SWITCHED DATA SERVICES #
@@ -154,7 +151,9 @@ AT+CGACT?
 ####################
 # SECURITY SERVICE #
 ####################
-// errors may be received as a response if the security feature is not enabled on the module 
+// errors may be received as a response if the security feature is not enabled on the module
+// note that security services are not supported on -02 products
+
 // returns the seal device information
 AT+USECDEVINFO?
 
@@ -164,22 +163,21 @@ AT+USECROTUID
 // returns the chip ID of the module
 AT+USECCHIP
 
-// returns X.509 device certificate status
-AT+USECDEVCERT? 
 
-// checks the ZTP feature authorization status
-AT+USECAFA=0
+###########################
+# Enable SIM REFRESH URCs #
+###########################
 
-// checks the LocalC2CKeyPairing feature authorization status
-AT+USECAFA=2
+// enable USAT terminal URCs
+AT+UCUSATA=4 
 
-// checks the LocalC2C feature authorization status
-AT+USECAFA=3
+// returns SIM status
+AT+USIMSTAT=4
 
 
-########################
-# DESIGN FOR LOW POWER #
-########################
+#####################
+# LOW POWER RELATED #
+#####################
 // returns the power saving status 
 AT+UPSV?
 
@@ -194,6 +192,9 @@ AT+CEDRXRDP
 
 // returns the power saving mode version
 AT+UPSMVER?
+
+//Enable PSM Inidcation 
+AT+UPSMR=1
 
 
 ##################
