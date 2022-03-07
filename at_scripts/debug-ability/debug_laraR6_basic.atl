@@ -4,9 +4,9 @@
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
 # You may obtain a copy of the License at
-# 
+#
 # http://www.apache.org/licenses/LICENSE-2.0
-# 
+#
 # Unless required by applicable law or agreed to in writing, software
 # distributed under the License is distributed on an "AS IS" BASIS,
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -17,7 +17,7 @@
 # Topic:		debug-ability
 # Version:		1.0
 # Author:		mdem
-# Description:	
+# Description:
 #		This script has the general purpose to collect debug info from
 #		the target module.
 #******************************************************************************
@@ -27,57 +27,152 @@
 #########################
 # MODULE IDENTIFICATION #
 #########################
+// returns the manufactor identificator
 AT+CGMI
+
+// returns the model identificator
 AT+CGMM
+
+// returns the firmware identificator
 AT+CGMR
+
+// returns the modem,application version
 ATI9
-ATI
+
+// returns the type number
 ATI0
+
+
+#####################
+# SIM CONFIGURATION #
+#####################
+// returns International Mobile Subscriber Identification (IMSI)
 AT+CIMI
+
+// returns the serial number identificator
 AT+CGSN
+
+// returns the SIM status
+AT+CPIN?
+
+
+########################
+# MODULE CONFIGURATION #
+########################
+// returns info about the profiles
+AT+UUARTCONF?
+
+// returns info about the serial interfaces configuration
+AT+USIO?
+
 
 ###########################
 # MOBILE EQUIPMENT STATUS #
 ###########################
+// returns the power mode
 AT+CFUN?
+
 
 ###################
 # NETWORK SERVICE #
 ###################
+// enables verbose mobile termination error
 AT+CEREG=2
+
+// enables network registation status
 AT+CREG=2
+
+// enables GPRS registration status
 AT+CGREG=2
+
+// enables the signaling connection status URC
 AT+CSCON=1
+
+// enables the packet switched event reporting
 AT+CGEREP=2,1
+
+// returns the Evolved Packet System (EPS) network registation status
 AT+CEREG?
+
+// returns the CS network registation status
 AT+CREG?
+
+// returns the GPRS (PS) registration status
 AT+CGREG?
+
+// returns the signal quality
 AT+CSQ
+
+// returns the extended signal quality
 AT+CESQ
+
+// returns the configured Radio Access Technology (RAT)
 AT+URAT?
+
+// returns the enabled bands
 AT+UBANDMASK?
+
+// returns the selected Mobile Network Operator (MNO) profile
 AT+UMNOPROF?
+
+// returns the operator selection
 AT+COPS?
+
+// returns the device service domain configuration
 AT+USVCDOMAIN?
+
 
 #################################
 # PACKET SWITCHED DATA SERVICES #
 #################################
+// returns info about PDP context
 AT+CGDCONT?
+
+// returns info about primary active PDP context
 AT+CGCONTRDP=1
+
+// returns the status of the defined PDP contexts
 AT+CGACT?
 
-##################
-# OTHER SERVICES #
-##################
+
+####################
+# SECURITY SERVICE #
+####################
+// enables mobile termination errors
+AT+CMEE=2
+
+// returns the seal device information
 AT+USECDEVINFO?
-AT+USECROTUID
+
+// returns the immutable chip ID
 AT+USECCHIP
-AT+ULWM2M?
+
+// returns the Root of Trust (RoT) public Unique IDentifier (UID)
+AT+USECROTUID
+
+
+########################
+# DESIGN FOR LOW POWER #
+########################
+// returns the power saving status
+AT+UPSV?
+
+// returns the used power saving mode settings
 AT+CPSMS?
+
 
 ##############################
 # IP MULTIMEDIA SYSTEM (IMS) #
 ##############################
+// returns IMS client configuration
 AT+UIMSCFG=1
+
+// returns IMS registration information
 AT+CIREG?
+
+
+##################
+# OTHER SERVICES #
+##################
+// returns the LwM2M activation status
+AT+ULWM2M?

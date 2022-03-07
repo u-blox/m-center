@@ -36,7 +36,6 @@ registered = false;
 
 // Initialization
 ECHO("This script requires to specify the internal context ID <cid>.");
-ECHO("If not specified, default <cid>=1 will be used.\n");
 ECHO("Moreover, the APN of the context need to be properly configured before the script execution.\n");
 ECHO("This script is an example to understand how to handle and use the internal application context for HTTP in LARA-R6.");
 
