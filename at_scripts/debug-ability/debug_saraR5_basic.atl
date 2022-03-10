@@ -49,34 +49,6 @@ ATI
 AT+CGSN
 
 
-##################
-# URC ACTIVATION #
-##################
-// enables verbose mobile termination error
-AT+CMEE=2
-
-// enables the SIM states reporting
-AT+USIMSTAT=7
-
-// enables the BIP status indication
-AT+UBIP=1
-
-// enables the network registration and location information URC status
-AT+CEREG=2
-
-// enables network registation status 
-AT+CREG=2
-
-// enables GPRS registration status
-AT+CGREG=2
-
-// enables the signaling connection status URC
-AT+CSCON=1
-
-// enables the packet switched event reporting
-AT+CGEREP=2,1
-
-
 #####################
 # SIM CONFIGURATION #
 #####################
@@ -105,6 +77,34 @@ AT+USIO?
 ###########################
 // returns the modem functionality
 AT+CFUN?
+
+
+##################
+# URC ACTIVATION #
+##################
+// enables verbose mobile termination error
+AT+CMEE=2
+
+// enables the SIM states reporting
+AT+USIMSTAT=7
+
+// enables the BIP status indication
+AT+UBIP=1
+
+// enables the network registration and location information URC status
+AT+CEREG=2
+
+// enables network registation status 
+AT+CREG=2
+
+// enables GPRS registration status
+AT+CGREG=2
+
+// enables the signaling connection status URC
+AT+CSCON=1
+
+// enables the packet switched event reporting
+AT+CGEREP=2,1
 
 
 ###################

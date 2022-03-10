@@ -46,8 +46,18 @@ ATI
 // returns the serial number identificator 
 AT+CGSN
 
+
+#####################
+# SIM CONFIGURATION #
+#####################
 // returns International Mobile Subscriber Identification (IMSI)
 AT+CIMI
+
+// returns the Integrated Circuit Card ID (ICCID)
+AT+CCID
+
+// returns the SIM status
+AT+CPIN?
 
 
 ########################

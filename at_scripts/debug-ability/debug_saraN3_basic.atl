@@ -43,11 +43,21 @@ ATI9
 // returns the type number
 ATI
 
+// returns the serial number identificator 
+AT+CGSN=1
+
+
+#####################
+# SIM CONFIGURATION #
+#####################
 // returns International Mobile Subscriber Identification (IMSI)
 AT+CIMI
 
-// returns the serial number identificator 
-AT+CGSN=1
+// returns the Integrated Circuit Card ID (ICCID)
+AT+CCID
+
+// returns the SIM status
+AT+CPIN?
 
 
 ########################
@@ -64,15 +74,22 @@ AT&V
 AT+CFUN?
 
 
-###################
-# NETWORK SERVICE #
-###################
+##################
+# URC ACTIVATION #
+##################
+// enables verbose mobile termination error
+AT+CMEE=2
+
 // enables the network registration and location information URC status
 AT+CEREG=2
 
 // enables network registation status 
 AT+CREG=2
 
+
+###################
+# NETWORK SERVICE #
+###################
 // returns the Evolved Packet System (EPS) network registation status
 AT+CEREG?
 

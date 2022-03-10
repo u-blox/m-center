@@ -73,24 +73,34 @@ AT+USIO?
 AT+CFUN?
 
 
-###################
-# NETWORK SERVICE #
-###################
+##################
+# URC ACTIVATION #
+##################
 // enables verbose mobile termination error
+AT+CMEE=2
+
+// enables the network registration and location information URC status
 AT+CEREG=2
 
-// enables network registation status
+// enables network registation status 
 AT+CREG=2
 
 // enables GPRS registration status
 AT+CGREG=2
 
-// enables the signaling connection status URC
-AT+CSCON=1
-
 // enables the packet switched event reporting
 AT+CGEREP=2,1
 
+// enables the IMS registration status 
+AT+CIREG=2
+
+// enables reporting call status
+AT+UCALLSTAT=1
+
+
+###################
+# NETWORK SERVICE #
+###################
 // returns the Evolved Packet System (EPS) network registation status
 AT+CEREG?
 

@@ -46,6 +46,20 @@ ATI
 // returns the serial number identificator 
 AT+CGSN
 
+
+#####################
+# SIM CONFIGURATION #
+#####################
+// returns International Mobile Subscriber Identification (IMSI)
+AT+CIMI
+
+// returns the Integrated Circuit Card ID (ICCID)
+AT+CCID
+
+// returns the SIM status
+AT+CPIN?
+
+
 ########################
 # MODULE CONFIGURATION #
 ########################
@@ -61,6 +75,25 @@ AT+USIO?
 ###########################
 // returns the modem functionality
 AT+CFUN?
+
+
+##################
+# URC ACTIVATION #
+##################
+// enables verbose mobile termination error
+AT+CMEE=2
+
+// enables the network registration and location information URC status
+AT+CEREG=2
+
+// enables network registation status 
+AT+CREG=2
+
+// enables GPRS registration status
+AT+CGREG=2
+
+// enables the signaling connection status URC
+AT+CSCON=1
 
 
 ###################
@@ -95,25 +128,6 @@ AT+UBANDMASK?
 
 // returns the Verizon wireless APN table
 AT+VZWAPNE?
-
-
-##################
-# URC ACTIVATION #
-##################
-// enables verbose mobile termination error
-AT+CMEE=2
-
-// enables the network registration and location information URC status
-AT+CEREG=2
-
-// enables network registation status 
-AT+CREG=2
-
-// enables GPRS registration status
-AT+CGREG=2
-
-// enables the signaling connection status URC
-AT+CSCON=1
 
 
 #################################

@@ -47,6 +47,26 @@ ATI
 AT+CGSN
 
 
+#####################
+# SIM CONFIGURATION #
+#####################
+// returns International Mobile Subscriber Identification (IMSI)
+AT+CIMI
+
+// returns the Integrated Circuit Card ID (ICCID)
+AT+CCID
+
+// returns the SIM status
+AT+CPIN?
+
+
+###########################
+# MOBILE EQUIPMENT STATUS #
+###########################
+// returns the modem functionality
+AT+CFUN?
+
+
 ##################
 # URC ACTIVATION #
 ##################
@@ -70,26 +90,6 @@ AT+CSCON=1
 
 // enables the packet switched event reporting
 AT+CGEREP=2,1
-
-
-#####################
-# SIM CONFIGURATION #
-#####################
-// returns International Mobile Subscriber Identification (IMSI)
-AT+CIMI
-
-// returns the Integrated Circuit Card ID (ICCID)
-AT+CCID
-
-// returns the SIM status
-AT+CPIN?
-
-
-###########################
-# MOBILE EQUIPMENT STATUS #
-###########################
-// returns the modem functionality
-AT+CFUN?
 
 
 ###################
