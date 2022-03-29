@@ -25,10 +25,13 @@
 ******************************************************************************/
 
 
-// configurations
+//----configuration settings------//
+
 string phone_number = "+1234567891";
 string sms_body = "TextBodyRandomSize";
 int loop_count = 50;
+
+//--------------------------------//
 
 void send_AT_command(string cmd, int ms_timeout, string exp_resp){
 	PAUSE(50);

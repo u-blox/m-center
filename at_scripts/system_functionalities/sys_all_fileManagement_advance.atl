@@ -13,7 +13,7 @@
 * See the License for the specific language governing permissions and
 * limitations under the License.
 ******************************************************************************
-* Synopsis:		sys_all_file_management_advance.atl
+* Synopsis:		sys_all_fileManagement_advance.atl
 * Topic: 		system_functionalities 
 * Version:		1.0
 * Author:		bkha
@@ -23,10 +23,14 @@
 * Modules:		All Products
 ******************************************************************************/
 
-// configuration settings
+//----configuration settings------//
+
 string file_name = "testfile.txt";
 // enable this to true in order to write the values of int, float, uint, double
 bool write_enable = true; 
+
+//--------------------------------//
+
 // used object for file
 file f;
 

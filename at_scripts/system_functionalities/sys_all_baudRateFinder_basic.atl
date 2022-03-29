@@ -1,0 +1,49 @@
+/*******************************************************************************
+*  Copyright (c) 2020 u-blox AG, Thalwil, Switzerland.
+*
+* Licensed under the Apache License, Version 2.0 (the "License");
+* you may not use this file except in compliance with the License.
+* You may obtain a copy of the License at
+*
+* http://www.apache.org/licenses/LICENSE-2.0
+*
+* Unless required by applicable law or agreed to in writing, software
+* distributed under the License is distributed on an "AS IS" BASIS,
+* WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+* See the License for the specific language governing permissions and
+* limitations under the License.
+******************************************************************************
+* Synopsis:		sys_all_baudRateFinder_basic.atl
+* Topic: 		system_functionalities
+* Version:		1.0
+* Author:		muaw
+* Description:
+*		This script has the purpose to identify the modem baud rate by trying multiple baud rates
+******************************************************************************
+* Modules:		All Products
+******************************************************************************/
+
+void main()
+{
+	array<int> baud_rates = {57600, 115200, 230400, 460800, 921600, 3000000};
+	ECHO("Trying to identify the baud rate!");
+	int i;
+	for(i = 0 ; i < 6; i++)
+	{
+		connect_port_with_baud(baud_rates[i]);
+		if(SENDAT("AT",2000, "OK") == "OK")
+		{
+			ECHO("BAUD_FINDER : SUCCESS: Modem is replying at baud = " + baud_rates[i]);
+			return;
+		}
+	}
+	ECHO("BAUD_FINDER : FAILED : Unable to identify the supported baud rate");	
+	return;
+} 
+
+void connect_port_with_baud(int baud)
+{
+	MC_PORT_DISCONNECT();
+	SET_PORT_BAUD(baud);
+	MC_PORT_CONNECT();
+}
