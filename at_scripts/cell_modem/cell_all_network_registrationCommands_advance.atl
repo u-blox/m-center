@@ -21,7 +21,7 @@
 *		This script has the purpose to test network related advance commands.
 ******************************************************************************
 * Modules:		All Products
-*         Comment lines not applicable to the target module
+* Tested on:	LARA-R2
 ******************************************************************************/
 
 ECHO("Comment lines from the script which are not applicable to the target module");

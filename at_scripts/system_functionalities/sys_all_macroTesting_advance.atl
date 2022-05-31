@@ -17,11 +17,12 @@
 * Topic: 		system_functionalities 
 * Version:		1.0
 * Author:		hmeh
-* Description:	
+* Description:
 *		This script has the purpose to test different macro functionality
 *		on m-center.
 ******************************************************************************
 * Modules:		All Products
+* Tested on:	LARA-R2, SARA-R5
 ******************************************************************************/
 
 

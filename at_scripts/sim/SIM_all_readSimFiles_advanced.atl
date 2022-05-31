@@ -27,15 +27,11 @@
 *		The files to be read are listed in the code: see ## EF list ##  section.
 * Requirements:
 *		m-center 02.04.01 or newer
-*		modem supporting +CRSM
+*		Modem supporting +CRSM
 ******************************************************************************
-* Tested modules: 
-*		TOBY-L210-03
-*		LARA-R211-02
-*		SARA-R422M8S-00
-*		SARA-R510M8S-01
-*		SARA-U201-04
-*		SARA-G350-02
+* Modules:		TOBY-L210-03, LARA-R211-02, SARA-R422M8S-00, SARA-R510M8S-01
+*				SARA-U201-04, SARA-G350-02
+* Tested on:	all the supported modules. 
 *******************************************************************************
 * Revision History:
 *		3.1 - first public release

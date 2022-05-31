@@ -21,6 +21,7 @@
 *		This script has the purpose to identify the modem baud rate by trying multiple baud rates
 ******************************************************************************
 * Modules:		All Products
+* Tested on:	SARA-R42
 ******************************************************************************/
 
 void main()

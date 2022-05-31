@@ -33,7 +33,8 @@
 *		powerMng_saraR5_lpwa_wake_up_and_publish_QoS-1_pwr_off_advanced.atl
 *
 ******************************************************************************
-* Modules:		SARA-R510 -01B
+* Modules:		SARA-R510-01B
+* Tested on:	SARA-R510-01B
 ******************************************************************************/
 
 AT+CGMI

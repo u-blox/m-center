@@ -22,7 +22,8 @@
 * 		Some configurations, such as FTP server address, username and password
 * 		must be set.
 ******************************************************************************
-* Modules:		SARA-R5 and SARA-R42
+* Modules:		SARA-R5, SARA-R42
+* Tested on:	SARA-R5, SARA-R42
 ******************************************************************************/
 
 ECHO("******************************************************************************");

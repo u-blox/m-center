@@ -24,7 +24,8 @@
 *		greeting text can be activated using the command AT+CSGT=1,"Start!"
 *		and using a fixed baud rate. 
 ******************************************************************************
-* Modules:		SARA-R510M8S SARA-R422M8S
+* Modules:		SARA-R510M8S, SARA-R422M8S
+* Tested on:	SARA-R510M8S, SARA-R422M8S
 ******************************************************************************/
 
 // to check if it is the first round

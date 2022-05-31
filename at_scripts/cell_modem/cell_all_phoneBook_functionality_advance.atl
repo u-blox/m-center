@@ -21,6 +21,7 @@
 *		This Script has a purpose to read, write, edit, delete phone book
 ******************************************************************************
 * Modules:		All Products
+* Tested on:	LARA-R2
 ******************************************************************************/
 
 string number = "123456789";

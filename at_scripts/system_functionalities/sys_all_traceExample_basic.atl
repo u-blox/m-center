@@ -21,19 +21,20 @@
 *		This script has the purpose to set trace parameters and start the trace
 ******************************************************************************
 * Modules:		All Products
+* Tested on:	LARA-R2
 ******************************************************************************/
 
 //----configuration settings------//
 
 string trace_port_name = "COM13";						// trace port name
-string trace_store_path = "C:\\trace_folder\\trace";				// path to store the file
-int baud_rate = 115200;								// supported baud rate
-int stop_bits = 1;								// 1 or 2
-int data_bits = 5;								// 5-8
-int flow_control = 0;								// 0:none, 1:hardware, 2:xon/xoff
-int parity = 0;									// 0:none, 1:even, 2:off
+string trace_store_path = "C:\\trace_folder\\trace";	// path to store the file
+int baud_rate = 115200;									// supported baud rate
+int stop_bits = 1;										// 1 or 2
+int data_bits = 5;										// 5-8
+int flow_control = 0;									// 0:none, 1:hardware, 2:xon/xoff
+int parity = 0;											// 0:none, 1:even, 2:off
 bool trace_AT_commands = true;							// Turn trace AT commands on/off (true:ON, false:OFF)
-int trace_protocol = 3;								// 0: NONE, 1: LEON/SARA-G, 2: LISA-U/SARA-U, 3: TOBY-L2/MPCI-L2, 4: TOBY-R2/LARA-R2/TOBY-L4, 5: LARA-R3, 6: SARA-R5, 7: SARA-G4/SARA-N3
+int trace_protocol = 3;									// 0: NONE, 1: LEON/SARA-G, 2: LISA-U/SARA-U, 3: TOBY-L2/MPCI-L2, 4: TOBY-R2/LARA-R2/TOBY-L4, 5: LARA-R3, 6: SARA-R5, 7: SARA-G4/SARA-N3
 
 //--------------------------------//
 

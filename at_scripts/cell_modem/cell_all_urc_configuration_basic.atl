@@ -23,8 +23,8 @@
 *		configuration is not supported by the target module, an error is received 
 *		and the script continues
 *******************************************************************************
-* Modules:  All Products
-*           Comment lines not applicable to the target module
+* Modules:		All Products
+* Tested on:	LARA-R2
 *******************************************************************************/
 
 ECHO("*************************************************************************************************************");

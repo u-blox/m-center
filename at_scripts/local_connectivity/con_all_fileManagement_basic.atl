@@ -21,6 +21,7 @@
 *		This script has the purpose to demonstrate a basic file system read/write. 
 ******************************************************************************
 * Modules:		All products
+* Tested on:	LARA-R2
 ******************************************************************************/
 
 

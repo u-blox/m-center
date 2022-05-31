@@ -21,6 +21,7 @@
 *		This script has the purpose to test the basic File-system macros.
 ******************************************************************************
 * Modules:		All Products
+* Tested on:	SARA-R42
 ******************************************************************************/
 
 //----configuration settings------//

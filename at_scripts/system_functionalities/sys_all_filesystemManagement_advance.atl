@@ -17,10 +17,12 @@
 * Topic: 		system_functionalities 
 * Version:		1.0
 * Author:		bkha
-* Description:	
-*		This script has the purpose to test the filesystem integration and its functions.
+* Description:
+*		This script has the purpose to test the filesystem integration and
+*		its functions.
 ******************************************************************************
 * Modules:		All Products
+* Tested on:	SARA-R42
 ******************************************************************************/
 
 // used object for filesystem 
