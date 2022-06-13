@@ -32,7 +32,7 @@ string ip_type = "IP"; // either IP, IPV6 or IPV4V6
 
 
 // Initialization
-ECHO("Tthe APN of the context need to be properly configured before the script execution.\n");
+ECHO("The APN of the context need to be properly configured before the script execution.\n");
 
 
 // define the initial default bearer for connectivity
