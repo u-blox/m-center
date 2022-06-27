@@ -1,0 +1,119 @@
+/*******************************************************************************
+*  Copyright (c) 2020 u-blox AG, Thalwil, Switzerland.
+*
+* Licensed under the Apache License, Version 2.0 (the "License");
+* you may not use this file except in compliance with the License.
+* You may obtain a copy of the License at
+*
+* http://www.apache.org/licenses/LICENSE-2.0
+*
+* Unless required by applicable law or agreed to in writing, software
+* distributed under the License is distributed on an "AS IS" BASIS,
+* WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+* See the License for the specific language governing permissions and
+* limitations under the License.
+******************************************************************************
+* Synopsis:		ipApp_all_activatePsdProfile_basic.atl
+* Topic: 		internet_application
+* Version:		1.0
+* Author:		muaw
+* Description:	This script has the purpose to activate PSD profile
+*
+******************************************************************************
+* Modules:		All Products
+* Tested on:	LARA-R2, SARA-R5, SARA-R42, LARA-R6
+******************************************************************************/
+
+// Configurable parameters
+
+string productInUse = "laraR6";       // Possible options are "saraR5" , "saraR42" , "laraR2", "laraR6" 
+string CID          = "1";            // default CID
+string PDPtype      = "IP";           // IP, NONIP, IPV6, IPV4V6
+string APN          = "internet";
+string IPV          = 0;              //0: IPV4, 1: IPV6
+
+// Initialization
+
+void main()
+{
+	ECHO("*************************************************************************************************************");
+	ECHO("This script requires to set some configurable parameters.");
+	ECHO("Be sure those are correctly configured before the initialization of this.");
+	ECHO("*************************************************************************************************************");
+	ECHO("");
+	
+	string resp = "";
+	bool registered;
+	string rat = "";
+	
+	SENDAT("AT+CFUN=0",180000,"OK");
+	
+	if (SENDAT("AT+CGDCONT=" + CID + ",\"" + PDPtype + "\",\"" + APN + "\"" , 2000, "OK") != "OK")
+	{
+		STOP("ERROR: unable to set APN");
+	}
+	
+	SENDAT("AT+CFUN=1",180000,"OK");
+	PAUSE 10000;
+	
+	// Check registration
+	resp = SENDAT("AT+CEREG?", 2000, "OK");
+	if (resp.split(',')[1].findFirst("1") >= 0 || resp.split(',')[1].findFirst("5") >= 0)
+	{
+		registered = true;
+	}
+
+	resp = SENDAT("AT+CGREG?", 2000, "OK");
+	if (resp.split(',')[1].findFirst("1") >= 0 || resp.split(',')[1].findFirst("5") >= 0)
+	{
+		registered = true;
+	}
+	
+	if(!registered)
+	{
+		STOP("ERROR: unable to register modem on the network");
+	}
+	
+	SENDAT("AT+CGDCONT?",10000,"");
+	
+	if(productInUse == "laraR2" || productInUse == "saraR5" || productInUse == "saraR42")
+	{
+		if (SENDAT("AT+UPSD=0,0," + IPV,1000,"OK") != "OK")
+		{
+			STOP("ERROR: unable to set IP version");
+		}
+		
+		if (SENDAT("AT+UPSD=0,100," + CID , 2000, "OK") != "OK")
+		{
+			STOP("ERROR: unable to map PSD profile");
+		}
+	}
+	
+	if(productInUse == "laraR2" || productInUse == "saraR5")
+	{
+		if(SENDAT("AT+UPSDA=0,3",150000,"OK") != "OK")
+		{
+			STOP("ERROR: unable to map PSD profile");
+		}
+		
+		SENDAT("AT+UPSND=0,8", 2000, "OK");
+		ECHO("SUCCESS!");
+	}
+	
+	if(productInUse == "laraR6" || productInUse == "saraR42")
+	{
+		if(productInUse == "laraR6")
+		{	
+			resp = SENDAT("AT+COPS?", 2000, 'OK');
+			rat = resp.split(',')[3].split('\r')[0];
+		}
+		
+		if(!(productInUse == "laraR6" && rat == "7"))
+		{ 
+			if (SENDAT("AT+CGACT=1," + CID ,5000,"OK") != "OK")
+			{
+				STOP("ERROR: unable to activate context");
+			}
+		}
+	}
+}

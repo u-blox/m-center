@@ -62,11 +62,11 @@ AT+CGDCONT?
 
 // Check registration
 resp = SENDAT("AT+CEREG?", 200, 'OK');
-if (resp.split(',')[1] == "1" || resp.split(',')[1] == "5"){
+if (resp.split(',')[1].findFirst("1") >= 0 || resp.split(',')[1].findFirst("5") >= 0){
     registered = true;
 }
 resp = SENDAT("AT+CGREG?", 200, 'OK');
-if (resp.split(',')[1] == "1" || resp.split(',')[1] == "5"){
+if (resp.split(',')[1].findFirst("1") >= 0 || resp.split(',')[1].findFirst("5") >= 0){
     registered = true;
 }
 
