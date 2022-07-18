@@ -4,24 +4,24 @@
 * Licensed under the Apache License, Version 2.0 (the "License");
 * you may not use this file except in compliance with the License.
 * You may obtain a copy of the License at
-* 
+*
 * http://www.apache.org/licenses/LICENSE-2.0
-* 
+*
 * Unless required by applicable law or agreed to in writing, software
 * distributed under the License is distributed on an "AS IS" BASIS,
 * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 * See the License for the specific language governing permissions and
 * limitations under the License.
 ******************************************************************************
-* Synopsis:		sys_all_fileManagement_advance.atl
-* Topic: 		system_functionalities 
-* Version:		1.0
-* Author:		bkha
+* Synopsis:     sys_all_fileManagement_advance.atl
+* Topic:        system_functionalities 
+* Version:      1.0
+* Author:       bkha
 * Description:
-*		This script has the purpose to test the file integration and its functions.
+*       This script has the purpose to test the file integration and its functions.
 ******************************************************************************
-* Modules:		All Products
-* Tested on:	SARA-R42
+* Modules:      All Products
+* Tested on:    SARA-R42
 ******************************************************************************/
 
 //----configuration settings------//
@@ -37,90 +37,90 @@ file f;
 
 void write_file_test(){
 
-	ECHO("File Write Test Start");
-	if( f.open(file_name, "a") >= 0 ) 
-	{
-		f.writeString("line1 \n");
-		f.writeString("\n");
-		f.writeString("line3 \n");
-		f.writeString("line4 \n");
-		f.writeInt(5,2);
-		f.writeString("\n");
-		f.writeFloat(2.9);
-		f.writeString("\n");
-		f.writeUInt(5,4);
-		f.writeString("\n");
-		f.writeDouble(4.5);
-		
-		f.close();
-	}
-	else
-	{
-		ECHO("File not open");
-	}
+    ECHO("File Write Test Start");
+    if( f.open(file_name, "a") >= 0 ) 
+    {
+        f.writeString("line1 \n");
+        f.writeString("\n");
+        f.writeString("line3 \n");
+        f.writeString("line4 \n");
+        f.writeInt(5,2);
+        f.writeString("\n");
+        f.writeFloat(2.9);
+        f.writeString("\n");
+        f.writeUInt(5,4);
+        f.writeString("\n");
+        f.writeDouble(4.5);
+        
+        f.close();
+    }
+    else
+    {
+        ECHO("File not open");
+    }
 }
 
 void read_file_test(){
-	ECHO("File Read Test Start");
-	// Open the file in 'read' mode
-	if( f.open(file_name, "r") >= 0 ) 
-	{
-		ECHO("File opened in read mode \r\nreadLine() = " + f.readLine());
-		
-		// set get positions
-		ECHO("Position - getPos(), setPos(int i), movPos(int delta) test\r\n  getPos() = "+ f.getPos());
-		
-		// Read the whole file into the string buffer without setting the position
-		string str = f.readString(f.getSize()); 
-		ECHO("Words inside file without setting position - readString(size) = " +str);
-		
-		// set position to 0
-		f.setPos(0);
-		str = f.readString(f.getSize()); 
-		ECHO("Words inside file after setting position to 0 - readString(size) = " +str);
-		
-			
-		// move to position 0
-		f.movePos(-1 * f.getPos());
-		str = f.readString(f.getSize()); 
-		ECHO("Words inside file after moving position to 0 - readString(size) = " +str);
-		
-		// echo most Significant Byte First
-		ECHO("mostSignificantByteFirst = " + f.mostSignificantByteFirst);
-		
-		// set position again to 0
-		f.setPos(0);
-		// skip 4 lines
-		f.readLine();
-		f.readLine();
-		f.readLine();
-		f.readLine();
-		// read float
-		ECHO("readInt : " +f.readInt(2));
-		f.readLine();
-		ECHO("readFloat : " +f.readFloat());
-		f.readLine();
-		ECHO("readUInt : " +f.readUInt(4));
-		f.readLine();
-		ECHO("readDouble : " +f.readDouble());
-		f.readLine();
-		
-		// check if it is the end of file
-		ECHO("File index position: " +f.getPos());
-		ECHO("End of file = "+ f.isEndOfFile());	
-		
-		f.close();
-	}
-	else
-	{
-		ECHO("File not open");
-	}
+    ECHO("File Read Test Start");
+    // Open the file in 'read' mode
+    if( f.open(file_name, "r") >= 0 ) 
+    {
+        ECHO("File opened in read mode \r\nreadLine() = " + f.readLine());
+        
+        // set get positions
+        ECHO("Position - getPos(), setPos(int i), movPos(int delta) test\r\n  getPos() = "+ f.getPos());
+        
+        // Read the whole file into the string buffer without setting the position
+        string str = f.readString(f.getSize()); 
+        ECHO("Words inside file without setting position - readString(size) = " +str);
+        
+        // set position to 0
+        f.setPos(0);
+        str = f.readString(f.getSize()); 
+        ECHO("Words inside file after setting position to 0 - readString(size) = " +str);
+        
+            
+        // move to position 0
+        f.movePos(-1 * f.getPos());
+        str = f.readString(f.getSize()); 
+        ECHO("Words inside file after moving position to 0 - readString(size) = " +str);
+        
+        // echo most Significant Byte First
+        ECHO("mostSignificantByteFirst = " + f.mostSignificantByteFirst);
+        
+        // set position again to 0
+        f.setPos(0);
+        // skip 4 lines
+        f.readLine();
+        f.readLine();
+        f.readLine();
+        f.readLine();
+        // read float
+        ECHO("readInt : " +f.readInt(2));
+        f.readLine();
+        ECHO("readFloat : " +f.readFloat());
+        f.readLine();
+        ECHO("readUInt : " +f.readUInt(4));
+        f.readLine();
+        ECHO("readDouble : " +f.readDouble());
+        f.readLine();
+        
+        // check if it is the end of file
+        ECHO("File index position: " +f.getPos());
+        ECHO("End of file = "+ f.isEndOfFile());    
+        
+        f.close();
+    }
+    else
+    {
+        ECHO("File not open");
+    }
 }
 
 void main(){
-	if(write_enable){
-		write_file_test();
-	}
-	
-	read_file_test();
+    if(write_enable){
+        write_file_test();
+    }
+    
+    read_file_test();
 }

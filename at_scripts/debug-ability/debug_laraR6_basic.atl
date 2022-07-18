@@ -13,16 +13,16 @@
 * See the License for the specific language governing permissions and
 * limitations under the License.
 *******************************************************************************
-* Synopsis:		debug_laraR6_basic.atl
-* Topic:		debug-ability
-* Version:		1.0
-* Author:		mdem
+* Synopsis:     debug_laraR6_basic.atl
+* Topic:        debug-ability
+* Version:      1.0
+* Author:       mdem
 * Description:
-*		This script has the general purpose to collect debug info from
-*		the target module.
+*       This script has the general purpose to collect debug info from
+*       the target module.
 *******************************************************************************
-* Modules:		LARA-R6
-* Tested on:	LARA-R6
+* Modules:      LARA-R6
+* Tested on:    LARA-R6
 *******************************************************************************/
 
 #########################

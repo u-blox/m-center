@@ -13,18 +13,18 @@
 * See the License for the specific language governing permissions and
 * limitations under the License.
 ******************************************************************************
-* Synopsis:		location_saraR5_saraR42_laraR6_gnssCellInfo_advanced.atl
-* Topic:		location_features
-* Version:		1.0
-* Author:		dtro
+* Synopsis:     location_saraR5_saraR42_laraR6_gnssCellInfo_advanced.atl
+* Topic:        location_features
+* Version:      1.0
+* Author:       dtro
 * Description:	The script retrives info about the mobile network status together with
-* 				the GNSS position in which the info are collected.
-*				The script encapsuletes the info with two set strings in order to make
-*				the results easy to parse.
+*               the GNSS position in which the info are collected.
+*               The script encapsuletes the info with two set strings in order to make
+*               the results easy to parse.
 *
 ******************************************************************************
-* Modules:		SARA-R5, SARA-R42, LARA-R6
-* Tested on:	SARA-R5, SARA-R42, LARA-R6
+* Modules:      SARA-R5, SARA-R42, LARA-R6
+* Tested on:    SARA-R5, SARA-R42, LARA-R6
 ******************************************************************************/
 
 
@@ -33,11 +33,11 @@ int iteration_number = 1000;
 
 // modem type
 // 0 - SARA-R5
-//		if chosen, the script encapsuletes and returns the +CESQ and the +UCELLINFO AT command reply
+//      if chosen, the script encapsuletes and returns the +CESQ and the +UCELLINFO AT command reply
 // 1 - SARA-R42
-//		if chosen, the script encapsuletes and returns the +CESQ AT command reply
+//      if chosen, the script encapsuletes and returns the +CESQ AT command reply
 // 2 - LARA-R6
-//		if chosen, the script encapsuletes and returns the +CESQ AT command reply
+//      if chosen, the script encapsuletes and returns the +CESQ AT command reply
 int modem_type = 2;
 
 // flag for the multirat module
@@ -108,528 +108,528 @@ string gnss_commnad ="AT+UGPS=1," + aiding_type + "," + gnss_system;
 // it looks for the string 'Start!'
 void wait_for_at_ready(void)
 {
-	string command = "Start!";
-	string resp = WAIT(command, 60000);
+    string command = "Start!";
+    string resp = WAIT(command, 60000);
 
-	if(FIND(resp, "Start!") != -1) {
-		ECHO("Module ready");
-	} else {
-		ECHO("Module not ready");
-	}
+    if(FIND(resp, "Start!") != -1) {
+        ECHO("Module ready");
+    } else {
+        ECHO("Module not ready");
+    }
 }
 
 void modem_initialization (void)
 {
-	string command, resp;
-	ECHO("Waiting for registration");
+    string command, resp;
+    ECHO("Waiting for registration");
 
-	command = "AT+UMNOPROF?";
-	resp = SENDAT(command, 1000, "OK");
-	PAUSE(200);
+    command = "AT+UMNOPROF?";
+    resp = SENDAT(command, 1000, "OK");
+    PAUSE(200);
 
-	if (FIND(resp, "+UMNOPROF: " + umnoprof_set) == -1){
-		command = "AT+CFUN=4";
-		resp = SENDAT(command, 200,"OK");
-		PAUSE(1000);
-		command = "AT+UMNOPROF=" + umnoprof_set;
-		resp = SENDAT(command, 200, "OK");
+    if (FIND(resp, "+UMNOPROF: " + umnoprof_set) == -1){
+        command = "AT+CFUN=4";
+        resp = SENDAT(command, 200,"OK");
+        PAUSE(1000);
+        command = "AT+UMNOPROF=" + umnoprof_set;
+        resp = SENDAT(command, 200, "OK");
 
-		command = "AT+CFUN=16";
-		resp = SENDAT(command, 5000, "OK");
+        command = "AT+CFUN=16";
+        resp = SENDAT(command, 5000, "OK");
 
-		PAUSE(8000);
-	}
-	
-	command = "AT+URAT?";
-	resp = SENDAT(command, 1000, "OK");
-	PAUSE(200);
-	handle_rat(resp);
+        PAUSE(8000);
+    }
+    
+    command = "AT+URAT?";
+    resp = SENDAT(command, 1000, "OK");
+    PAUSE(200);
+    handle_rat(resp);
 
-	command = "AT+CMEE=2";
-	resp = SENDAT(command, 200, "OK");
-	PAUSE(20);
-	command = "AT+CREG=2";
-	resp = SENDAT(command, 200, "OK");
-	PAUSE(20);
-	command = "AT+CGREG=2";
-	resp = SENDAT(command, 200, "OK");
-	PAUSE(20);
-	command = "AT+CEREG=2";
-	resp = SENDAT(command, 200, "OK");
-	PAUSE(20);
-	command = "AT+CSCON=1";
-	resp = SENDAT(command, 200, "OK");
-	PAUSE(20);
-	command = "AT+CFUN=4";
-	resp = SENDAT(command, 200,"OK");
-	PAUSE(1000);
-	command = "AT+CGDCONT?";
-	resp = SENDAT(command, 1000, "OK");
-	PAUSE(200);
+    command = "AT+CMEE=2";
+    resp = SENDAT(command, 200, "OK");
+    PAUSE(20);
+    command = "AT+CREG=2";
+    resp = SENDAT(command, 200, "OK");
+    PAUSE(20);
+    command = "AT+CGREG=2";
+    resp = SENDAT(command, 200, "OK");
+    PAUSE(20);
+    command = "AT+CEREG=2";
+    resp = SENDAT(command, 200, "OK");
+    PAUSE(20);
+    command = "AT+CSCON=1";
+    resp = SENDAT(command, 200, "OK");
+    PAUSE(20);
+    command = "AT+CFUN=4";
+    resp = SENDAT(command, 200,"OK");
+    PAUSE(1000);
+    command = "AT+CGDCONT?";
+    resp = SENDAT(command, 1000, "OK");
+    PAUSE(200);
 
-	if (FIND(resp,  apn_initial_def_bearer) == -1){
-		command = "AT+CFUN=4";
-		resp = SENDAT(command, 200,"OK");
-		PAUSE(1000);
-		command = "AT+CGDCONT=1,\"IP\",\"" + apn_initial_def_bearer + "\"";
-		resp = SENDAT(command, 200, "OK");
-		PAUSE(1000);
-	}
-	
-	command = "AT+CFUN=1";
-	resp = SENDAT(command, 200,"OK");
-	PAUSE(20);
-	
+    if (FIND(resp,  apn_initial_def_bearer) == -1){
+        command = "AT+CFUN=4";
+        resp = SENDAT(command, 200,"OK");
+        PAUSE(1000);
+        command = "AT+CGDCONT=1,\"IP\",\"" + apn_initial_def_bearer + "\"";
+        resp = SENDAT(command, 200, "OK");
+        PAUSE(1000);
+    }
+    
+    command = "AT+CFUN=1";
+    resp = SENDAT(command, 200,"OK");
+    PAUSE(20);
+    
 }
 
 void wait_for_registration_urc(void)
 {
-	string command, resp;
-	ECHO("Waiting for registration");
-	
-	int counter_cycle = 0;
-	bool registered = false;
-	command = "+C";
-	resp = WAIT(command, 300000);
+    string command, resp;
+    ECHO("Waiting for registration");
+    
+    int counter_cycle = 0;
+    bool registered = false;
+    command = "+C";
+    resp = WAIT(command, 300000);
 
-	while (!registered) {
+    while (!registered) {
 
-		if (FIND(resp, "+CREG: 1") != -1 || FIND(resp, "+CEREG: 1") != -1 || FIND(resp, "+CGREG: 1") != -1) {
-			ECHO("Registered on network (HPLMN)");
-			registered = true; 
-		} else if(FIND(resp, "+CREG: 6") != -1 || FIND(resp, "+CREG: 7") != -1) {
-			ECHO("Registered for SMS only");
-			registered = true; 
-		} else if(FIND(resp, "+CREG: 5") != -1 || FIND(resp, "+CEREG: 5") != -1 || FIND(resp, "+CGREG: 5") != -1) {
-			ECHO("Registered on roaming (VPLMN)");
-			registered = true; 
-		} else {
-			resp = WAIT(command, 30000);
-		}
+        if (FIND(resp, "+CREG: 1") != -1 || FIND(resp, "+CEREG: 1") != -1 || FIND(resp, "+CGREG: 1") != -1) {
+            ECHO("Registered on network (HPLMN)");
+            registered = true; 
+        } else if(FIND(resp, "+CREG: 6") != -1 || FIND(resp, "+CREG: 7") != -1) {
+            ECHO("Registered for SMS only");
+            registered = true; 
+        } else if(FIND(resp, "+CREG: 5") != -1 || FIND(resp, "+CEREG: 5") != -1 || FIND(resp, "+CGREG: 5") != -1) {
+            ECHO("Registered on roaming (VPLMN)");
+            registered = true; 
+        } else {
+            resp = WAIT(command, 30000);
+        }
 
-		if (counter_cycle < max_number_retry_registration) {
-			counter_cycle++;
-		} else {
-			ECHO("*************************************************************************************************************");
-			ECHO("Registration status to be checked (not HPLMN), stopping the script...");
-			STOP("*************************************************************************************************************");
-		}
-	}
+        if (counter_cycle < max_number_retry_registration) {
+            counter_cycle++;
+        } else {
+            ECHO("*************************************************************************************************************");
+            ECHO("Registration status to be checked (not HPLMN), stopping the script...");
+            STOP("*************************************************************************************************************");
+        }
+    }
 
-	command = "AT+CGACT=1,1";
-	resp = SENDAT(command, 10000, "OK");
+    command = "AT+CGACT=1,1";
+    resp = SENDAT(command, 10000, "OK");
 
-	if (modem_type == 0 || modem_type == 1) {
-		command = "AT+UPSD=0,0,0";
-		resp = SENDAT(command, 10000, "OK");
-		command = "AT+UPSD=0,100,1";
-		resp = SENDAT(command, 10000, "OK");
-	}
-	if (modem_type == 0) {
-		command = "AT+UPSDA=0,3";
-		resp = SENDAT(command, 10000, "OK");
-	}
+    if (modem_type == 0 || modem_type == 1) {
+        command = "AT+UPSD=0,0,0";
+        resp = SENDAT(command, 10000, "OK");
+        command = "AT+UPSD=0,100,1";
+        resp = SENDAT(command, 10000, "OK");
+    }
+    if (modem_type == 0) {
+        command = "AT+UPSDA=0,3";
+        resp = SENDAT(command, 10000, "OK");
+    }
 }
 
 void wait_for_registration_polling(void)
 {
-	string command, command_creg, command_cereg, command_cgreg, resp;
-	ECHO("Waiting for registration");
-	
-	int counter_cycle = 0;
-	bool registered = false;
-	command_creg = "AT+CREG?";
-	command_cereg = "AT+CEREG?";
-	command_cgreg = "AT+CGREG?";
-	bool registered_sms = false;
-	
-	while (!registered) {
-		resp = SENDAT(command_creg, 1000, "OK");
-		string status = resp.split(": ")[1];
-		status = status.split("\r\nOK")[0];
-		int stat = parseInt(status.split(",")[1]);
-		
-		if (!registered_sms) {
-			if (stat == 1 || stat == 5) {
-				registered = true;
-				ECHO("*************************************************************************************************************");
-				ECHO("Registered in CS domain");
-				ECHO("*************************************************************************************************************");
-				break;			
-			} else if (stat == 6 || stat == 7 || stat == 8 || stat == 9 || stat == 10) {
-				registered_sms = true;
-				ECHO("*************************************************************************************************************");
-				ECHO("Registered only for SMS");
-				ECHO("*************************************************************************************************************");			
-			}
-		}
+    string command, command_creg, command_cereg, command_cgreg, resp;
+    ECHO("Waiting for registration");
+    
+    int counter_cycle = 0;
+    bool registered = false;
+    command_creg = "AT+CREG?";
+    command_cereg = "AT+CEREG?";
+    command_cgreg = "AT+CGREG?";
+    bool registered_sms = false;
+    
+    while (!registered) {
+        resp = SENDAT(command_creg, 1000, "OK");
+        string status = resp.split(": ")[1];
+        status = status.split("\r\nOK")[0];
+        int stat = parseInt(status.split(",")[1]);
+        
+        if (!registered_sms) {
+            if (stat == 1 || stat == 5) {
+                registered = true;
+                ECHO("*************************************************************************************************************");
+                ECHO("Registered in CS domain");
+                ECHO("*************************************************************************************************************");
+                break;      	
+            } else if (stat == 6 || stat == 7 || stat == 8 || stat == 9 || stat == 10) {
+                registered_sms = true;
+                ECHO("*************************************************************************************************************");
+                ECHO("Registered only for SMS");
+                ECHO("*************************************************************************************************************");      	
+            }
+        }
 
-		resp = SENDAT(command_cereg, 1000, "OK");
-		status = resp.split(": ")[1];
-		status = status.split("\r\nOK")[0];
-		stat = parseInt(status.split(",")[1]);
-		
-		if (stat == 1 || stat == 5) {
-			registered = true;
-			ECHO("*************************************************************************************************************");
-			ECHO("Registered in PS domain");
-			ECHO("*************************************************************************************************************");
-			break;			
-		}
+        resp = SENDAT(command_cereg, 1000, "OK");
+        status = resp.split(": ")[1];
+        status = status.split("\r\nOK")[0];
+        stat = parseInt(status.split(",")[1]);
+        
+        if (stat == 1 || stat == 5) {
+            registered = true;
+            ECHO("*************************************************************************************************************");
+            ECHO("Registered in PS domain");
+            ECHO("*************************************************************************************************************");
+            break;      	
+        }
 
-		resp = SENDAT(command_cgreg, 1000, "OK");
-		status = resp.split(": ")[1];
-		status = status.split("\r\nOK")[0];
-		stat = parseInt(status.split(",")[1]);
-		
-		if (stat == 1 || stat == 5) {
-			registered = true;
-			ECHO("*************************************************************************************************************");
-			ECHO("Registered in PS domain");
-			ECHO("*************************************************************************************************************");
-			break;			
-		}
+        resp = SENDAT(command_cgreg, 1000, "OK");
+        status = resp.split(": ")[1];
+        status = status.split("\r\nOK")[0];
+        stat = parseInt(status.split(",")[1]);
+        
+        if (stat == 1 || stat == 5) {
+            registered = true;
+            ECHO("*************************************************************************************************************");
+            ECHO("Registered in PS domain");
+            ECHO("*************************************************************************************************************");
+            break;      	
+        }
 
-		if (counter_cycle < max_number_retry_registration) {
-			counter_cycle++;
-		} else {
-			ECHO("*************************************************************************************************************");
-			ECHO("Registration status to be checked, stopping the script...");
-			STOP("*************************************************************************************************************");
-		}
+        if (counter_cycle < max_number_retry_registration) {
+            counter_cycle++;
+        } else {
+            ECHO("*************************************************************************************************************");
+            ECHO("Registration status to be checked, stopping the script...");
+            STOP("*************************************************************************************************************");
+        }
 
-		PAUSE(5000);
-	}
+        PAUSE(5000);
+    }
 
-	command = "AT+CGACT=1,1";
-	resp = SENDAT(command, 10000, "OK");
+    command = "AT+CGACT=1,1";
+    resp = SENDAT(command, 10000, "OK");
 
-	if (modem_type == 0 || modem_type == 1) {
-		command = "AT+UPSD=0,0,0";
-		resp = SENDAT(command, 10000, "OK");
-		command = "AT+UPSD=0,100,1";
-		resp = SENDAT(command, 10000, "OK");
-	}
-	if (modem_type == 0) {
-		command = "AT+UPSDA=0,3";
-		resp = SENDAT(command, 10000, "OK");
-	}
+    if (modem_type == 0 || modem_type == 1) {
+        command = "AT+UPSD=0,0,0";
+        resp = SENDAT(command, 10000, "OK");
+        command = "AT+UPSD=0,100,1";
+        resp = SENDAT(command, 10000, "OK");
+    }
+    if (modem_type == 0) {
+        command = "AT+UPSDA=0,3";
+        resp = SENDAT(command, 10000, "OK");
+    }
 }
 
 void handle_rat(string resp_rat) 
 {
-	string resp, command;
-	if (FIND(resp_rat, "+URAT: " + urat_set) == -1 && !multi_rat_module){
-		command = "AT+CFUN=4";
-		resp = SENDAT(command, 200,"OK");
-		PAUSE(1000);
-		command = "AT+URAT=" + urat_set;
-		resp = SENDAT(command, 200, "OK");
+    string resp, command;
+    if (FIND(resp_rat, "+URAT: " + urat_set) == -1 && !multi_rat_module){
+        command = "AT+CFUN=4";
+        resp = SENDAT(command, 200,"OK");
+        PAUSE(1000);
+        command = "AT+URAT=" + urat_set;
+        resp = SENDAT(command, 200, "OK");
 
-		command = "AT+CFUN=16";
-		resp = SENDAT(command, 5000, "OK");
+        command = "AT+CFUN=16";
+        resp = SENDAT(command, 5000, "OK");
 
-		ECHO("*************************************************************************************************************");
-		ECHO("RAT SETTING:" + urat_set);
-		ECHO("*************************************************************************************************************");
-		PAUSE(8000);
+        ECHO("*************************************************************************************************************");
+        ECHO("RAT SETTING:" + urat_set);
+        ECHO("*************************************************************************************************************");
+        PAUSE(8000);
 
-	} else if (multi_rat_module) {
-		resp = resp_rat.split("\r\nOK")[0];
-		string rat = resp.split(": ")[1];
-		array<string> rat_mode = rat.split(",");
-		string actual_first_rat_mode = rat_mode[0];
-		string rat_to_write = "";
+    } else if (multi_rat_module) {
+        resp = resp_rat.split("\r\nOK")[0];
+        string rat = resp.split(": ")[1];
+        array<string> rat_mode = rat.split(",");
+        string actual_first_rat_mode = rat_mode[0];
+        string rat_to_write = "";
 
-		if (parseInt(actual_first_rat_mode) != urat_set) {
-			rat_to_write = rat_to_write + urat_set;
-			for (int i = 0; i < rat_mode.length(); i++) {
-				if (parseInt(rat_mode[i]) != urat_set) {
-					rat_to_write = rat_to_write + "," + rat_mode[i];
-				}
-			}
+        if (parseInt(actual_first_rat_mode) != urat_set) {
+            rat_to_write = rat_to_write + urat_set;
+            for (int i = 0; i < rat_mode.length(); i++) {
+                if (parseInt(rat_mode[i]) != urat_set) {
+                    rat_to_write = rat_to_write + "," + rat_mode[i];
+                }
+            }
 
-			command = "AT+CFUN=4";
-			resp = SENDAT(command, 200,"OK");
-			PAUSE(1000);
-			command = "AT+URAT=" + rat_to_write;
-			resp = SENDAT(command, 200, "OK");
+            command = "AT+CFUN=4";
+            resp = SENDAT(command, 200,"OK");
+            PAUSE(1000);
+            command = "AT+URAT=" + rat_to_write;
+            resp = SENDAT(command, 200, "OK");
 
-			command = "AT+CFUN=16";
-			resp = SENDAT(command, 5000, "OK");
+            command = "AT+CFUN=16";
+            resp = SENDAT(command, 5000, "OK");
 
-			ECHO("*************************************************************************************************************");
-			ECHO("RAT SETTING:" + rat_to_write);
-			ECHO("*************************************************************************************************************");
-			PAUSE(8000);
-		}
-	}
+            ECHO("*************************************************************************************************************");
+            ECHO("RAT SETTING:" + rat_to_write);
+            ECHO("*************************************************************************************************************");
+            PAUSE(8000);
+        }
+    }
 }
 
 void activate_external_gnss()
 {
-	string command, resp;
-	command = "AT+UGPIOC?";
-	resp = SENDAT(command, 1000, "OK");
-	if (FIND(resp, "23,3") == -1 || FIND(resp, "24,4") == -1) {
-		command = "AT+UGPIOC=23,3";
-		resp = SENDAT(command, 100, "OK");
-		command = "AT+UGPIOC=24,4";
-		resp = SENDAT(command, 100, "OK");
-	}
+    string command, resp;
+    command = "AT+UGPIOC?";
+    resp = SENDAT(command, 1000, "OK");
+    if (FIND(resp, "23,3") == -1 || FIND(resp, "24,4") == -1) {
+        command = "AT+UGPIOC=23,3";
+        resp = SENDAT(command, 100, "OK");
+        command = "AT+UGPIOC=24,4";
+        resp = SENDAT(command, 100, "OK");
+    }
 }
 
 string return_clear_nmea(string nmea)
 {
-	string coord;
-	double nmea_a = parseFloat(nmea.split(',')[4]);
-	double nmea_n = parseFloat(nmea.split(',')[6]);
-	coord = nmea_a + "," + nmea_n;
+    string coord;
+    double nmea_a = parseFloat(nmea.split(',')[4]);
+    double nmea_n = parseFloat(nmea.split(',')[6]);
+    coord = nmea_a + "," + nmea_n;
 
-	return(coord);
+    return(coord);
 }
 
 string return_latitude_longitude_from_nmea(string nmea) 
 {
-	string coord;
-	double nmea_a = parseFloat(nmea.split(',')[4]);
-	double nmea_n = parseFloat(nmea.split(',')[6]);
-	int index = FIND(nmea, "A");
+    string coord;
+    double nmea_a = parseFloat(nmea.split(',')[4]);
+    double nmea_n = parseFloat(nmea.split(',')[6]);
+    int index = FIND(nmea, "A");
 
-	int first_term_N = nmea_a / 100;
-	double second_term_N = ((nmea_a/100 - first_term_N) * 10 )/ 6;
-	double coord_N = first_term_N + second_term_N;
+    int first_term_N = nmea_a / 100;
+    double second_term_N = ((nmea_a/100 - first_term_N) * 10 )/ 6;
+    double coord_N = first_term_N + second_term_N;
 
-	int first_term_E = nmea_n / 100;
-	double second_term_E = ((nmea_n/100 - first_term_E) * 10 )/ 6;
-	double coord_E = first_term_E + second_term_E;
-	coord = coord_N + "," + coord_E; 
+    int first_term_E = nmea_n / 100;
+    double second_term_E = ((nmea_n/100 - first_term_E) * 10 )/ 6;
+    double coord_E = first_term_E + second_term_E;
+    coord = coord_N + "," + coord_E; 
 
-	return(coord);
+    return(coord);
 }
 
 array<string> get_ucellinfo()
 {
-	string command, resp;
-	command = "AT+UCELLINFO?";
-	resp = SENDAT(command, 3000, "OK");
-	
-	resp = resp.split("\r\nOK")[0];
-	array<string> cell_info = resp.split("\r\n+UCELLINFO: ");
-	string temp = cell_info[0].split("+UCELLINFO: ")[1];
-	cell_info.removeAt(0);
-	cell_info.insertAt(0,temp);
+    string command, resp;
+    command = "AT+UCELLINFO?";
+    resp = SENDAT(command, 3000, "OK");
+    
+    resp = resp.split("\r\nOK")[0];
+    array<string> cell_info = resp.split("\r\n+UCELLINFO: ");
+    string temp = cell_info[0].split("+UCELLINFO: ")[1];
+    cell_info.removeAt(0);
+    cell_info.insertAt(0,temp);
 
-	return cell_info;	
+    return cell_info;	
 }
 
 array<string> get_ucfscan(int option)
 {
-	string command, resp;
-	command = "AT+UCFSCAN=" + option;
-	resp = SENDAT(command, 300000, "OK");
-	
-	resp = resp.split("\r\nOK")[0];
-	array<string> cell_info = resp.split("\r\n+UCFSCAN: ");
-	string temp = cell_info[0].split("+UCFSCAN: ")[1];
-	cell_info.removeAt(0);
-	cell_info.insertAt(0,temp);
+    string command, resp;
+    command = "AT+UCFSCAN=" + option;
+    resp = SENDAT(command, 300000, "OK");
+    
+    resp = resp.split("\r\nOK")[0];
+    array<string> cell_info = resp.split("\r\n+UCFSCAN: ");
+    string temp = cell_info[0].split("+UCFSCAN: ")[1];
+    cell_info.removeAt(0);
+    cell_info.insertAt(0,temp);
 
-	return cell_info;	
+    return cell_info;	
 }
 
 string get_creg()
 {
-	string command, resp;
-	command = "AT+CREG?";
-	resp = SENDAT(command, 3000, "OK");
+    string command, resp;
+    command = "AT+CREG?";
+    resp = SENDAT(command, 3000, "OK");
 
-	string status = resp.split(": ")[1];
-	status = status.split("\r\nOK")[0];
-	
-	return status;
+    string status = resp.split(": ")[1];
+    status = status.split("\r\nOK")[0];
+    
+    return status;
 }
 
 string get_cgreg()
 {
-	string command, resp;
-	command = "AT+CGREG?";
-	resp = SENDAT(command, 3000, "OK");
+    string command, resp;
+    command = "AT+CGREG?";
+    resp = SENDAT(command, 3000, "OK");
 
-	string status = resp.split(": ")[1];
-	status = status.split("\r\nOK")[0];
-	
-	return status;
+    string status = resp.split(": ")[1];
+    status = status.split("\r\nOK")[0];
+    
+    return status;
 }
 
 string get_cereg()
 {
-	string command, resp;
-	command = "AT+CEREG?";
-	resp = SENDAT(command, 3000, "OK");
+    string command, resp;
+    command = "AT+CEREG?";
+    resp = SENDAT(command, 3000, "OK");
 
-	string status = resp.split(": ")[1];
-	status = status.split("\r\nOK")[0];
-	
-	return status;
+    string status = resp.split(": ")[1];
+    status = status.split("\r\nOK")[0];
+    
+    return status;
 }
 
 string get_cesq() 
 {
-	string command, resp;
-	command = "AT+CESQ";
-	resp = SENDAT(command, 3000, "OK");
+    string command, resp;
+    command = "AT+CESQ";
+    resp = SENDAT(command, 3000, "OK");
 
-	string cesq = resp.split(": ")[1];
-	cesq = cesq.split("\r\nOK")[0];
-	
-	return cesq;
+    string cesq = resp.split(": ")[1];
+    cesq = cesq.split("\r\nOK")[0];
+    
+    return cesq;
 }
 
 void get_info()
 {
-	string command, resp;
-	for (int i = 0; i < iteration_number; i++) {
-		command ="AT+UGRMC?";
-		resp = SENDAT(command, 500, "OK");
-		
-		string pos;
-		if (return_latitude_longitude) {
-			pos = return_latitude_longitude_from_nmea(resp);
-		} else {
-			pos = return_clear_nmea(resp);
-		}
+    string command, resp;
+    for (int i = 0; i < iteration_number; i++) {
+        command ="AT+UGRMC?";
+        resp = SENDAT(command, 500, "OK");
+        
+        string pos;
+        if (return_latitude_longitude) {
+            pos = return_latitude_longitude_from_nmea(resp);
+        } else {
+            pos = return_clear_nmea(resp);
+        }
 
-		array<string> cell_info;
-		if (modem_type == 0) {
-			cell_info = get_ucellinfo();
-		}
-		if (modem_type == 1) {
-			if (urat_set == 8) {
-				cell_info = get_ucfscan(9);
-			}
-			if (urat_set == 7) {
-				cell_info = get_ucfscan(7);
-			}
-		}
+        array<string> cell_info;
+        if (modem_type == 0) {
+            cell_info = get_ucellinfo();
+        }
+        if (modem_type == 1) {
+            if (urat_set == 8) {
+                cell_info = get_ucfscan(9);
+            }
+            if (urat_set == 7) {
+                cell_info = get_ucfscan(7);
+            }
+        }
 
-		string info = pos + ","+ get_cesq();
+        string info = pos + ","+ get_cesq();
 
-		string creg_info, cereg_info, cgreg_info;
-		if (urat_set == 8) {
-			creg_info = get_creg();
-			cereg_info = get_cereg();
-		}
-		if (urat_set == 3) {
-			creg_info = get_creg();
-			cereg_info = get_cereg();
-			cgreg_info = get_cgreg();
-		}
+        string creg_info, cereg_info, cgreg_info;
+        if (urat_set == 8) {
+            creg_info = get_creg();
+            cereg_info = get_cereg();
+        }
+        if (urat_set == 3) {
+            creg_info = get_creg();
+            cereg_info = get_cereg();
+            cgreg_info = get_cgreg();
+        }
 
-		// start to plot info
-		ECHO(parse_start);
-		ECHO(parsing_string + info);
+        // start to plot info
+        ECHO(parse_start);
+        ECHO(parsing_string + info);
 
-		if (urat_set == 8) {
-			ECHO(parsing_string + creg_info);
-			ECHO(parsing_string + cereg_info);
-		}
-		if (urat_set == 3) {
-			ECHO(parsing_string + creg_info);
-			ECHO(parsing_string + cereg_info);
-			ECHO(parsing_string + cgreg_info);
-		}
-		
+        if (urat_set == 8) {
+            ECHO(parsing_string + creg_info);
+            ECHO(parsing_string + cereg_info);
+        }
+        if (urat_set == 3) {
+            ECHO(parsing_string + creg_info);
+            ECHO(parsing_string + cereg_info);
+            ECHO(parsing_string + cgreg_info);
+        }
+        
 
-		if (modem_type == 1) {
-			for (int i = 0; i < cell_info.length(); i++) {
-				ECHO(parsing_string + cell_info[i]);
-			}
-		}
-		
-		ECHO(parse_end);
-		// end plot info 
+        if (modem_type == 1) {
+            for (int i = 0; i < cell_info.length(); i++) {
+                ECHO(parsing_string + cell_info[i]);
+            }
+        }
+        
+        ECHO(parse_end);
+        // end plot info 
 
-		PAUSE(time_update_gnss);
-	}
-	PAUSE(1000);
+        PAUSE(time_update_gnss);
+    }
+    PAUSE(1000);
 }
 
 void main()
 {	
-	string command, resp;
-	int aiding_online;
+    string command, resp;
+    int aiding_online;
 
-	ECHO("*************************************************************************************************************");
-	ECHO("This script needs 'Start!' greeting message active on boot");
-	ECHO("The greeting text can be actived using the command AT+CSGT=1,\"Start!\" and using a fixed baud rate (+IPR)");
-	ECHO("");
-	ECHO("");
-	ECHO("*************************************************************************************************************");
-	ECHO("REMEMBER TO CONFIGURE A VALID TOKEN on the module with +UGSRV for accessing online aiding");
-	ECHO("*************************************************************************************************************");
-	ECHO("");
-	ECHO("");
-	ECHO("*************************************************************************************************************");
-	ECHO("REMEMBER TO CONFIGURE THE GNSS SYSTEM AND THE AIDING MODE");
-	ECHO("*************************************************************************************************************");
-	
-	wait_for_at_ready();	
-	modem_initialization();
+    ECHO("*************************************************************************************************************");
+    ECHO("This script needs 'Start!' greeting message active on boot");
+    ECHO("The greeting text can be actived using the command AT+CSGT=1,\"Start!\" and using a fixed baud rate (+IPR)");
+    ECHO("");
+    ECHO("");
+    ECHO("*************************************************************************************************************");
+    ECHO("REMEMBER TO CONFIGURE A VALID TOKEN on the module with +UGSRV for accessing online aiding");
+    ECHO("*************************************************************************************************************");
+    ECHO("");
+    ECHO("");
+    ECHO("*************************************************************************************************************");
+    ECHO("REMEMBER TO CONFIGURE THE GNSS SYSTEM AND THE AIDING MODE");
+    ECHO("*************************************************************************************************************");
+    
+    wait_for_at_ready();	
+    modem_initialization();
 
-	if (registration_check_mechanism) {
-		wait_for_registration_polling();
-	} else {
-		wait_for_registration_urc();	
-	}
+    if (registration_check_mechanism) {
+        wait_for_registration_polling();
+    } else {
+        wait_for_registration_urc();	
+    }
 
-	if (!combo_module) {
-		activate_external_gnss();
-	}
+    if (!combo_module) {
+        activate_external_gnss();
+    }
 
-	command ="AT+UGIND=1";
-	resp = SENDAT(command, 1000, "OK");
-	command ="AT+UGRMC=1";
-	resp = SENDAT(command, 1000, "OK");
-	command ="AT+ULOCIND=1";
-	resp = SENDAT(command, 1000, "OK");
-	
-	ECHO("*************************************************************************************************************");
-	ECHO("STARTING GNSS");
-	ECHO("*************************************************************************************************************");
-	
-	resp = SENDAT(gnss_commnad, 6000, "OK");
-	PAUSE(2000);
+    command ="AT+UGIND=1";
+    resp = SENDAT(command, 1000, "OK");
+    command ="AT+UGRMC=1";
+    resp = SENDAT(command, 1000, "OK");
+    command ="AT+ULOCIND=1";
+    resp = SENDAT(command, 1000, "OK");
+    
+    ECHO("*************************************************************************************************************");
+    ECHO("STARTING GNSS");
+    ECHO("*************************************************************************************************************");
+    
+    resp = SENDAT(gnss_commnad, 6000, "OK");
+    PAUSE(2000);
 
-	bool do_loop = true;
-	int counter = 0;
-	string parse_a;
-	while (do_loop) {
-		command ="AT+UGRMC?";
-		resp = SENDAT(command, 1000, "OK");
-		PAUSE(pause_find_fix);
-		counter = counter + pause_find_fix;
-		parse_a = resp.split(',')[3];
-		if (FIND(parse_a, "A") != -1) {
-			ECHO("*************************************************************************************************************");
-			ECHO("FOUND FIX, taken time: " + counter);
-			ECHO("*************************************************************************************************************");
-			do_loop = false;
-		}
-	}
-	get_info();
+    bool do_loop = true;
+    int counter = 0;
+    string parse_a;
+    while (do_loop) {
+        command ="AT+UGRMC?";
+        resp = SENDAT(command, 1000, "OK");
+        PAUSE(pause_find_fix);
+        counter = counter + pause_find_fix;
+        parse_a = resp.split(',')[3];
+        if (FIND(parse_a, "A") != -1) {
+            ECHO("*************************************************************************************************************");
+            ECHO("FOUND FIX, taken time: " + counter);
+            ECHO("*************************************************************************************************************");
+            do_loop = false;
+        }
+    }
+    get_info();
 
-	ECHO("*************************************************************************************************************");
-	ECHO("TURNING OFF THE GPS");
-	ECHO("*************************************************************************************************************");
+    ECHO("*************************************************************************************************************");
+    ECHO("TURNING OFF THE GPS");
+    ECHO("*************************************************************************************************************");
 
-	command ="AT+UGPS=0";
-	resp = SENDAT(command, 5000, "OK");
-	PAUSE(1000);
+    command ="AT+UGPS=0";
+    resp = SENDAT(command, 5000, "OK");
+    PAUSE(1000);
 
-	ECHO("*************************************************************************************************************");
-	ECHO("POWERING OFF");
-	ECHO("*************************************************************************************************************");
-	command ="AT+CPWROFF";
-	resp = SENDAT(command, 10000, "OK");	
+    ECHO("*************************************************************************************************************");
+    ECHO("POWERING OFF");
+    ECHO("*************************************************************************************************************");
+    command ="AT+CPWROFF";
+    resp = SENDAT(command, 10000, "OK");	
 }

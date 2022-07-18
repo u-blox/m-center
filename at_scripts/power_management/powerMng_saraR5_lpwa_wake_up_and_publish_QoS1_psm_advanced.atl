@@ -13,27 +13,27 @@
 * See the License for the specific language governing permissions and
 * limitations under the License.
 ******************************************************************************
-* Synopsis:		powerMng_saraR5_lpwa_wake_up_and_publish_QoS1_psm_advanced.atl
-* Topic:		power_management
-* Version:		1.0
-* Author:		pwar
-* Description:	
-*		This script is used to publish a message to the Thingstream 
-*		MQTT-Anywhere IoT Platform using QoS: 1
-*		QoS: 1 requires to connect to the broker before publishing a message
-*		The module then uses RAI to go back into PSM.
-*		
-*		The powerMng_saraR5_lpwa_first_configuration_psm_advanced.atl
-*		script needs to be run first to configure the device. 
-*		This script assumes the module is in the PSM state and waits
-*		for the "Ready" greeting message after waking up from PSM.
-*		
-*		You MUST configure the IdentityID parameter below from your Thingstream 
-*		thing device.
+* Synopsis:     powerMng_saraR5_lpwa_wake_up_and_publish_QoS1_psm_advanced.atl
+* Topic:        power_management
+* Version:      1.0
+* Author:       pwar
+* Description:
+*       This script is used to publish a message to the Thingstream 
+*       MQTT-Anywhere IoT Platform using QoS: 1
+*       QoS: 1 requires to connect to the broker before publishing a message
+*       The module then uses RAI to go back into PSM.
+*       
+*       The powerMng_saraR5_lpwa_first_configuration_psm_advanced.atl
+*       script needs to be run first to configure the device. 
+*       This script assumes the module is in the PSM state and waits
+*       for the "Ready" greeting message after waking up from PSM.
+*       
+*       You MUST configure the IdentityID parameter below from your Thingstream 
+*       thing device.
 *
 ******************************************************************************
-* Modules:		SARA-R510-01B
-* Tested on:	SARA-R510-01B
+* Modules:      SARA-R510-01B
+* Tested on:    SARA-R510-01B
 ******************************************************************************/
 
 /*****************************************************************************/

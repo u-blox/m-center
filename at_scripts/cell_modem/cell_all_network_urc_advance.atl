@@ -13,16 +13,16 @@
 * See the License for the specific language governing permissions and
 * limitations under the License.
 ******************************************************************************
-* Synopsis:		cell_all_network_urc_advance.atl
-* Topic:		cell_modem
-* Version:		1.0
-* Author:		bkha
+* Synopsis:     cell_all_network_urc_advance.atl
+* Topic:        cell_modem
+* Version:      1.0
+* Author:       bkha
 * Description:	
-*		This script has the purpose to test the network registration with URC 
-*		using AT scripting macros.		
+*       This script has the purpose to test the network registration with URC 
+*       using AT scripting macros.
 ******************************************************************************
-* Modules:		All Products
-* Tested on:	LARA-R2
+* Modules:      All Products
+* Tested on:    LARA-R2
 ******************************************************************************/
 
 
@@ -49,10 +49,10 @@ string resp1 = WAIT(command, 30000);
 
 if(FIND(resp1, "+CREG: 1") != -1)
 {
-	ECHO("Registered on network (HPLMN)");
+    ECHO("Registered on network (HPLMN)");
 }
 else
 {
-	ECHO("Registration status to be checked (not HPLMN)");
+    ECHO("Registration status to be checked (not HPLMN)");
 }
 

@@ -13,20 +13,20 @@
 * See the License for the specific language governing permissions and
 * limitations under the License.
 ******************************************************************************
-* Synopsis:		ipApp_laraR6_thingstreamDualApnDemo_basic.atl
-* Topic:		internet_application
-* Version:		1.0
-* Author:		mreb
+* Synopsis:     ipApp_laraR6_thingstreamDualApnDemo_basic.atl
+* Topic:        internet_application
+* Version:      1.0
+* Author:       mreb
 * Description:
-*		This script has the purpose to demonstrate the activation of two
-*		differnt APNs at the same time. Thingstream IoT SIM card is required
-*		for the correct execution of this script. APN "TSUDP" is used for 
-*		the MQTT Anywhere service provided by u-blox Thingstream. While, 
-*		APN "TSIOT" is used to perfom generic data traffic.
+*       This script has the purpose to demonstrate the activation of two
+*       differnt APNs at the same time. Thingstream IoT SIM card is required
+*       for the correct execution of this script. APN "TSUDP" is used for 
+*       the MQTT Anywhere service provided by u-blox Thingstream. While, 
+*       APN "TSIOT" is used to perfom generic data traffic.
 * Product page:
-*		https://www.u-blox.com/en/product/iot-sim-card
+*       https://www.u-blox.com/en/product/iot-sim-card
 ******************************************************************************
-* Modules:		LARA-R6
+* Modules:      LARA-R6
 * Tested on:	LARA-R6
 ******************************************************************************/
 

@@ -13,16 +13,16 @@
 * See the License for the specific language governing permissions and
 * limitations under the License.
 ******************************************************************************
-* Synopsis:		sys_all_macroTesting_advance.atl
-* Topic: 		system_functionalities 
-* Version:		1.0
-* Author:		hmeh
+* Synopsis:     sys_all_macroTesting_advance.atl
+* Topic:        system_functionalities 
+* Version:      1.0
+* Author:       hmeh
 * Description:
-*		This script has the purpose to test different macro functionality
-*		on m-center.
+*       This script has the purpose to test different macro functionality
+*       on m-center.
 ******************************************************************************
-* Modules:		All Products
-* Tested on:	LARA-R2, SARA-R5
+* Modules:      All Products
+* Tested on:    LARA-R2, SARA-R5
 ******************************************************************************/
 
 
@@ -32,8 +32,8 @@
 
 // starting required echos
 void starting_ECHO(void){
-	ECHO("This script requires to set some configurable parameters.");
-	ECHO("Be sure those are correctly configured before the initialization of this.");
+    ECHO("This script requires to set some configurable parameters.");
+    ECHO("Be sure those are correctly configured before the initialization of this.");
 }
 
 // Note: Please set these configurations before starting of the script
@@ -87,403 +87,403 @@ file f; // used object for file
 
 // return result value depending on the value of bool test.
 void print_result(string test_nam, bool test, bool expected_result){
-	string test_output = "";
-	if(test == expected_result)
-		test_output = test_pass;
-	else{	
-		test_output = test_fail;
-		fail_cases.resize(fail_cases.length()+1);
-		fail_cases[fail_cases.length()-1] = (test_count+1) + ":" + test_nam;
-	}
-	ECHO(" ");
-	ECHO("#######################################################");
-	ECHO(" INFO TEST# "+ ++test_count +":"+test_nam+":\t\t" + test_output);
-	ECHO("#######################################################");
-	ECHO(" ");
-	//PAUSE(1000);
+    string test_output = "";
+    if(test == expected_result)
+        test_output = test_pass;
+    else{   
+        test_output = test_fail;
+        fail_cases.resize(fail_cases.length()+1);
+        fail_cases[fail_cases.length()-1] = (test_count+1) + ":" + test_nam;
+    }
+    ECHO(" ");
+    ECHO("#######################################################");
+    ECHO(" INFO TEST# "+ ++test_count +":"+test_nam+":\t\t" + test_output);
+    ECHO("#######################################################");
+    ECHO(" ");
+    //PAUSE(1000);
 }
 
 // create test file
 bool create_test_file(){
 
-	ECHO("File Create Start:");
-	if( f.open(file_path+send_file_name, "w") >= 0 ) 
-	{
-		for(int i = 0 ; i < 250; ++i)
-		{	
-			f.writeString("Test");
-		}
+    ECHO("File Create Start:");
+    if( f.open(file_path+send_file_name, "w") >= 0 ) 
+    {
+        for(int i = 0 ; i < 250; ++i)
+        {   
+            f.writeString("Test");
+        }
 
-		f.close();
-		return true;
-	}
-	else
-	{
-		ECHO("Error: Cannot create File!");
-	}
-	return false;
+        f.close();
+        return true;
+    }
+    else
+    {
+        ECHO("Error: Cannot create File!");
+    }
+    return false;
 }
 
 // File system related tests
 void test_fs_macros()
 {
-	ECHO("Starting File system related tests...");
-	// create file
-	print_result("Create file", create_test_file(), true);
-	print_result("Create duplicate file", create_test_file(), true);
-	
-	// delete 
-	print_result("Connect port before file system test",MC_PORT_CONNECT(), true);
-	PAUSE(500);
-	print_result("Delete file when not present",MC_FFS_DELETE(send_file_name), false);
+    ECHO("Starting File system related tests...");
+    // create file
+    print_result("Create file", create_test_file(), true);
+    print_result("Create duplicate file", create_test_file(), true);
+    
+    // delete 
+    print_result("Connect port before file system test",MC_PORT_CONNECT(), true);
+    PAUSE(500);
+    print_result("Delete file when not present",MC_FFS_DELETE(send_file_name), false);
 
-	// store
-	print_result("Store file",MC_FFS_STORE(file_path+send_file_name), true);
-	print_result("Store invalid file",MC_FFS_STORE("invalid_file.txt"), false);
+    // store
+    print_result("Store file",MC_FFS_STORE(file_path+send_file_name), true);
+    print_result("Store invalid file",MC_FFS_STORE("invalid_file.txt"), false);
 
-	// retrieve
-	print_result("Retrieve file",MC_FFS_RETRIEVE(send_file_name,file_path+receive_file_name), true);
-//TODO	//print_result("Retrieve file",MC_FFS_RETRIEVE("invalidFile.txt",file_path+receive_file_name), true);
+    // retrieve
+    print_result("Retrieve file",MC_FFS_RETRIEVE(send_file_name,file_path+receive_file_name), true);
+//TODO  //print_result("Retrieve file",MC_FFS_RETRIEVE("invalidFile.txt",file_path+receive_file_name), true);
 
-	// delete
-	// TODO after retreive, ffs is stuck 50% of the time if disconnect/reconnect is not called.
-	MC_PORT_DISCONNECT();
-	MC_PORT_CONNECT();
-	PAUSE(500);
-	print_result("Delete invalid file",MC_FFS_DELETE("invalid_file.txt"), false);
-	print_result("Delete file",MC_FFS_DELETE(send_file_name), true);
+    // delete
+    // TODO after retreive, ffs is stuck 50% of the time if disconnect/reconnect is not called.
+    MC_PORT_DISCONNECT();
+    MC_PORT_CONNECT();
+    PAUSE(500);
+    print_result("Delete invalid file",MC_FFS_DELETE("invalid_file.txt"), false);
+    print_result("Delete file",MC_FFS_DELETE(send_file_name), true);
 
-	// delete all
-	print_result("Store file for checking delete all option",MC_FFS_STORE(file_path+send_file_name), true);
-	print_result("Delete all file",MC_FFS_DELETE_ALL(),true);
+    // delete all
+    print_result("Store file for checking delete all option",MC_FFS_STORE(file_path+send_file_name), true);
+    print_result("Delete all file",MC_FFS_DELETE_ALL(),true);
 
-	// disconnect port after file system test
-	print_result("Disconnect port after file system test",MC_PORT_DISCONNECT(), true);
+    // disconnect port after file system test
+    print_result("Disconnect port after file system test",MC_PORT_DISCONNECT(), true);
 }
 
 // COM Port related tests
 void test_com_port_macro(){
-	ECHO("Starting COM Port related tests...");
-	// com port name tests
-	print_result("Invalid port connect 1", SET_PORT_NAME(""), false);
-	print_result("Invalid port connect 2",SET_PORT_NAME("123456789012345678901234567890"), false);
-	print_result("Valid port connect",SET_PORT_NAME(valid_com_port), true);
-	
-	// baudrate tests
-	print_result("Invalid baud rate",SET_PORT_BAUD(1000), false);
-	print_result("Valid baud rate 1",SET_PORT_BAUD(1200), true);
-	print_result("Valid baud rate 2",SET_PORT_BAUD(2400), true);
-	print_result("Valid baud rate 3",SET_PORT_BAUD(4800), true);
-	print_result("Valid baud rate 4",SET_PORT_BAUD(9600), true);
-	print_result("Valid baud rate 5",SET_PORT_BAUD(14400), true);
-	print_result("Valid baud rate 6",SET_PORT_BAUD(19200), true);
-	print_result("Valid baud rate 7",SET_PORT_BAUD(38400), true);
-	print_result("Valid baud rate 8",SET_PORT_BAUD(57600), true);
-	print_result("Valid baud rate 9",SET_PORT_BAUD(115200), true);
-	print_result("Valid baud rate 10",SET_PORT_BAUD(230400), true);
-	print_result("Valid baud rate 11",SET_PORT_BAUD(460800), true);
-	print_result("Valid baud rate 12",SET_PORT_BAUD(921600), true);
-	print_result("Valid baud rate 13",SET_PORT_BAUD(3000000), true);
-	print_result("Valid baud rate 14",SET_PORT_BAUD(3250000), true);
-	print_result("Valid baud rate 15",SET_PORT_BAUD(6000000), true);
-	print_result("Valid baud rate 16",SET_PORT_BAUD(6500000), true);
-	print_result("Valid baud rate 17",SET_PORT_BAUD(com_port_baud), true);
-	
-	// stop bit tests
-	print_result("Invalid stop bit 1",SET_PORT_STOP_BITS(-1), false);
-	print_result("Invalid stop bit 2",SET_PORT_STOP_BITS(0), false);
-	print_result("Invalid stop bit 3",SET_PORT_STOP_BITS(3), false);
-	print_result("Valid stop bit 1",SET_PORT_STOP_BITS(2), true);
-	print_result("Valid stop bit 2",SET_PORT_STOP_BITS(1), true);
-	print_result("Valid stop bit 3",SET_PORT_STOP_BITS(com_port_stop_bit), true);
-	
-	// data bit tests (5-8)
-	print_result("Invalid data bit 1",SET_PORT_DATA_BITS(-5), false);
-	print_result("Invalid data bit 2",SET_PORT_DATA_BITS(0), false);
-	print_result("Invalid data bit 3",SET_PORT_DATA_BITS(4), false);
-	print_result("Invalid data bit 4",SET_PORT_DATA_BITS(9), false);
-	print_result("Valid data bit 1",SET_PORT_DATA_BITS(5), true);
-	print_result("Valid data bit 2",SET_PORT_DATA_BITS(6), true);
-	print_result("Valid data bit 3",SET_PORT_DATA_BITS(7), true);
-	print_result("Valid data bit 4",SET_PORT_DATA_BITS(com_port_data_bit), true);
-	
-	// control bit tests (0-2)
-	print_result("Invalid control bit 1",SET_PORT_FLOW_CONTROL(-1), false);
-	print_result("Invalid control bit 2",SET_PORT_FLOW_CONTROL(3), false);
-	print_result("Valid control bit 1",SET_PORT_FLOW_CONTROL(0), true);
-	print_result("Valid control bit 2",SET_PORT_FLOW_CONTROL(2), true);
-	print_result("Valid control bit 3",SET_PORT_FLOW_CONTROL(1), true);
-	print_result("Valid control bit 4",SET_PORT_FLOW_CONTROL(com_port_flow_ctrl), true);
-	
-	// parity bit tests (0-2)
-	print_result("Invalid parity bit 1",SET_PORT_PARITY(-1), false);
-	print_result("Invalid parity bit 2",SET_PORT_PARITY(3), false);
-	print_result("Valid parity bit 1",SET_PORT_PARITY(2), true);
-	print_result("Valid parity bit 2",SET_PORT_PARITY(1), true);
-	print_result("Valid parity bit 3",SET_PORT_PARITY(0), true);
-	print_result("Valid parity bit 4",SET_PORT_PARITY(com_port_parity), true);
-	
-	// connect-disconnect test
-	print_result("Connect 1",MC_PORT_CONNECT(), true);
-	print_result("Connect 2",MC_PORT_CONNECT(), true);
-	print_result("Disconnect 1",MC_PORT_DISCONNECT(), true);
-	print_result("Disconnect 2",MC_PORT_DISCONNECT(), true);
+    ECHO("Starting COM Port related tests...");
+    // com port name tests
+    print_result("Invalid port connect 1", SET_PORT_NAME(""), false);
+    print_result("Invalid port connect 2",SET_PORT_NAME("123456789012345678901234567890"), false);
+    print_result("Valid port connect",SET_PORT_NAME(valid_com_port), true);
+    
+    // baudrate tests
+    print_result("Invalid baud rate",SET_PORT_BAUD(1000), false);
+    print_result("Valid baud rate 1",SET_PORT_BAUD(1200), true);
+    print_result("Valid baud rate 2",SET_PORT_BAUD(2400), true);
+    print_result("Valid baud rate 3",SET_PORT_BAUD(4800), true);
+    print_result("Valid baud rate 4",SET_PORT_BAUD(9600), true);
+    print_result("Valid baud rate 5",SET_PORT_BAUD(14400), true);
+    print_result("Valid baud rate 6",SET_PORT_BAUD(19200), true);
+    print_result("Valid baud rate 7",SET_PORT_BAUD(38400), true);
+    print_result("Valid baud rate 8",SET_PORT_BAUD(57600), true);
+    print_result("Valid baud rate 9",SET_PORT_BAUD(115200), true);
+    print_result("Valid baud rate 10",SET_PORT_BAUD(230400), true);
+    print_result("Valid baud rate 11",SET_PORT_BAUD(460800), true);
+    print_result("Valid baud rate 12",SET_PORT_BAUD(921600), true);
+    print_result("Valid baud rate 13",SET_PORT_BAUD(3000000), true);
+    print_result("Valid baud rate 14",SET_PORT_BAUD(3250000), true);
+    print_result("Valid baud rate 15",SET_PORT_BAUD(6000000), true);
+    print_result("Valid baud rate 16",SET_PORT_BAUD(6500000), true);
+    print_result("Valid baud rate 17",SET_PORT_BAUD(com_port_baud), true);
+    
+    // stop bit tests
+    print_result("Invalid stop bit 1",SET_PORT_STOP_BITS(-1), false);
+    print_result("Invalid stop bit 2",SET_PORT_STOP_BITS(0), false);
+    print_result("Invalid stop bit 3",SET_PORT_STOP_BITS(3), false);
+    print_result("Valid stop bit 1",SET_PORT_STOP_BITS(2), true);
+    print_result("Valid stop bit 2",SET_PORT_STOP_BITS(1), true);
+    print_result("Valid stop bit 3",SET_PORT_STOP_BITS(com_port_stop_bit), true);
+    
+    // data bit tests (5-8)
+    print_result("Invalid data bit 1",SET_PORT_DATA_BITS(-5), false);
+    print_result("Invalid data bit 2",SET_PORT_DATA_BITS(0), false);
+    print_result("Invalid data bit 3",SET_PORT_DATA_BITS(4), false);
+    print_result("Invalid data bit 4",SET_PORT_DATA_BITS(9), false);
+    print_result("Valid data bit 1",SET_PORT_DATA_BITS(5), true);
+    print_result("Valid data bit 2",SET_PORT_DATA_BITS(6), true);
+    print_result("Valid data bit 3",SET_PORT_DATA_BITS(7), true);
+    print_result("Valid data bit 4",SET_PORT_DATA_BITS(com_port_data_bit), true);
+    
+    // control bit tests (0-2)
+    print_result("Invalid control bit 1",SET_PORT_FLOW_CONTROL(-1), false);
+    print_result("Invalid control bit 2",SET_PORT_FLOW_CONTROL(3), false);
+    print_result("Valid control bit 1",SET_PORT_FLOW_CONTROL(0), true);
+    print_result("Valid control bit 2",SET_PORT_FLOW_CONTROL(2), true);
+    print_result("Valid control bit 3",SET_PORT_FLOW_CONTROL(1), true);
+    print_result("Valid control bit 4",SET_PORT_FLOW_CONTROL(com_port_flow_ctrl), true);
+    
+    // parity bit tests (0-2)
+    print_result("Invalid parity bit 1",SET_PORT_PARITY(-1), false);
+    print_result("Invalid parity bit 2",SET_PORT_PARITY(3), false);
+    print_result("Valid parity bit 1",SET_PORT_PARITY(2), true);
+    print_result("Valid parity bit 2",SET_PORT_PARITY(1), true);
+    print_result("Valid parity bit 3",SET_PORT_PARITY(0), true);
+    print_result("Valid parity bit 4",SET_PORT_PARITY(com_port_parity), true);
+    
+    // connect-disconnect test
+    print_result("Connect 1",MC_PORT_CONNECT(), true);
+    print_result("Connect 2",MC_PORT_CONNECT(), true);
+    print_result("Disconnect 1",MC_PORT_DISCONNECT(), true);
+    print_result("Disconnect 2",MC_PORT_DISCONNECT(), true);
 }
 
 // Tracing related tests
 void test_trace_macros(){
-	ECHO("Starting Trace Port related tests...");
-	
-	// trace port name tests
-	print_result("Invalid trace port name 1", SET_TPORT_NAME(""), false);
-	print_result("Invalid trace port name 2",SET_TPORT_NAME("123456789012345678901234567890"), false);
-	print_result("Valid trace port name",SET_TPORT_NAME(valid_trace_port), true);
-	
-	// baudrate tests
-	print_result("Invalid trace baud rate",SET_TPORT_BAUD(1000), false);
-	print_result("Valid trace baud rate 1",SET_TPORT_BAUD(1200), true);
-	print_result("Valid trace baud rate 2",SET_TPORT_BAUD(2400), true);
-	print_result("Valid trace baud rate 3",SET_TPORT_BAUD(4800), true);
-	print_result("Valid trace baud rate 4",SET_TPORT_BAUD(9600), true);
-	print_result("Valid trace baud rate 5",SET_TPORT_BAUD(14400), true);
-	print_result("Valid trace baud rate 6",SET_TPORT_BAUD(19200), true);
-	print_result("Valid trace baud rate 7",SET_TPORT_BAUD(38400), true);
-	print_result("Valid trace baud rate 8",SET_TPORT_BAUD(57600), true);
-	print_result("Valid trace baud rate 9",SET_TPORT_BAUD(115200), true);
-	print_result("Valid trace baud rate 10",SET_TPORT_BAUD(230400), true);
-	print_result("Valid trace baud rate 11",SET_TPORT_BAUD(460800), true);
-	print_result("Valid trace baud rate 12",SET_TPORT_BAUD(921600), true);
-	print_result("Valid trace baud rate 13",SET_TPORT_BAUD(3000000), true);
-	print_result("Valid trace baud rate 14",SET_TPORT_BAUD(3250000), true);
-	print_result("Valid trace baud rate 15",SET_TPORT_BAUD(6000000), true);
-	print_result("Valid trace baud rate 16",SET_TPORT_BAUD(6500000), true);
-	print_result("Valid trace baud rate 17",SET_TPORT_BAUD(trace_port_baud), true);
-	
-	// stop bit tests
-	print_result("Invalid trace stop bit 1",SET_TPORT_STOP_BITS(-1), false);
-	print_result("Invalid trace stop bit 2",SET_TPORT_STOP_BITS(0), false);
-	print_result("Invalid trace stop bit 3",SET_TPORT_STOP_BITS(3), false);
-	print_result("Valid trace stop bit 1",SET_TPORT_STOP_BITS(2), true);
-	print_result("Valid trace stop bit 2",SET_TPORT_STOP_BITS(1), true);
-	print_result("Valid trace stop bit 3",SET_TPORT_STOP_BITS(trace_port_stop_bit), true);
-	
-	// data bit tests (5-8)
-	print_result("Invalid trace data bit 1",SET_TPORT_DATA_BITS(-5), false);
-	print_result("Invalid trace data bit 2",SET_TPORT_DATA_BITS(0), false);
-	print_result("Invalid trace data bit 3",SET_TPORT_DATA_BITS(4), false);
-	print_result("Invalid trace data bit 4",SET_TPORT_DATA_BITS(9), false);
-	print_result("Valid trace data bit 1",SET_TPORT_DATA_BITS(5), true);
-	print_result("Valid trace data bit 2",SET_TPORT_DATA_BITS(6), true);
-	print_result("Valid trace data bit 3",SET_TPORT_DATA_BITS(7), true);
-	print_result("Valid trace data bit 4",SET_TPORT_DATA_BITS(trace_port_data_bit), true);
-	
-	// control bit tests (0-2)
-	print_result("Invalid trace control bit 1",SET_TPORT_FLOW_CONTROL(-1), false);
-	print_result("Invalid trace control bit 2",SET_TPORT_FLOW_CONTROL(3), false);
-	print_result("Valid trace control bit 1",SET_TPORT_FLOW_CONTROL(0), true);
-	print_result("Valid trace control bit 2",SET_TPORT_FLOW_CONTROL(2), true);
-	print_result("Valid trace control bit 3",SET_TPORT_FLOW_CONTROL(1), true);
-	print_result("Valid trace control bit 4",SET_TPORT_FLOW_CONTROL(trace_port_flow_ctrl), true);
-	
-	// parity bit tests (0-2)
-	print_result("Invalid trace parity bit 1",SET_TPORT_PARITY(-1), false);
-	print_result("Invalid trace parity bit 2",SET_TPORT_PARITY(3), false);
-	print_result("Valid trace parity bit 1",SET_TPORT_PARITY(2), true);
-	print_result("Valid trace parity bit 2",SET_TPORT_PARITY(1), true);
-	print_result("Valid trace parity bit 3",SET_TPORT_PARITY(0), true);
-	print_result("Valid trace parity bit 4",SET_TPORT_PARITY(trace_port_parity), true);
-	
-	// trace starting
-	print_result("Com Port connect for trace",MC_PORT_CONNECT(), true);
-	print_result("Start Trace, invalid trace number",MC_TRACE_START(trace_file_name, trace_at_cmd, 9), false);
-	print_result("Start Trace 1",MC_TRACE_START(trace_file_name, trace_at_cmd, trace_protocol), true);
-	print_result("Start Trace 2",MC_TRACE_START(trace_file_name, trace_at_cmd, trace_protocol), true);
-	
-	// send some AT commands
-	SENDAT("ATI0",2000,"");
-	SENDAT("ATI9",2000,"");
-	SENDAT("AT+COPS?",2000,"");
-	SENDAT("AT+CSQ",2000,"");
-	SENDAT("AT+CESQ",2000,"");
-	SENDAT("AT+CREG?",2000,"");
-	SENDAT("AT+CGREG?",2000,"");
-	SENDAT("AT+CEREG?",2000,"");
-	PAUSE(5000);
+    ECHO("Starting Trace Port related tests...");
+    
+    // trace port name tests
+    print_result("Invalid trace port name 1", SET_TPORT_NAME(""), false);
+    print_result("Invalid trace port name 2",SET_TPORT_NAME("123456789012345678901234567890"), false);
+    print_result("Valid trace port name",SET_TPORT_NAME(valid_trace_port), true);
+    
+    // baudrate tests
+    print_result("Invalid trace baud rate",SET_TPORT_BAUD(1000), false);
+    print_result("Valid trace baud rate 1",SET_TPORT_BAUD(1200), true);
+    print_result("Valid trace baud rate 2",SET_TPORT_BAUD(2400), true);
+    print_result("Valid trace baud rate 3",SET_TPORT_BAUD(4800), true);
+    print_result("Valid trace baud rate 4",SET_TPORT_BAUD(9600), true);
+    print_result("Valid trace baud rate 5",SET_TPORT_BAUD(14400), true);
+    print_result("Valid trace baud rate 6",SET_TPORT_BAUD(19200), true);
+    print_result("Valid trace baud rate 7",SET_TPORT_BAUD(38400), true);
+    print_result("Valid trace baud rate 8",SET_TPORT_BAUD(57600), true);
+    print_result("Valid trace baud rate 9",SET_TPORT_BAUD(115200), true);
+    print_result("Valid trace baud rate 10",SET_TPORT_BAUD(230400), true);
+    print_result("Valid trace baud rate 11",SET_TPORT_BAUD(460800), true);
+    print_result("Valid trace baud rate 12",SET_TPORT_BAUD(921600), true);
+    print_result("Valid trace baud rate 13",SET_TPORT_BAUD(3000000), true);
+    print_result("Valid trace baud rate 14",SET_TPORT_BAUD(3250000), true);
+    print_result("Valid trace baud rate 15",SET_TPORT_BAUD(6000000), true);
+    print_result("Valid trace baud rate 16",SET_TPORT_BAUD(6500000), true);
+    print_result("Valid trace baud rate 17",SET_TPORT_BAUD(trace_port_baud), true);
+    
+    // stop bit tests
+    print_result("Invalid trace stop bit 1",SET_TPORT_STOP_BITS(-1), false);
+    print_result("Invalid trace stop bit 2",SET_TPORT_STOP_BITS(0), false);
+    print_result("Invalid trace stop bit 3",SET_TPORT_STOP_BITS(3), false);
+    print_result("Valid trace stop bit 1",SET_TPORT_STOP_BITS(2), true);
+    print_result("Valid trace stop bit 2",SET_TPORT_STOP_BITS(1), true);
+    print_result("Valid trace stop bit 3",SET_TPORT_STOP_BITS(trace_port_stop_bit), true);
+    
+    // data bit tests (5-8)
+    print_result("Invalid trace data bit 1",SET_TPORT_DATA_BITS(-5), false);
+    print_result("Invalid trace data bit 2",SET_TPORT_DATA_BITS(0), false);
+    print_result("Invalid trace data bit 3",SET_TPORT_DATA_BITS(4), false);
+    print_result("Invalid trace data bit 4",SET_TPORT_DATA_BITS(9), false);
+    print_result("Valid trace data bit 1",SET_TPORT_DATA_BITS(5), true);
+    print_result("Valid trace data bit 2",SET_TPORT_DATA_BITS(6), true);
+    print_result("Valid trace data bit 3",SET_TPORT_DATA_BITS(7), true);
+    print_result("Valid trace data bit 4",SET_TPORT_DATA_BITS(trace_port_data_bit), true);
+    
+    // control bit tests (0-2)
+    print_result("Invalid trace control bit 1",SET_TPORT_FLOW_CONTROL(-1), false);
+    print_result("Invalid trace control bit 2",SET_TPORT_FLOW_CONTROL(3), false);
+    print_result("Valid trace control bit 1",SET_TPORT_FLOW_CONTROL(0), true);
+    print_result("Valid trace control bit 2",SET_TPORT_FLOW_CONTROL(2), true);
+    print_result("Valid trace control bit 3",SET_TPORT_FLOW_CONTROL(1), true);
+    print_result("Valid trace control bit 4",SET_TPORT_FLOW_CONTROL(trace_port_flow_ctrl), true);
+    
+    // parity bit tests (0-2)
+    print_result("Invalid trace parity bit 1",SET_TPORT_PARITY(-1), false);
+    print_result("Invalid trace parity bit 2",SET_TPORT_PARITY(3), false);
+    print_result("Valid trace parity bit 1",SET_TPORT_PARITY(2), true);
+    print_result("Valid trace parity bit 2",SET_TPORT_PARITY(1), true);
+    print_result("Valid trace parity bit 3",SET_TPORT_PARITY(0), true);
+    print_result("Valid trace parity bit 4",SET_TPORT_PARITY(trace_port_parity), true);
+    
+    // trace starting
+    print_result("Com Port connect for trace",MC_PORT_CONNECT(), true);
+    print_result("Start Trace, invalid trace number",MC_TRACE_START(trace_file_name, trace_at_cmd, 9), false);
+    print_result("Start Trace 1",MC_TRACE_START(trace_file_name, trace_at_cmd, trace_protocol), true);
+    print_result("Start Trace 2",MC_TRACE_START(trace_file_name, trace_at_cmd, trace_protocol), true);
+    
+    // send some AT commands
+    SENDAT("ATI0",2000,"");
+    SENDAT("ATI9",2000,"");
+    SENDAT("AT+COPS?",2000,"");
+    SENDAT("AT+CSQ",2000,"");
+    SENDAT("AT+CESQ",2000,"");
+    SENDAT("AT+CREG?",2000,"");
+    SENDAT("AT+CGREG?",2000,"");
+    SENDAT("AT+CEREG?",2000,"");
+    PAUSE(5000);
 
-	// trace stop
-	print_result("Stop Trace 1",MC_TRACE_STOP(), true);
-	
-	if(socket_mode == 1){
-		// socket tracing
-		print_result("Set socket invalid conf 1",SET_TRACE_SOCKET_PARAM("", socket_port), false);
-		print_result("Set socket invalid conf 2",SET_TRACE_SOCKET_PARAM(socket_ip, -1), false);
-		print_result("Set socket invalid conf 3",SET_TRACE_SOCKET_PARAM(socket_ip, 0), false);
-		print_result("Set socket invalid conf 3",SET_TRACE_SOCKET_PARAM(socket_ip, 70000), false);
-		print_result("Set socket conf",SET_TRACE_SOCKET_PARAM(socket_ip, socket_port), true);
-		print_result("Start socket 1",MC_TRACE_START(trace_file_name, trace_at_cmd, socket_protocol, socket_mode), true);
-		print_result("Start socket 2",MC_TRACE_START(trace_file_name, trace_at_cmd, socket_protocol, socket_mode), true);
-			
-		// send some AT commands
-		SENDAT("ATI0",2000,"");
-		SENDAT("ATI9",2000,"");
-		SENDAT("AT+COPS?",2000,"");
-		SENDAT("AT+CSQ",2000,"");
-		SENDAT("AT+CESQ",2000,"");
-		SENDAT("AT+CREG?",2000,"");
-		SENDAT("AT+CGREG?",2000,"");
-		SENDAT("AT+CEREG?",2000,"");
-		PAUSE(5000);
-		
-		// socket stop
-		print_result("Stop socket",MC_TRACE_STOP(), true);
-	}
-	
-// TODO	//print_result("Stop Trace 2",MC_TRACE_STOP(), true);
-	print_result("Com Port disconnect for trace",MC_PORT_DISCONNECT(), true);
-	
+    // trace stop
+    print_result("Stop Trace 1",MC_TRACE_STOP(), true);
+    
+    if(socket_mode == 1){
+        // socket tracing
+        print_result("Set socket invalid conf 1",SET_TRACE_SOCKET_PARAM("", socket_port), false);
+        print_result("Set socket invalid conf 2",SET_TRACE_SOCKET_PARAM(socket_ip, -1), false);
+        print_result("Set socket invalid conf 3",SET_TRACE_SOCKET_PARAM(socket_ip, 0), false);
+        print_result("Set socket invalid conf 3",SET_TRACE_SOCKET_PARAM(socket_ip, 70000), false);
+        print_result("Set socket conf",SET_TRACE_SOCKET_PARAM(socket_ip, socket_port), true);
+        print_result("Start socket 1",MC_TRACE_START(trace_file_name, trace_at_cmd, socket_protocol, socket_mode), true);
+        print_result("Start socket 2",MC_TRACE_START(trace_file_name, trace_at_cmd, socket_protocol, socket_mode), true);
+            
+        // send some AT commands
+        SENDAT("ATI0",2000,"");
+        SENDAT("ATI9",2000,"");
+        SENDAT("AT+COPS?",2000,"");
+        SENDAT("AT+CSQ",2000,"");
+        SENDAT("AT+CESQ",2000,"");
+        SENDAT("AT+CREG?",2000,"");
+        SENDAT("AT+CGREG?",2000,"");
+        SENDAT("AT+CEREG?",2000,"");
+        PAUSE(5000);
+        
+        // socket stop
+        print_result("Stop socket",MC_TRACE_STOP(), true);
+    }
+    
+// TODO //print_result("Stop Trace 2",MC_TRACE_STOP(), true);
+    print_result("Com Port disconnect for trace",MC_PORT_DISCONNECT(), true);
+    
 }
 
 // AT Terminal related test cases 
 void test_at_terminal_macros(){
-	// clear AT Terminal	
-	MC_TERMINAL_LOGCLEAR();	
-	// set terminal log to true
-	print_result("Start AT Terminal logs before connect",MC_TERMINAL_LOG(true),false);
-	set_uart_settings();
-	MC_PORT_CONNECT();
-	print_result("Start AT Terminal logs after connect",MC_TERMINAL_LOG(true),true);
-	MC_PORT_DISCONNECT();
+    // clear AT Terminal    
+    MC_TERMINAL_LOGCLEAR(); 
+    // set terminal log to true
+    print_result("Start AT Terminal logs before connect",MC_TERMINAL_LOG(true),false);
+    set_uart_settings();
+    MC_PORT_CONNECT();
+    print_result("Start AT Terminal logs after connect",MC_TERMINAL_LOG(true),true);
+    MC_PORT_DISCONNECT();
 }
 
 // set the uart related settings
 void set_uart_settings(){
-	SET_PORT_NAME(valid_uart_port);
-	SET_PORT_BAUD(uart_port_baud);
-	SET_PORT_FLOW_CONTROL(uart_port_flow_ctrl);
-	SET_PORT_DATA_BITS(uart_port_data_bit);
-	SET_PORT_STOP_BITS(uart_port_stop_bit);
-	SET_PORT_PARITY(uart_port_parity);
+    SET_PORT_NAME(valid_uart_port);
+    SET_PORT_BAUD(uart_port_baud);
+    SET_PORT_FLOW_CONTROL(uart_port_flow_ctrl);
+    SET_PORT_DATA_BITS(uart_port_data_bit);
+    SET_PORT_STOP_BITS(uart_port_stop_bit);
+    SET_PORT_PARITY(uart_port_parity);
 }
 
 void test_general_macros(){
     // send at macro
-	
-	MC_PORT_CONNECT();
-	
-	print_result("SENDAT correct", SENDAT("AT",200,"OK")=="OK", true);
-	print_result("SENDAT invalid", SENDAT("A",200,"OK")=="OK", false);
-	print_result("SENDAT exactline = false case", SENDAT("AT",200,"ERROR",false)=="OK\r\n", true);
-	print_result("SENDAT exactline = true case", SENDAT("AT",200,"ERROR",true)=="", true);
-	
-	// wait macro
-	SENDAT("ATE0",200,"OK");
-	SENDAT("AT+CREG=2",200,"OK");
-	SENDAT("AT+CFUN=0",5000,"OK");
-	SENDAT("AT+CFUN=1",5000,"OK");
-	
-	print_result("WAIT correct case", WAIT("+CREG", 10000).substr(0,5) == "+CREG", true);
+    
+    MC_PORT_CONNECT();
+    
+    print_result("SENDAT correct", SENDAT("AT",200,"OK")=="OK", true);
+    print_result("SENDAT invalid", SENDAT("A",200,"OK")=="OK", false);
+    print_result("SENDAT exactline = false case", SENDAT("AT",200,"ERROR",false)=="OK\r\n", true);
+    print_result("SENDAT exactline = true case", SENDAT("AT",200,"ERROR",true)=="", true);
+    
+    // wait macro
+    SENDAT("ATE0",200,"OK");
+    SENDAT("AT+CREG=2",200,"OK");
+    SENDAT("AT+CFUN=0",5000,"OK");
+    SENDAT("AT+CFUN=1",5000,"OK");
+    
+    print_result("WAIT correct case", WAIT("+CREG", 10000).substr(0,5) == "+CREG", true);
 
-	SENDAT("AT+CFUN=0",5000,"OK");
-	SENDAT("AT+CFUN=1",5000,"OK");
-	print_result("WAIT incomplete case", WAIT("+CR", 10000).substr(0,5) == "+CREG", true);
+    SENDAT("AT+CFUN=0",5000,"OK");
+    SENDAT("AT+CFUN=1",5000,"OK");
+    print_result("WAIT incomplete case", WAIT("+CR", 10000).substr(0,5) == "+CREG", true);
 
-	SENDAT("AT+CFUN=0",5000,"OK");
-	SENDAT("AT+CFUN=1",5000,"OK");
-	print_result("WAIT exactline = false case", WAIT("+CGREG", 10000, false).substr(0,5) == "+CREG", true);
+    SENDAT("AT+CFUN=0",5000,"OK");
+    SENDAT("AT+CFUN=1",5000,"OK");
+    print_result("WAIT exactline = false case", WAIT("+CGREG", 10000, false).substr(0,5) == "+CREG", true);
 
-	SENDAT("AT+CFUN=0",5000,"OK");
-	SENDAT("AT+CFUN=1",5000,"OK");
-	print_result("WAIT exactline = true case", WAIT("+CGREG", 10000, true).substr(0,5) == "+CREG", false);
-	
-	// find macro
-	print_result("find macro case 1", FIND("A big Word", "big") != -1, true);
-	print_result("find macro case 2", FIND("A big Word", "not") == -1, true);
-	
-	// sendhex macro
-	print_result("SENDHEX macro",SENDHEX("41 54 0d 0a"), true);
-	PAUSE(200);
-	
-	// send text macro
-	print_result("SENDTEXT macro",SENDTEXT("AT\r\n"), true);
-	MC_PORT_DISCONNECT();
-	
-	// SWAPENDIAN macro
-	print_result("SWAPENDIAN macro case 1",SWAPENDIAN("123456") == "563412", true);
-	print_result("SWAPENDIAN macro case 2",SWAPENDIAN("12345678") == "78563412", true);
-	print_result("SWAPENDIAN macro case 3",SWAPENDIAN("1234567") == "563412", true);
-	
-	// flow control checks macro
-	// Connect with uart before flow control tests
-	set_uart_settings();
-	MC_PORT_CONNECT();
-	
-	// rts macro tests
-	SETCOMRTS(false);
-	print_result("RTS false case",(SENDAT("AT",200,"OK")=="OK"),false);
-	SETCOMRTS(true);
-	print_result("RTS true case",(SENDAT("AT",200,"OK")=="OK"), true);
-	
-	// dtr macro tests
-	SENDAT("AT+UPSV=3",200,"OK");
-	SETCOMDTR(false);
-	print_result("DTR false case",(SENDAT("AT",200,"OK")=="OK"),false);
-	SETCOMDTR(true);
-	print_result("DTR true case",(SENDAT("AT",200,"OK")=="OK"), true);
-	SENDAT("AT+UPSV=0",200,"OK");
-	
-	//CTS PIN test
-	SENDAT("AT+CFUN=16",5000,"OK");
-	PAUSE(1000);
-	print_result("CTS pin low case",GETCOMCTS(), false);
-	PAUSE(5000);
-	print_result("CTS pin high case",GETCOMCTS(), true);
-	
-	//DSR PIN test
-	SENDAT("AT&S0",200,"OK");
-	print_result("DSR pin high case",GETCOMDSR(),true);
-	SENDAT("AT&S1",200,"OK");
-	print_result("DSR pin low case",GETCOMDSR(),false);
-	
-	//DCD PIN test
-	SENDAT("AT&C0",200,"OK");
-	print_result("DCD pin high case",GETCOMDCD(),true);
-	SENDAT("AT&C1",200,"OK");
-	print_result("DCD pin low case",GETCOMDCD(),false);
-	
-	//RI test
-	print_result("RI pin low case",GETCOMRI(),false);
-	
-	MC_PORT_DISCONNECT();
+    SENDAT("AT+CFUN=0",5000,"OK");
+    SENDAT("AT+CFUN=1",5000,"OK");
+    print_result("WAIT exactline = true case", WAIT("+CGREG", 10000, true).substr(0,5) == "+CREG", false);
+    
+    // find macro
+    print_result("find macro case 1", FIND("A big Word", "big") != -1, true);
+    print_result("find macro case 2", FIND("A big Word", "not") == -1, true);
+    
+    // sendhex macro
+    print_result("SENDHEX macro",SENDHEX("41 54 0d 0a"), true);
+    PAUSE(200);
+    
+    // send text macro
+    print_result("SENDTEXT macro",SENDTEXT("AT\r\n"), true);
+    MC_PORT_DISCONNECT();
+    
+    // SWAPENDIAN macro
+    print_result("SWAPENDIAN macro case 1",SWAPENDIAN("123456") == "563412", true);
+    print_result("SWAPENDIAN macro case 2",SWAPENDIAN("12345678") == "78563412", true);
+    print_result("SWAPENDIAN macro case 3",SWAPENDIAN("1234567") == "563412", true);
+    
+    // flow control checks macro
+    // Connect with uart before flow control tests
+    set_uart_settings();
+    MC_PORT_CONNECT();
+    
+    // rts macro tests
+    SETCOMRTS(false);
+    print_result("RTS false case",(SENDAT("AT",200,"OK")=="OK"),false);
+    SETCOMRTS(true);
+    print_result("RTS true case",(SENDAT("AT",200,"OK")=="OK"), true);
+    
+    // dtr macro tests
+    SENDAT("AT+UPSV=3",200,"OK");
+    SETCOMDTR(false);
+    print_result("DTR false case",(SENDAT("AT",200,"OK")=="OK"),false);
+    SETCOMDTR(true);
+    print_result("DTR true case",(SENDAT("AT",200,"OK")=="OK"), true);
+    SENDAT("AT+UPSV=0",200,"OK");
+    
+    //CTS PIN test
+    SENDAT("AT+CFUN=16",5000,"OK");
+    PAUSE(1000);
+    print_result("CTS pin low case",GETCOMCTS(), false);
+    PAUSE(5000);
+    print_result("CTS pin high case",GETCOMCTS(), true);
+    
+    //DSR PIN test
+    SENDAT("AT&S0",200,"OK");
+    print_result("DSR pin high case",GETCOMDSR(),true);
+    SENDAT("AT&S1",200,"OK");
+    print_result("DSR pin low case",GETCOMDSR(),false);
+    
+    //DCD PIN test
+    SENDAT("AT&C0",200,"OK");
+    print_result("DCD pin high case",GETCOMDCD(),true);
+    SENDAT("AT&C1",200,"OK");
+    print_result("DCD pin low case",GETCOMDCD(),false);
+    
+    //RI test
+    print_result("RI pin low case",GETCOMRI(),false);
+    
+    MC_PORT_DISCONNECT();
 }
 
 // print fail test cases
 void print_result(){
-	ECHO(" ");
-	ECHO("#######################################################");
-	ECHO("###################RESULTS#############################");
-	ECHO("#######################################################");
-	if(fail_cases.length() >0){
-		ECHO("###########Printing all fail test csaes ###############");
-		for(int i =0; i < fail_cases.length();i++){
-			ECHO("Fail test case " +fail_cases[i]);
-		}
-	}
-	else{
-		ECHO("All test cases passed!!!");
-	}
-	ECHO("#######################################################");
-	ECHO(" ");
+    ECHO(" ");
+    ECHO("#######################################################");
+    ECHO("###################RESULTS#############################");
+    ECHO("#######################################################");
+    if(fail_cases.length() >0){
+        ECHO("###########Printing all fail test csaes ###############");
+        for(int i =0; i < fail_cases.length();i++){
+            ECHO("Fail test case " +fail_cases[i]);
+        }
+    }
+    else{
+        ECHO("All test cases passed!!!");
+    }
+    ECHO("#######################################################");
+    ECHO(" ");
 }
 
 // main program
 void main(){
-	starting_ECHO();
-	test_at_terminal_macros();
-	test_fs_macros();
-	test_com_port_macro();
-	test_trace_macros();
-	test_general_macros();
-	// print all test results
-	print_result();
+    starting_ECHO();
+    test_at_terminal_macros();
+    test_fs_macros();
+    test_com_port_macro();
+    test_trace_macros();
+    test_general_macros();
+    // print all test results
+    print_result();
 }
 

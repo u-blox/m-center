@@ -13,55 +13,55 @@
 * See the License for the specific language governing permissions and
 * limitations under the License.
 ******************************************************************************
-* Synopsis:		sys_all_traceExample_basic.atl
-* Topic: 		system_functionalities
-* Version:		1.0
-* Author:		muaw
+* Synopsis:     sys_all_traceExample_basic.atl
+* Topic:        system_functionalities
+* Version:      1.0
+* Author:       muaw
 * Description:
-*		This script has the purpose to set trace parameters and start the trace
+*       This script has the purpose to set trace parameters and start the trace
 ******************************************************************************
-* Modules:		All Products
-* Tested on:	LARA-R2
+* Modules:      All Products
+* Tested on:    LARA-R2
 ******************************************************************************/
 
 //----configuration settings------//
 
-string trace_port_name = "COM13";						// trace port name
-string trace_store_path = "C:\\trace_folder\\trace";	// path to store the file
-int baud_rate = 115200;									// supported baud rate
-int stop_bits = 1;										// 1 or 2
-int data_bits = 5;										// 5-8
-int flow_control = 0;									// 0:none, 1:hardware, 2:xon/xoff
-int parity = 0;											// 0:none, 1:even, 2:off
-bool trace_AT_commands = true;							// Turn trace AT commands on/off (true:ON, false:OFF)
-int trace_protocol = 3;									// 0: NONE, 1: LEON/SARA-G, 2: LISA-U/SARA-U, 3: TOBY-L2/MPCI-L2, 4: TOBY-R2/LARA-R2/TOBY-L4, 5: LARA-R3, 6: SARA-R5, 7: SARA-G4/SARA-N3
+string trace_port_name = "COM13";                       // trace port name
+string trace_store_path = "C:\\trace_folder\\trace";    // path to store the file
+int baud_rate = 115200;                                 // supported baud rate
+int stop_bits = 1;                                      // 1 or 2
+int data_bits = 5;                                      // 5-8
+int flow_control = 0;                                   // 0:none, 1:hardware, 2:xon/xoff
+int parity = 0;                                         // 0:none, 1:even, 2:off
+bool trace_AT_commands = true;                          // Turn trace AT commands on/off (true:ON, false:OFF)
+int trace_protocol = 3;                                 // 0: NONE, 1: LEON/SARA-G, 2: LISA-U/SARA-U, 3: TOBY-L2/MPCI-L2, 4: TOBY-R2/LARA-R2/TOBY-L4, 5: LARA-R3, 6: SARA-R5, 7: SARA-G4/SARA-N3
 
 //--------------------------------//
 
 void main()
 {
 
-	MC_TRACE_STOP();        // stop tracing if already running
+    MC_TRACE_STOP();        // stop tracing if already running
 
-	SET_TPORT_NAME(trace_port_name );
-	SET_TPORT_BAUD(baud_rate);
-	SET_TPORT_STOP_BITS(stop_bits);
-	SET_TPORT_DATA_BITS(data_bits);
-	SET_TPORT_FLOW_CONTROL(flow_control);
-	SET_TPORT_PARITY(parity);
+    SET_TPORT_NAME(trace_port_name );
+    SET_TPORT_BAUD(baud_rate);
+    SET_TPORT_STOP_BITS(stop_bits);
+    SET_TPORT_DATA_BITS(data_bits);
+    SET_TPORT_FLOW_CONTROL(flow_control);
+    SET_TPORT_PARITY(parity);
 
-	MC_TRACE_START(trace_store_path,trace_AT_commands,trace_protocol);
+    MC_TRACE_START(trace_store_path,trace_AT_commands,trace_protocol);
 
-	SENDAT("ATI0",2000,"");
-	SENDAT("ATI9",2000,"");
-	SENDAT("AT+COPS?",2000,"");
-	SENDAT("AT+CSQ",2000,"");
-	SENDAT("AT+CESQ",2000,"");
-	SENDAT("AT+CREG?",2000,"");
-	SENDAT("AT+CGREG?",2000,"");
-	SENDAT("AT+CEREG?",2000,"");
+    SENDAT("ATI0",2000,"");
+    SENDAT("ATI9",2000,"");
+    SENDAT("AT+COPS?",2000,"");
+    SENDAT("AT+CSQ",2000,"");
+    SENDAT("AT+CESQ",2000,"");
+    SENDAT("AT+CREG?",2000,"");
+    SENDAT("AT+CGREG?",2000,"");
+    SENDAT("AT+CEREG?",2000,"");
 
-	PAUSE(10000);
+    PAUSE(10000);
 
-	MC_TRACE_STOP();
+    MC_TRACE_STOP();
 }

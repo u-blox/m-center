@@ -4,26 +4,25 @@
 * Licensed under the Apache License, Version 2.0 (the "License");
 * you may not use this file except in compliance with the License.
 * You may obtain a copy of the License at
-* 
+*
 * http://www.apache.org/licenses/LICENSE-2.0
-* 
+*
 * Unless required by applicable law or agreed to in writing, software
 * distributed under the License is distributed on an "AS IS" BASIS,
 * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 * See the License for the specific language governing permissions and
 * limitations under the License.
 ******************************************************************************
-* Synopsis:		con_all_fileManagement_basic.atl
-* Topic:		local_connectivity
-* Version:		1.0
-* Author:		dtro
+* Synopsis:     con_all_fileManagement_basic.atl
+* Topic:        local_connectivity
+* Version:      1.0
+* Author:       dtro
 * Description:
-*		This script has the purpose to demonstrate a basic file system read/write. 
+*       This script has the purpose to demonstrate a basic file system read/write. 
 ******************************************************************************
-* Modules:		All products
-* Tested on:	LARA-R2
+* Modules:      All products
+* Tested on:    LARA-R2
 ******************************************************************************/
-
 
 
 string name_file = "example.txt";
@@ -40,7 +39,6 @@ ECHO("**************************************************************************
 ECHO("Files in memory: ");
 ECHO((resp.split("+ULSTFILE: ")[1]).split("OK")[0]);
 ECHO("**************************************************************************");
-
 
 
 
@@ -64,7 +62,6 @@ ECHO("**************************************************************************
 
 
 
-
 // read the new created file
 command = "AT+URDFILE=\"" + name_file + "\"";
 resp = SENDAT(command, 200, "OK");
@@ -75,7 +72,6 @@ ECHO("**************************************************************************
 
 
 
-
 // read the size of the new created file
 command = "AT+ULSTFILE=2,\"" + name_file + "\"";
 resp = SENDAT(command, 200, "OK");
@@ -83,7 +79,6 @@ resp = SENDAT(command, 200, "OK");
 ECHO("**************************************************************************");
 ECHO("Size " + name_file + ": " + (resp.split(" ")[1]).split("OK")[0] + "Byte");
 ECHO("**************************************************************************");
-
 
 
 

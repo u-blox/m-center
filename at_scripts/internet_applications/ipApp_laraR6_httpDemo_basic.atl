@@ -13,16 +13,16 @@
 * See the License for the specific language governing permissions and
 * limitations under the License.
 ******************************************************************************
-* Synopsis:		ipApp_laraR6_httpDemo_basic.atl
-* Topic:		internet_application
-* Version:		1.0
-* Author:		mreb
+* Synopsis:     ipApp_laraR6_httpDemo_basic.atl
+* Topic:        internet_application
+* Version:      1.0
+* Author:       mreb
 * Description:
-*		This script has the purpose to demonstrate the use of internal HTTP 
-*		application avaible in u-blox LARA-R6.
+*       This script has the purpose to demonstrate the use of internal HTTP 
+*       application avaible in u-blox LARA-R6.
 ******************************************************************************
-* Modules:		LARA-R6
-* Tested on:	LARA-R6
+* Modules:      LARA-R6
+* Tested on:    LARA-R6
 ******************************************************************************/
 
 // Variables

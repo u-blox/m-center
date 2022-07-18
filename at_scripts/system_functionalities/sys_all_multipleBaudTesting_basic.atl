@@ -13,49 +13,49 @@
 * See the License for the specific language governing permissions and
 * limitations under the License.
 ******************************************************************************
-* Synopsis:		sys_all_multipleBaudTesting_basic.atl
-* Topic: 		system_functionalities
-* Version:		1.0
-* Author:		muaw
+* Synopsis:     sys_all_multipleBaudTesting_basic.atl
+* Topic:        system_functionalities
+* Version:      1.0
+* Author:       muaw
 * Description:
-*		This script has the purpose to test the AT port macros by configuring
-*		multiple baud rates.
+*       This script has the purpose to test the AT port macros by configuring
+*       multiple baud rates.
 ******************************************************************************
-* Modules:		All Products
-* Tested on:	SARA-R42
+* Modules:      All Products
+* Tested on:    SARA-R42
 ******************************************************************************/
 
 void main()
 {
-	ECHO("Port should be connected and AT should be working before running this script!");
-	connect_port_with_baud(115200);
-	send_AT_command();
-	connect_port_with_baud(230400);
-	send_AT_command();
-	connect_port_with_baud(460800);
-	send_AT_command();
-	connect_port_with_baud(921600);
-	send_AT_command();
-	connect_port_with_baud(115200);
-	send_AT_command();	
+    ECHO("Port should be connected and AT should be working before running this script!");
+    connect_port_with_baud(115200);
+    send_AT_command();
+    connect_port_with_baud(230400);
+    send_AT_command();
+    connect_port_with_baud(460800);
+    send_AT_command();
+    connect_port_with_baud(921600);
+    send_AT_command();
+    connect_port_with_baud(115200);
+    send_AT_command();  
 } 
 
 void send_AT_command()
 {
-	SENDAT("AT",500, "OK");
-	PAUSE(2000);
+    SENDAT("AT",500, "OK");
+    PAUSE(2000);
 }
 
 void connect_port_with_baud(int baud)
 {
-	string command = "AT+IPR=" + baud;
-	string resp = SENDAT(command, 500, "OK");
-	PAUSE(2000);
-	MC_PORT_DISCONNECT();
-	SET_PORT_BAUD(baud);
-	SET_PORT_FLOW_CONTROL(0);
-	SET_PORT_DATA_BITS(8);
-	SET_PORT_STOP_BITS(1);
-	SET_PORT_PARITY(0);
-	MC_PORT_CONNECT();
+    string command = "AT+IPR=" + baud;
+    string resp = SENDAT(command, 500, "OK");
+    PAUSE(2000);
+    MC_PORT_DISCONNECT();
+    SET_PORT_BAUD(baud);
+    SET_PORT_FLOW_CONTROL(0);
+    SET_PORT_DATA_BITS(8);
+    SET_PORT_STOP_BITS(1);
+    SET_PORT_PARITY(0);
+    MC_PORT_CONNECT();
 }

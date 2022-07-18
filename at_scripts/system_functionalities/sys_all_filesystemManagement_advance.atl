@@ -4,29 +4,29 @@
 * Licensed under the Apache License, Version 2.0 (the "License");
 * you may not use this file except in compliance with the License.
 * You may obtain a copy of the License at
-* 
+*
 * http://www.apache.org/licenses/LICENSE-2.0
-* 
+*
 * Unless required by applicable law or agreed to in writing, software
 * distributed under the License is distributed on an "AS IS" BASIS,
 * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 * See the License for the specific language governing permissions and
 * limitations under the License.
 ******************************************************************************
-* Synopsis:		sys_all_filesystemManagement_advance.atl
-* Topic: 		system_functionalities 
-* Version:		1.0
-* Author:		bkha
+* Synopsis:     sys_all_filesystemManagement_advance.atl
+* Topic:        system_functionalities 
+* Version:      1.0
+* Author:       bkha
 * Description:
-*		This script has the purpose to test the filesystem integration and
-*		its functions.
+*       This script has the purpose to test the filesystem integration and
+*       its functions.
 ******************************************************************************
-* Modules:		All Products
-* Tested on:	SARA-R42
+* Modules:      All Products
+* Tested on:    SARA-R42
 ******************************************************************************/
 
 // used object for filesystem 
-filesystem fs;	
+filesystem fs;
 
 string new_directory = "newDirectory";
 string to_copy_directory = "copyDir";
@@ -34,137 +34,137 @@ string new_file = "newFile.txt";
 
 void datetime_print(string str, datetime d)
 {
-	ECHO(str + d.get_year()+":"+d.get_month()+":"+d.get_day()+"-"+d.get_hour()+":"+d.get_minute()+":"+d.get_second());
+    ECHO(str + d.get_year()+":"+d.get_month()+":"+d.get_day()+"-"+d.get_hour()+":"+d.get_minute()+":"+d.get_second());
 }
 
 void create_file(string file_name){
-	file f_new;
-	if( f_new.open(file_name, "r") >= 0 ) 
-	{
-		ECHO("File already exists: "+ file_name);
-		f_new.close();
-	}
-	else
-	{
-		// create new file
-		if( f_new.open(file_name, "w") >= 0 ) 
-		{
-			ECHO("New file Created: " + file_name);
-			f_new.close();
-		}
-	}
+    file f_new;
+    if( f_new.open(file_name, "r") >= 0 ) 
+    {
+        ECHO("File already exists: "+ file_name);
+        f_new.close();
+    }
+    else
+    {
+        // create new file
+        if( f_new.open(file_name, "w") >= 0 ) 
+        {
+            ECHO("New file Created: " + file_name);
+            f_new.close();
+        }
+    }
 }
 
 void file_system_test(){
-	ECHO("File System Test Start");
-	string current_path = fs.getCurrentPath();
-	ECHO("Current Path: " + current_path);
-	
-	ECHO("Change Path: " + fs.changeCurrentPath("C:")); 
-	ECHO("Current Path: " +fs.getCurrentPath());
-	ECHO("Change Path: " + fs.changeCurrentPath(current_path)); 
-	ECHO("Current Path: " +fs.getCurrentPath());
-	
-	//******************
-	// Get Directories
-	//******************
-	
-	array<string> dirs = fs.getDirs();
-	for( uint n = 0; n < dirs.length(); n++ )
-		ECHO("Directory name: " + dirs[n]);
-		
-	//******************
-	// Get Files
-	//******************
-	
-	array<string> files = fs.getFiles();
-	for(uint n = 0; n <files.length();n++)
-		ECHO("File name: " + files[n]);
-		
-	//******************
-	// Check Directory
-	//******************
-	
-	ECHO("isDir (invalid) : " + fs.isDir(fs.getCurrentPath() + "/p" + dirs[0])); 
-	ECHO("isDir (valid): " + fs.isDir(fs.getCurrentPath() + "/" + dirs[0])); 
+    ECHO("File System Test Start");
+    string current_path = fs.getCurrentPath();
+    ECHO("Current Path: " + current_path);
+    
+    ECHO("Change Path: " + fs.changeCurrentPath("C:")); 
+    ECHO("Current Path: " +fs.getCurrentPath());
+    ECHO("Change Path: " + fs.changeCurrentPath(current_path)); 
+    ECHO("Current Path: " +fs.getCurrentPath());
+    
+    //******************
+    // Get Directories
+    //******************
+    
+    array<string> dirs = fs.getDirs();
+    for( uint n = 0; n < dirs.length(); n++ )
+        ECHO("Directory name: " + dirs[n]);
+        
+    //******************
+    // Get Files
+    //******************
+    
+    array<string> files = fs.getFiles();
+    for(uint n = 0; n <files.length();n++)
+        ECHO("File name: " + files[n]);
+        
+    //******************
+    // Check Directory
+    //******************
+    
+    ECHO("isDir (invalid) : " + fs.isDir(fs.getCurrentPath() + "/p" + dirs[0])); 
+    ECHO("isDir (valid): " + fs.isDir(fs.getCurrentPath() + "/" + dirs[0])); 
 
-	//******************
-	// Check Link
-	//******************
-	
-	ECHO("First you need to make a link with name link.txt using mklink command in cmd");
-	ECHO("isLink (valid) : " + fs.isLink("link.txt"));
-	ECHO("isLink (invalid) : " + fs.isLink("newFile.txt"));
-	
-	//******************
-	// Get Size
-	//******************
-	
-	ECHO("getSize of a Directory " + fs.getSize(fs.getCurrentPath()+"/" + dirs[0]));
-	ECHO("getSize of a file " + fs.getSize(fs.getCurrentPath()+"/" + files[0]));
+    //******************
+    // Check Link
+    //******************
+    
+    ECHO("First you need to make a link with name link.txt using mklink command in cmd");
+    ECHO("isLink (valid) : " + fs.isLink("link.txt"));
+    ECHO("isLink (invalid) : " + fs.isLink("newFile.txt"));
+    
+    //******************
+    // Get Size
+    //******************
+    
+    ECHO("getSize of a Directory " + fs.getSize(fs.getCurrentPath()+"/" + dirs[0]));
+    ECHO("getSize of a file " + fs.getSize(fs.getCurrentPath()+"/" + files[0]));
 
-	//******************
-	// Make Directory
-	//******************
-	
-	ECHO("makeDir new directory: " + fs.makeDir(new_directory));
-	fs.makeDir(to_copy_directory);
-	dirs = fs.getDirs();
-	for( uint n = 0; n < dirs.length(); n++ )
-		ECHO("Directory name: " + dirs[n]);
-		
-	//******************
-	// Copy File
-	//******************
-	
-	create_file(new_file);
-	ECHO("copyFile new file from current to copyDirectory folder: " + fs.copyFile(new_file, to_copy_directory+"/"+new_file));
+    //******************
+    // Make Directory
+    //******************
+    
+    ECHO("makeDir new directory: " + fs.makeDir(new_directory));
+    fs.makeDir(to_copy_directory);
+    dirs = fs.getDirs();
+    for( uint n = 0; n < dirs.length(); n++ )
+        ECHO("Directory name: " + dirs[n]);
+        
+    //******************
+    // Copy File
+    //******************
+    
+    create_file(new_file);
+    ECHO("copyFile new file from current to copyDirectory folder: " + fs.copyFile(new_file, to_copy_directory+"/"+new_file));
 
-	//******************
-	// Delete File
-	//******************
-	
-	files = fs.getFiles();
-	for(uint n = 0; n <files.length();n++)
-		ECHO("File name: " + files[n]);
-	ECHO("deleteFile new file.txt from current Directory: " + fs.deleteFile(new_file));
-	files = fs.getFiles();
-	for(uint n = 0; n <files.length();n++)
-		ECHO("File name: " + files[n]);
-		
-	//******************
-	// Move file
-	//******************
-	
-	ECHO("move newFile.txt back from copyDir folder: " +fs.move(to_copy_directory+"/"+new_file,new_file));
-	files = fs.getFiles();
-	for(uint n = 0; n <files.length();n++)
-		ECHO("File name: " + files[n]);
+    //******************
+    // Delete File
+    //******************
+    
+    files = fs.getFiles();
+    for(uint n = 0; n <files.length();n++)
+        ECHO("File name: " + files[n]);
+    ECHO("deleteFile new file.txt from current Directory: " + fs.deleteFile(new_file));
+    files = fs.getFiles();
+    for(uint n = 0; n <files.length();n++)
+        ECHO("File name: " + files[n]);
+        
+    //******************
+    // Move file
+    //******************
+    
+    ECHO("move newFile.txt back from copyDir folder: " +fs.move(to_copy_directory+"/"+new_file,new_file));
+    files = fs.getFiles();
+    for(uint n = 0; n <files.length();n++)
+        ECHO("File name: " + files[n]);
 
-	//******************
-	// Remove Directory
-	//******************
-	
-	ECHO("removeDir newDirectory: " + fs.removeDir(new_directory));
-	dirs = fs.getDirs();
-	for( uint n = 0; n < dirs.length(); n++ )
-		ECHO("Directory name: " + dirs[n]);
-		
-	//******************
-	// Get create file date time
-	//******************
-	
-	datetime d = fs.getCreateDateTime(new_file);
-	datetime_print("Create Datatime of newFile.txt: ",d);
-	
-	//******************
-	// Get modified file date time
-	//******************
-	d = fs.getModifyDateTime(new_file);
-	datetime_print("Modify Datatime of newFile.txt: ", d);
-	
+    //******************
+    // Remove Directory
+    //******************
+    
+    ECHO("removeDir newDirectory: " + fs.removeDir(new_directory));
+    dirs = fs.getDirs();
+    for( uint n = 0; n < dirs.length(); n++ )
+        ECHO("Directory name: " + dirs[n]);
+        
+    //******************
+    // Get create file date time
+    //******************
+    
+    datetime d = fs.getCreateDateTime(new_file);
+    datetime_print("Create Datatime of newFile.txt: ",d);
+    
+    //******************
+    // Get modified file date time
+    //******************
+    d = fs.getModifyDateTime(new_file);
+    datetime_print("Modify Datatime of newFile.txt: ", d);
+    
 }
 
 void main(){
-	file_system_test();
+    file_system_test();
 }

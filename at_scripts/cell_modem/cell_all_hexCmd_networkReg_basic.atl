@@ -13,16 +13,16 @@
 * See the License for the specific language governing permissions and
 * limitations under the License.
 ******************************************************************************
-* Synopsis:		cell_all_hexCmd_networkReg_basic.atl
-* Topic:		cell_modem
-* Version:		1.0
-* Author:		hmeh, bkha
-* Description:	
-*		This script has the purpose to test the network registration 
-*		using SENDHEX() macro.
+* Synopsis:     cell_all_hexCmd_networkReg_basic.atl
+* Topic:        cell_modem
+* Version:      1.0
+* Author:       hmeh, bkha
+* Description:
+*       This script has the purpose to test the network registration 
+*       using SENDHEX() macro.
 ******************************************************************************
-* Modules:		All Products
-* Tested on:	LARA-R2
+* Modules:      All Products
+* Tested on:    LARA-R2
 ******************************************************************************/
 
 // sending AT command in HEX

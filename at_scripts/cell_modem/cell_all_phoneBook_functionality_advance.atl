@@ -4,24 +4,24 @@
 * Licensed under the Apache License, Version 2.0 (the "License");
 * you may not use this file except in compliance with the License.
 * You may obtain a copy of the License at
-* 
+*
 * http://www.apache.org/licenses/LICENSE-2.0
-* 
+*
 * Unless required by applicable law or agreed to in writing, software
 * distributed under the License is distributed on an "AS IS" BASIS,
 * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 * See the License for the specific language governing permissions and
 * limitations under the License.
 ******************************************************************************
-* Synopsis:		cell_all_phoneBook_functionality_advance.atl
-* Topic:		cell_modem
-* Version:		1.0
-* Author:		bkha, hmeh
-* Description:	
-*		This Script has a purpose to read, write, edit, delete phone book
+* Synopsis:     cell_all_phoneBook_functionality_advance.atl
+* Topic:        cell_modem
+* Version:      1.0
+* Author:       bkha, hmeh
+* Description:
+*       This Script has a purpose to read, write, edit, delete phone book
 ******************************************************************************
-* Modules:		All Products
-* Tested on:	LARA-R2
+* Modules:      All Products
+* Tested on:    LARA-R2
 ******************************************************************************/
 
 string number = "123456789";
@@ -35,70 +35,70 @@ string index = "14";
 int resp_timeout = 35000;
 
 void send_AT_command(string cmd, int ms_timeout, string exp_resp){
-	PAUSE(50);
-	string resp = SENDAT(cmd, ms_timeout, exp_resp);
-	ECHO("response = " + resp);
+    PAUSE(50);
+    string resp = SENDAT(cmd, ms_timeout, exp_resp);
+    ECHO("response = " + resp);
 }
 
 void get_phonebook(){
-	// get list
-	send_AT_command("AT+CPBS=\"SM\"",resp_timeout ,"OK");
-	send_AT_command("AT+CPBR=1,500",resp_timeout ,"OK");
+    // get list
+    send_AT_command("AT+CPBS=\"SM\"",resp_timeout ,"OK");
+    send_AT_command("AT+CPBR=1,500",resp_timeout ,"OK");
 }
 
 
 void add_new_contact(string number, string name){
-	// add in phone book
-	string command = "AT+CPBW=,\"";
-	command = command + number;
-	command = command + "\",,\"";
-	command = command + name;
-	command = command + "\"";
-	send_AT_command(command,resp_timeout ,"OK");
+    // add in phone book
+    string command = "AT+CPBW=,\"";
+    command = command + number;
+    command = command + "\",,\"";
+    command = command + name;
+    command = command + "\"";
+    send_AT_command(command,resp_timeout ,"OK");
 }
 
 void edit_contact(string index, string number, string name){
-	// edit selected index
-	string command = "AT+CPBW=";
-	command = command + index;
-	command = command +",\"";
-	command = command + number;
-	command = command + "\",,\"";
-	command = command + name;
-	command = command + "\"";
-	send_AT_command(command,resp_timeout ,"OK");
+    // edit selected index
+    string command = "AT+CPBW=";
+    command = command + index;
+    command = command +",\"";
+    command = command + number;
+    command = command + "\",,\"";
+    command = command + name;
+    command = command + "\"";
+    send_AT_command(command,resp_timeout ,"OK");
 }
 
 void delete_contact(string index){
-	// delete selected index
-	string command = "AT+CPBW=";
-	command = command + index;
-	send_AT_command(command,resp_timeout ,"OK");
+    // delete selected index
+    string command = "AT+CPBW=";
+    command = command + index;
+    send_AT_command(command,resp_timeout ,"OK");
 }
 
 void get_last_dialed_calls(){
-	// get last dialed calls
-	send_AT_command("AT+CPBS=\"LD\"",resp_timeout ,"OK");
-	send_AT_command("AT+CPBR=1,10",resp_timeout ,"OK");
+    // get last dialed calls
+    send_AT_command("AT+CPBS=\"LD\"",resp_timeout ,"OK");
+    send_AT_command("AT+CPBR=1,10",resp_timeout ,"OK");
 }
 
 void main(){
-	ECHO("*************************************************************************************************************");
-	ECHO("Please configure all the script parameters before using it");
-	ECHO("*************************************************************************************************************");
-	ECHO("");
-	ECHO("");
-	ECHO("Read phone book");
-	get_phonebook();
-	ECHO("Add new contact in phone book");
-	add_new_contact(number, name);
-	get_phonebook();
-	ECHO("Edit contact in phone book");
-	edit_contact(index, new_number , new_name);
-	get_phonebook();
-	ECHO("Delete contact from phone book");
-	delete_contact(index);
-	get_phonebook();
-	ECHO("Get last dialed calls from sim.");
-	get_last_dialed_calls();
+    ECHO("*************************************************************************************************************");
+    ECHO("Please configure all the script parameters before using it");
+    ECHO("*************************************************************************************************************");
+    ECHO("");
+    ECHO("");
+    ECHO("Read phone book");
+    get_phonebook();
+    ECHO("Add new contact in phone book");
+    add_new_contact(number, name);
+    get_phonebook();
+    ECHO("Edit contact in phone book");
+    edit_contact(index, new_number , new_name);
+    get_phonebook();
+    ECHO("Delete contact from phone book");
+    delete_contact(index);
+    get_phonebook();
+    ECHO("Get last dialed calls from sim.");
+    get_last_dialed_calls();
 }

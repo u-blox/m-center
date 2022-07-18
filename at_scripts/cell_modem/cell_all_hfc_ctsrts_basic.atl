@@ -13,52 +13,52 @@
 * See the License for the specific language governing permissions and
 * limitations under the License.
 ******************************************************************************
-* Synopsis:		cell_all_hfc_ctsrts_basic.atl
-* Topic:		cell_modem
-* Version:		1.0
-* Author:		hmeh, bkha
-* Description:	
-*		This script has the purpose to test the flow control line status using 
-*		CTS and RTS lines.
-*		bool GETCOMCTS(void): return the status of CTS line
-*		void SETCOMRTS(bool &in): sets the RTS with value = 'in'
+* Synopsis:     cell_all_hfc_ctsrts_basic.atl
+* Topic:        cell_modem
+* Version:      1.0
+* Author:       hmeh, bkha
+* Description:
+*       This script has the purpose to test the flow control line status using 
+*       CTS and RTS lines.
+*       bool GETCOMCTS(void): return the status of CTS line
+*       void SETCOMRTS(bool &in): sets the RTS with value = 'in'
 ******************************************************************************
-* Modules:		All Products
-* Tested on:	SARA-R42
+* Modules:      All Products
+* Tested on:    SARA-R42
 ******************************************************************************/
 
 void send_AT_command(string cmd, int ms_timeout, string exp_resp){
-	PAUSE(50);
-	string resp = SENDAT(cmd, ms_timeout, exp_resp);
-	ECHO("response = " + resp);
+    PAUSE(50);
+    string resp = SENDAT(cmd, ms_timeout, exp_resp);
+    ECHO("response = " + resp);
 }
 
 void update_status(){
-	ECHO("GET updated status");
-	ECHO("{DSR:" + GETCOMDSR()+"},{RI:" + GETCOMRI()+"},{DCD:" + GETCOMDCD()+"}");
+    ECHO("GET updated status");
+    ECHO("{DSR:" + GETCOMDSR()+"},{RI:" + GETCOMRI()+"},{DCD:" + GETCOMDCD()+"}");
 }
 
 void RTS_testing(){
-	ECHO("RTS TESTING START");
+    ECHO("RTS TESTING START");
 
-	ECHO("SET RTS TO FALSE");
-	SETCOMRTS(false);
+    ECHO("SET RTS TO FALSE");
+    SETCOMRTS(false);
 
-	PAUSE(3000);
-	send_AT_command("ATI9", 3000, "OK");
+    PAUSE(3000);
+    send_AT_command("ATI9", 3000, "OK");
 
-	update_status();
-	
-	PAUSE(3000);
-	ECHO("SET RTS TO TRUE");
-	SETCOMRTS(true);
+    update_status();
+    
+    PAUSE(3000);
+    ECHO("SET RTS TO TRUE");
+    SETCOMRTS(true);
 
-	update_status();
+    update_status();
 
-	ECHO("RTS TESTING END");
+    ECHO("RTS TESTING END");
 }
 
 void main(){
-	update_status();
-	RTS_testing();
+    update_status();
+    RTS_testing();
 }

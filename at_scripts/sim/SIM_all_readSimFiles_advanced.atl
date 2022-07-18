@@ -13,35 +13,35 @@
 * See the License for the specific language governing permissions and
 * limitations under the License.
 ******************************************************************************
-* Synopsis:		sim_all_readSimFiles_advanced.atl
-* Topic:		sim
-* Version:		3.2
-* Author:		mrod
+* Synopsis:     sim_all_readSimFiles_advanced.atl
+* Topic:        sim
+* Version:      3.2
+* Author:       mrod
 * Description:
-*		This scripts search for all the possible SIM Elementary Files and reads their content 
-*		using +CRSM command.
-*		At the end, prints on AT terminal window a report having the following syntax:
-*		|<Path Name>|<EF name>|<Path hex ID>|<EF hex ID>|<EF dec ID>|<Record>|<EF content>|
-*		e.g.,
-*		|MF|EF ICCID|3F00|2FE2|12258|0|"989388435801009549F4"|
-*		The files to be read are listed in the code: see ## EF list ##  section.
+*       This scripts search for all the possible SIM Elementary Files and reads their content 
+*       using +CRSM command.
+*       At the end, prints on AT terminal window a report having the following syntax:
+*       |<Path Name>|<EF name>|<Path hex ID>|<EF hex ID>|<EF dec ID>|<Record>|<EF content>|
+*       e.g.,
+*       |MF|EF ICCID|3F00|2FE2|12258|0|"989388435801009549F4"|
+*       The files to be read are listed in the code: see ## EF list ##  section.
 * Requirements:
-*		m-center 02.04.01 or newer
-*		Modem supporting +CRSM
+*       m-center 02.04.01 or newer
+*       Modem supporting +CRSM
 ******************************************************************************
-* Modules:		TOBY-L210-03, LARA-R211-02, SARA-R422M8S-00, SARA-R510M8S-01
-*				SARA-U201-04, SARA-G350-02
-* Tested on:	all the supported modules. 
+* Modules:      TOBY-L210-03, LARA-R211-02, SARA-R422M8S-00, SARA-R510M8S-01
+*               SARA-U201-04, SARA-G350-02
+* Tested on:    all the supported modules. 
 *******************************************************************************
 * Revision History:
-*		3.1 - first public release
-*		3.2 - splitted concatenated AT commands (not supported by all modules)
-*			- added registration status preliminary check
+*       3.1 - first public release
+*       3.2 - splitted concatenated AT commands (not supported by all modules)
+*           - added registration status preliminary check
 * Known issue and limitations:
-*		- SARA-R412M-02 does not properly address a lot of EFs
-*		- SARA-G450-01 responses to +CRSM commands have unexpected content
-*		- m-center 2.03.00 truncates ECHO strings to 70 chars
-*		- ADF(ISIM) files cannot be read
+*       - SARA-R412M-02 does not properly address a lot of EFs
+*       - SARA-G450-01 responses to +CRSM commands have unexpected content
+*       - m-center 2.03.00 truncates ECHO strings to 70 chars
+*       - ADF(ISIM) files cannot be read
 ******************************************************************************/
 
 
@@ -432,166 +432,166 @@ AT+COPS?
 
 // main
 for( uint  n = 0; n < ef.length(); n++ ) {
-	// read each field of the array item
-	// [0]          [1]           [2]     [3]            [4]              [5]       [6]
-	// <MF/ADF_ID>,<Sub_Path_ID>,<EF_ID>,<Structure_ID>,<Full_Path_Name>,<EF_Name>,<Description>
-	// 3F00       , 7F20        , 6F07  , 0            , MF / DF GSM    , EF(IMSI), IMSI
-	ef_prm       = ef[n].split(',');
-	ef_root_id   = ef_prm[0];            // Root Path (MF/ADF) id [hex or string]
-	ef_sub_id    = ef_prm[1];            // Sub Path [hex]
-	ef_id_h      = ef_prm[2];            // EF ID [hex]
-	ef_id_d      = parseInt(ef_id_h,16); // EF ID [dec]
-	ef_struct_id = parseInt(ef_prm[3]);  // EF Structure Id
-	ef_full_path = ef_prm[4];            // EF Full Path Name
-	ef_name      = ef_prm[5];            // EF name
-	ef_desc      = ef_prm[6];            // EF description
+    // read each field of the array item
+    // [0]          [1]           [2]     [3]            [4]              [5]       [6]
+    // <MF/ADF_ID>,<Sub_Path_ID>,<EF_ID>,<Structure_ID>,<Full_Path_Name>,<EF_Name>,<Description>
+    // 3F00       , 7F20        , 6F07  , 0            , MF / DF GSM    , EF(IMSI), IMSI
+    ef_prm       = ef[n].split(',');
+    ef_root_id   = ef_prm[0];            // Root Path (MF/ADF) id [hex or string]
+    ef_sub_id    = ef_prm[1];            // Sub Path [hex]
+    ef_id_h      = ef_prm[2];            // EF ID [hex]
+    ef_id_d      = parseInt(ef_id_h,16); // EF ID [dec]
+    ef_struct_id = parseInt(ef_prm[3]);  // EF Structure Id
+    ef_full_path = ef_prm[4];            // EF Full Path Name
+    ef_name      = ef_prm[5];            // EF name
+    ef_desc      = ef_prm[6];            // EF description
 
-	reading_2_log = true;
-	
-	// ef_full_id  = ef_root_id + ef_sub_id; 	// EF full path id [hex] = MF/ADF_id[hex] & Sub_path_id_[hex]
-	if ( ef_root_id == "3F00") {				// MF
-		ef_full_id  = ef_root_id + ef_sub_id;
-	}
-	else if ( ef_root_id == "7FFF") {			// ADF_USIM
-		ef_full_id  = ef_root_id + ef_sub_id;
-	}
-	else if ( ef_root_id == "ADF_ISIM") {		// ADF_ISIM
-		ef_full_id  = adf_isim_id + ef_sub_id;	//// TO DO: implement the reading of adf_isim_id from +CUAD
+    reading_2_log = true;
+    
+    // ef_full_id  = ef_root_id + ef_sub_id;    // EF full path id [hex] = MF/ADF_id[hex] & Sub_path_id_[hex]
+    if ( ef_root_id == "3F00") {                // MF
+        ef_full_id  = ef_root_id + ef_sub_id;
+    }
+    else if ( ef_root_id == "7FFF") {           // ADF_USIM
+        ef_full_id  = ef_root_id + ef_sub_id;
+    }
+    else if ( ef_root_id == "ADF_ISIM") {       // ADF_ISIM
+        ef_full_id  = adf_isim_id + ef_sub_id;  //// TO DO: implement the reading of adf_isim_id from +CUAD
 
-	}
-	
-	switch (ef_struct_id) 
-	{
-		case 0:
-			// structure = transparent --> BINARY access mode
-			another_rec_2_read = false;  // no Records are expected in this type
-			crsm_cmd = 176;
-			crsm_p1  = 0;
-			crsm_p2  = 0;
-			crsm_p3  = 0;
-			break;
-		case 1:
-		case 3:
-		// structure = linear fixed or cyclic --> RECORD access mode
-			another_rec_2_read = true;  // possible multiple records to read
-			crsm_cmd = 178;
-			crsm_p1  = 1;  // record nr
-			crsm_p2  = 4;
-			crsm_p3  = 0;
-			break;
-		default:
-			// structure value not expected
-			another_rec_2_read = false;
-			ECHO("ERROR: EF structure value not expected");
-			break;
-	}
-	PAUSE 10;
+    }
+    
+    switch (ef_struct_id) 
+    {
+        case 0:
+            // structure = transparent --> BINARY access mode
+            another_rec_2_read = false;  // no Records are expected in this type
+            crsm_cmd = 176;
+            crsm_p1  = 0;
+            crsm_p2  = 0;
+            crsm_p3  = 0;
+            break;
+        case 1:
+        case 3:
+        // structure = linear fixed or cyclic --> RECORD access mode
+            another_rec_2_read = true;  // possible multiple records to read
+            crsm_cmd = 178;
+            crsm_p1  = 1;  // record nr
+            crsm_p2  = 4;
+            crsm_p3  = 0;
+            break;
+        default:
+            // structure value not expected
+            another_rec_2_read = false;
+            ECHO("ERROR: EF structure value not expected");
+            break;
+    }
+    PAUSE 10;
 
 
 
-	do {
-		report_row = "";
-		aat_cmd = "AT+CRSM=" + crsm_cmd + "," + ef_id_d + "," + crsm_p1 + "," + crsm_p2 + "," ;
-		if (ef_full_id == "") {
-			aat_cmd0 = aat_cmd + crsm_p3;
-		}
-		else {
-			aat_cmd0 = aat_cmd + crsm_p3 + "," + crsm_data + ",\"" + ef_full_id + "\"" ;
-		}
-		PAUSE 40;  
-		// needed to avoid overlapping in the m-center terminal window
-		aat_resp = SENDAT(aat_cmd0, timeoutM, "+");
+    do {
+        report_row = "";
+        aat_cmd = "AT+CRSM=" + crsm_cmd + "," + ef_id_d + "," + crsm_p1 + "," + crsm_p2 + "," ;
+        if (ef_full_id == "") {
+            aat_cmd0 = aat_cmd + crsm_p3;
+        }
+        else {
+            aat_cmd0 = aat_cmd + crsm_p3 + "," + crsm_data + ",\"" + ef_full_id + "\"" ;
+        }
+        PAUSE 40;  
+        // needed to avoid overlapping in the m-center terminal window
+        aat_resp = SENDAT(aat_cmd0, timeoutM, "+");
 
-		array<string> Params;
-		
-		if(!aat_resp.isEmpty()) {
-			// it could be: +CRSM: <sw1>,<sw2>[,<Response>]
-			//	            +CME ERROR: <err>
-			//              ERROR
-			aat_resp_prefix = aat_resp.split(': ')[0]; 
-			if (aat_resp_prefix.length() < aat_resp.length() ) { 
-				aat_resp_payload = aat_resp.split(': ')[1]; 
-			}
+        array<string> Params;
+        
+        if(!aat_resp.isEmpty()) {
+            // it could be: +CRSM: <sw1>,<sw2>[,<Response>]
+            //              +CME ERROR: <err>
+            //              ERROR
+            aat_resp_prefix = aat_resp.split(': ')[0]; 
+            if (aat_resp_prefix.length() < aat_resp.length() ) { 
+                aat_resp_payload = aat_resp.split(': ')[1]; 
+            }
 
-			if (aat_resp_prefix == "+CRSM") {
-				Params = aat_resp_payload.split(',');
-				crsm_sw1 = parseInt(Params[0]);
-				crsm_sw2 = parseInt(Params[1]);
+            if (aat_resp_prefix == "+CRSM") {
+                Params = aat_resp_payload.split(',');
+                crsm_sw1 = parseInt(Params[0]);
+                crsm_sw2 = parseInt(Params[1]);
 
-				switch (crsm_sw1) {
-					case 144:
-					case 145:
-						crsm_response = Params[2];
-						break;
-					case 103:
-						aat_cmd1 = aat_cmd + Params[1];
-						PAUSE 10;
-						aat_resp = SENDAT(aat_cmd1, timeoutM, "+CRSM:");
-						aat_resp_payload = aat_resp.split(': ')[1]; 
-						Params = aat_resp_payload.split(',');
-						crsm_response = Params[2];
-						break;
-					case 106:                        // file/record not found; incorrect parameters P1 to P2 
-						if (crsm_p1 <= 1) {
-							crsm_response = "+CRSM: not found / wrong params";
-						}
-						else {
-							reading_2_log = false;
-						}
-						another_rec_2_read = false;
-						break;
-					default:
-						crsm_response = "+CRSM: " + crsm_sw1 + "," + crsm_sw2;
-						// another_rec_2_read = false;
-						break;
-				}
-			}
-			else {
-											// if crsm_response does not start with "+CRSM" ...
-				crsm_response = aat_resp;	// ... the whole response is reported (for debugging) ...
-				another_rec_2_read = false; // ... and next EF is read.
-			}
-			// message for ANALYSYS RECAP:
-			//		|<Full Path Name>|<EF name>|<Full Path ID hex>|<EF ID hex >|<EF ID dec>|<Record Nr>|<EF content>|
-			//		e.g.
-			//		|MF|EF ICCID|3F00|2FE2|12258|0|"989388435801009549F4"|
+                switch (crsm_sw1) {
+                    case 144:
+                    case 145:
+                        crsm_response = Params[2];
+                        break;
+                    case 103:
+                        aat_cmd1 = aat_cmd + Params[1];
+                        PAUSE 10;
+                        aat_resp = SENDAT(aat_cmd1, timeoutM, "+CRSM:");
+                        aat_resp_payload = aat_resp.split(': ')[1]; 
+                        Params = aat_resp_payload.split(',');
+                        crsm_response = Params[2];
+                        break;
+                    case 106:                        // file/record not found; incorrect parameters P1 to P2 
+                        if (crsm_p1 <= 1) {
+                            crsm_response = "+CRSM: not found / wrong params";
+                        }
+                        else {
+                            reading_2_log = false;
+                        }
+                        another_rec_2_read = false;
+                        break;
+                    default:
+                        crsm_response = "+CRSM: " + crsm_sw1 + "," + crsm_sw2;
+                        // another_rec_2_read = false;
+                        break;
+                }
+            }
+            else {
+                                            // if crsm_response does not start with "+CRSM" ...
+                crsm_response = aat_resp;   // ... the whole response is reported (for debugging) ...
+                another_rec_2_read = false; // ... and next EF is read.
+            }
+            // message for ANALYSYS RECAP:
+            //      |<Full Path Name>|<EF name>|<Full Path ID hex>|<EF ID hex >|<EF ID dec>|<Record Nr>|<EF content>|
+            //      e.g.
+            //      |MF|EF ICCID|3F00|2FE2|12258|0|"989388435801009549F4"|
 
-			if (reading_2_log) {
-				report_row = " | " + ef_full_path + " | " + ef_name + " | " +  ef_full_id + " | " + ef_id_h + " | " + ef_id_d + " | " + crsm_p1 + " | " + crsm_response + " | ";
-				ECHO(report_row);
-				report_all.insertLast(report_row);
-			}
+            if (reading_2_log) {
+                report_row = " | " + ef_full_path + " | " + ef_name + " | " +  ef_full_id + " | " + ef_id_h + " | " + ef_id_d + " | " + crsm_p1 + " | " + crsm_response + " | ";
+                ECHO(report_row);
+                report_all.insertLast(report_row);
+            }
 
-			if (ef_id_h == "2F00") {     // if EF_DIR [12032(dec)] read out the ADF(*SIM) adresses
-				aid_len_h = crsm_response.substr(7,2);
-				aid_len_d = parseInt(aid_len_h,16)*2;
-				aid_app_code = crsm_response.substr(19,4);	
-				aid_whole = crsm_response.substr(9,aid_len_d);	
-				
-				// ECHO("----aid_len_d----->>> " + aid_len_d);
-				// ECHO("----aid_app_code-->>> " + aid_app_code);
-				// ECHO("----aid_whole----->>> " + aid_whole);
-				
-				if (aid_app_code=="1002") {
-					ECHO("--record " + crsm_p1 + " is ADF(USIM)");
-				}
-				else if(aid_app_code=="1004") {
-					ECHO("--record " + crsm_p1 + " is ADF(ISIM)");
-				}
-				else {
-					ECHO("--record " + crsm_p1 + " is something else");
-				}
-				PAUSE 100;
-			}
-			
-			crsm_p1++;    // next record
-		}
-		else {
-			ECHO("ERROR: No Response or unexpected response");
-		}
-		aat_resp_prefix = "";		// clean work variable
-		aat_resp_payload = "";		// clean work variable
-	} while (another_rec_2_read and crsm_p1<max_allowed_rec); 
+            if (ef_id_h == "2F00") {     // if EF_DIR [12032(dec)] read out the ADF(*SIM) adresses
+                aid_len_h = crsm_response.substr(7,2);
+                aid_len_d = parseInt(aid_len_h,16)*2;
+                aid_app_code = crsm_response.substr(19,4);  
+                aid_whole = crsm_response.substr(9,aid_len_d);  
+                
+                // ECHO("----aid_len_d----->>> " + aid_len_d);
+                // ECHO("----aid_app_code-->>> " + aid_app_code);
+                // ECHO("----aid_whole----->>> " + aid_whole);
+                
+                if (aid_app_code=="1002") {
+                    ECHO("--record " + crsm_p1 + " is ADF(USIM)");
+                }
+                else if(aid_app_code=="1004") {
+                    ECHO("--record " + crsm_p1 + " is ADF(ISIM)");
+                }
+                else {
+                    ECHO("--record " + crsm_p1 + " is something else");
+                }
+                PAUSE 100;
+            }
+            
+            crsm_p1++;    // next record
+        }
+        else {
+            ECHO("ERROR: No Response or unexpected response");
+        }
+        aat_resp_prefix = "";       // clean work variable
+        aat_resp_payload = "";      // clean work variable
+    } while (another_rec_2_read and crsm_p1<max_allowed_rec); 
 }
 
 PAUSE 10;
@@ -608,7 +608,7 @@ PAUSE 10;
 report_row = " | EF path | EF Name | EF Path Id | EF Id(h) | EF Id(dec) | Record | Response Content / Error | ";
 ECHO(report_row);
 for( uint nn = 0; nn < report_all.length(); nn++ ) {
-	ECHO report_all[nn];
-	}
+    ECHO report_all[nn];
+    }
 ECHO("+--------------------------------------------------------");
 }

@@ -4,37 +4,37 @@
 * Licensed under the Apache License, Version 2.0 (the "License");
 * you may not use this file except in compliance with the License.
 * You may obtain a copy of the License at
-* 
+*
 * http://www.apache.org/licenses/LICENSE-2.0
-* 
+*
 * Unless required by applicable law or agreed to in writing, software
 * distributed under the License is distributed on an "AS IS" BASIS,
 * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 * See the License for the specific language governing permissions and
 * limitations under the License.
 ******************************************************************************
-* Synopsis:		powerMng_saraR5_lpwa_first_configuration_psm_advanced.atl
-* Topic:		power_management
-* Version:		1.0
-* Author:		pwar
-* Description:	
-*		This script has the purpose to configure the cellular device after 
-*		cold booting. This script waits for registration and then configures
-*		PSM, +UPSV. It turns off Auto-Bauding and sets the greeting message.
-*		The greeting message is used for the publish script to know when the 
-*		module has been turned on.
-*		This script uses the DTR line to control the deep sleep of the module.
-*		
-*		The wake-up and publish script choices are:
-*		Steps: Wake up, Connect, Publish message, wait for ACK, enter PSM
-*		powerMng_saraR5_lpwa_wake_up_and_publish_QoS1_psm_advanced.atl
-*			or
-*		Steps: Wake up, Publish message, enter PSM
-*		powerMng_saraR5_lpwa_wake_up_and_publish_QoS-1_psm_advanced.atl
+* Synopsis:     powerMng_saraR5_lpwa_first_configuration_psm_advanced.atl
+* Topic:        power_management
+* Version:      1.0
+* Author:       pwar
+* Description:
+*       This script has the purpose to configure the cellular device after 
+*       cold booting. This script waits for registration and then configures
+*       PSM, +UPSV. It turns off Auto-Bauding and sets the greeting message.
+*       The greeting message is used for the publish script to know when the 
+*       module has been turned on.
+*       This script uses the DTR line to control the deep sleep of the module.
+*       
+*       The wake-up and publish script choices are:
+*       Steps: Wake up, Connect, Publish message, wait for ACK, enter PSM
+*       powerMng_saraR5_lpwa_wake_up_and_publish_QoS1_psm_advanced.atl
+*           or
+*       Steps: Wake up, Publish message, enter PSM
+*       powerMng_saraR5_lpwa_wake_up_and_publish_QoS-1_psm_advanced.atl
 *
 ******************************************************************************
-* Modules:		SARA-R510-01B
-* Tested on:	SARA-R510-01B
+* Modules:      SARA-R510-01B
+* Tested on:    SARA-R510-01B
 ******************************************************************************/
 
 AT+CGMI

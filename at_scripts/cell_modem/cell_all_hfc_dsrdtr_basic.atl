@@ -13,62 +13,62 @@
 * See the License for the specific language governing permissions and
 * limitations under the License.
 ******************************************************************************
-* Synopsis:		cell_all_hfc_dsrdtr_basic.atl
-* Topic:		cell_modem
-* Version:		1.0
-* Author:		hmeh, bkha
+* Synopsis:        cell_all_hfc_dsrdtr_basic.atl
+* Topic:        cell_modem
+* Version:      1.0
+* Author:       hmeh, bkha
 * Description:	
-*		This script has the purpose to test the flow control line status
-*		using DSR and DTR lines.
-*		bool GETCOMDSR(void): return the status of DSR line
-*		bool GETCOMRI(void): return the status of RI line
-*		bool GETCOMDCD(void): return the status of DCD line
-*		void SETCOMDTR(bool &in): sets the DTR with value = 'in'
+*       This script has the purpose to test the flow control line status
+*       using DSR and DTR lines.
+*       bool GETCOMDSR(void): return the status of DSR line
+*       bool GETCOMRI(void): return the status of RI line
+*       bool GETCOMDCD(void): return the status of DCD line
+*       void SETCOMDTR(bool &in): sets the DTR with value = 'in'
 ******************************************************************************
-* Modules:		All Products
-* Tested on:	SARA-R42
+* Modules:      All Products
+* Tested on:    SARA-R42
 ******************************************************************************/
 
 
 void send_AT_command(string cmd, int ms_timeout, string exp_resp){
-	PAUSE(50);
-	string resp = SENDAT(cmd, ms_timeout, exp_resp);
-	ECHO("response = " + resp);
+    PAUSE(50);
+    string resp = SENDAT(cmd, ms_timeout, exp_resp);
+    ECHO("response = " + resp);
 }
 
 void update_status(){
-	ECHO("GET updated status");
-	ECHO("{DSR:" + GETCOMDSR()+"},{RI:" + GETCOMRI()+"},{DCD:" + GETCOMDCD()+"}");
+    ECHO("GET updated status");
+    ECHO("{DSR:" + GETCOMDSR()+"},{RI:" + GETCOMRI()+"},{DCD:" + GETCOMDCD()+"}");
 }
 
 void DTR_testing(){
-	ECHO("DTR TESTING START");
+    ECHO("DTR TESTING START");
 
-	send_AT_command("AT+UPSV=3", 1000, "OK");
+    send_AT_command("AT+UPSV=3", 1000, "OK");
 
-	send_AT_command("AT+UPSV?", 1000, "OK");
+    send_AT_command("AT+UPSV?", 1000, "OK");
 
-	ECHO("SET DTR TO FALSE");
-	SETCOMDTR(false);
-	PAUSE(100);
-	update_status();
+    ECHO("SET DTR TO FALSE");
+    SETCOMDTR(false);
+    PAUSE(100);
+    update_status();
 
-	send_AT_command("AT", 100, "OK");
+    send_AT_command("AT", 100, "OK");
 
-	update_status();
-	PAUSE(2000);
+    update_status();
+    PAUSE(2000);
 
-	ECHO("SET DTR TO TRUE");
-	SETCOMDTR(true);
+    ECHO("SET DTR TO TRUE");
+    SETCOMDTR(true);
 
-	update_status();
-	PAUSE(2000);
-	send_AT_command("AT+UPSV=0", 1000, "OK");
+    update_status();
+    PAUSE(2000);
+    send_AT_command("AT+UPSV=0", 1000, "OK");
 
-	ECHO("DTR TESTING END");
+    ECHO("DTR TESTING END");
 }
 
 void main(){
-	update_status();
-	DTR_testing();
+    update_status();
+    DTR_testing();
 }

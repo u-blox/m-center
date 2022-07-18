@@ -4,24 +4,24 @@
 * Licensed under the Apache License, Version 2.0 (the "License");
 * you may not use this file except in compliance with the License.
 * You may obtain a copy of the License at
-* 
+*
 * http://www.apache.org/licenses/LICENSE-2.0
-* 
+*
 * Unless required by applicable law or agreed to in writing, software
 * distributed under the License is distributed on an "AS IS" BASIS,
 * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 * See the License for the specific language governing permissions and
 * limitations under the License.
 ******************************************************************************
-* Synopsis:		sys_all_ffsStoreReceiveDelete_advance.atl
-* Topic: 		system_functionalities
-* Version:		1.0
-* Author:		muaw
+* Synopsis:     sys_all_ffsStoreReceiveDelete_advance.atl
+* Topic:        system_functionalities
+* Version:      1.0
+* Author:       muaw
 * Description:
-*		This script has the purpose to test the basic File-system macros.
+*       This script has the purpose to test the basic File-system macros.
 ******************************************************************************
-* Modules:		All Products
-* Tested on:	SARA-R42
+* Modules:      All Products
+* Tested on:    SARA-R42
 ******************************************************************************/
 
 //----configuration settings------//
@@ -42,45 +42,45 @@ string receive_file_name = "FFStestfile_received.txt";
 file f;
 void main()
 {
-	if(create_test_file())
-	{
-		ECHO("Deleting the test file from modem.");
-		MC_FFS_DELETE(send_file_name);
-		if(MC_FFS_STORE(file_path+send_file_name))
-		{
-			ECHO("SUCCESS: File stored to the modem!");
-			if(MC_FFS_RETRIEVE(send_file_name,file_path+receive_file_name))	
-			{
-				ECHO("SUCCESS: File received from the modem!");
-			}
-			else
-			{
-				ECHO("ERROR: Failed to receive the File!");
-			}
-		}
-		else
-		{
-			ECHO("ERROR: Cannot store File!");
-		}
-	}	
+    if(create_test_file())
+    {
+        ECHO("Deleting the test file from modem.");
+        MC_FFS_DELETE(send_file_name);
+        if(MC_FFS_STORE(file_path+send_file_name))
+        {
+            ECHO("SUCCESS: File stored to the modem!");
+            if(MC_FFS_RETRIEVE(send_file_name,file_path+receive_file_name)) 
+            {
+                ECHO("SUCCESS: File received from the modem!");
+            }
+            else
+            {
+                ECHO("ERROR: Failed to receive the File!");
+            }
+        }
+        else
+        {
+            ECHO("ERROR: Cannot store File!");
+        }
+    }   
 }
 
 bool create_test_file()
 {
-	if( f.open(file_path+send_file_name, "w") >= 0 ) 
-	{
-		for(int i = 0 ; i < 250000; ++i)
-		{	
-			f.writeString("Test");
-		}
-		
-		f.close();
-		ECHO("SUCCESS: Test file Created!");
-		return true;
-	}
-	else
-	{
-		ECHO("ERROR: Cannot create test file!");
-	}
-	return false;
+    if( f.open(file_path+send_file_name, "w") >= 0 ) 
+    {
+        for(int i = 0 ; i < 250000; ++i)
+        {   
+            f.writeString("Test");
+        }
+        
+        f.close();
+        ECHO("SUCCESS: Test file Created!");
+        return true;
+    }
+    else
+    {
+        ECHO("ERROR: Cannot create test file!");
+    }
+    return false;
 }
