@@ -1,0 +1,136 @@
+/*******************************************************************************
+*  Copyright (c) 2020 u-blox AG, Thalwil, Switzerland.
+*
+* Licensed under the Apache License, Version 2.0 (the "License");
+* you may not use this file except in compliance with the License.
+* You may obtain a copy of the License at
+*
+* http://www.apache.org/licenses/LICENSE-2.0
+*
+* Unless required by applicable law or agreed to in writing, software
+* distributed under the License is distributed on an "AS IS" BASIS,
+* WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+* See the License for the specific language governing permissions and
+* limitations under the License.
+******************************************************************************
+* Synopsis:     ipApp_all_tcpUdpDataTest_basic.atl
+* Topic:        internet_application
+* Version:      1.0
+* Author:       hmeh
+* Description:
+*       This script has the purpose to test TCP and UDP data connections.
+******************************************************************************
+* Modules:      All Products
+* Tested on:    LARA-R6, LARA-R2, SARA-R5, SARA-R42
+******************************************************************************/
+
+// configuration
+// configure the product/module in use
+string productInUse = "laraR6";         // Possible options are "saraR5" , "saraR42" , "laraR2", "laraR6"
+string IPV          = 0;                //0: IPV4, 1: IPV6
+string rat;
+string resp;
+
+int maxCnt=20;
+int genericTimeDelay = 10000;
+
+void main()
+{
+    
+    ECHO("Test zyklische Verbindung TCP UDP - V2.0");
+    ECHO("Laufzeit ca. 1h - "+maxCnt+" Loops");
+    ECHO("******************** Start Init ********************");
+    SENDAT("ATE0",genericTimeDelay,"OK");
+    SENDAT("ATI",genericTimeDelay,"OK");
+    SENDAT("ATI9",genericTimeDelay,"OK");
+    SENDAT("AT+UGPIOC=16,2",genericTimeDelay,"OK");
+    SENDAT("AT+URAT?",genericTimeDelay,"OK");
+    SENDAT("AT+ULWM2M?",genericTimeDelay,"OK");         // command not supported by all modules
+    SENDAT("AT+UMNOPROF?",genericTimeDelay,"OK");       // command not supported by all modules
+    SENDAT("AT+USVCDOMAIN?",genericTimeDelay,"OK");     // command not supported by all modules
+    SENDAT("AT+CPSMS?",genericTimeDelay,"OK");          // command not supported by all modules
+    SENDAT("AT+UPSV?",genericTimeDelay,"OK");
+    SENDAT("AT+UBANDMASK?",genericTimeDelay,"OK");      // command not supported by all modules
+    ECHO("******************** End   INIT ********************");
+    if(productInUse != "saraR5")
+    {
+        SENDAT("AT+CFUN=15",genericTimeDelay,"OK");
+    }
+    else
+    {
+        SENDAT("AT+CFUN=16",genericTimeDelay,"OK");
+    }
+
+    SENDAT("AT+CFUN=1",genericTimeDelay,"OK");
+    for(int i=1; i<maxCnt+1; i++)
+    {
+        ECHO("");
+        ECHO("******************** Start Loop #"+i+" ********************");
+        SENDAT("ATE0",genericTimeDelay,"OK");
+        SENDAT("AT+CREG=2",genericTimeDelay,"OK");
+        SENDAT("AT+CGREG=2",genericTimeDelay,"OK");
+        SENDAT("AT+CEREG=2",genericTimeDelay,"OK");
+        SENDAT("AT+CSCON=1",genericTimeDelay,"OK");
+        resp = SENDAT("AT+COPS?", genericTimeDelay, 'OK');
+        rat = resp.split(',')[3].split('\r')[0];
+        SENDAT("AT+CGDCONT?",genericTimeDelay,"OK");
+        SENDAT("AT+CGCONTRDP=1",genericTimeDelay,"OK");
+        SENDAT("AT+CESQ",genericTimeDelay,"OK");
+        SENDAT("AT+CREG?",genericTimeDelay,"OK");
+        SENDAT("AT+CEREG?",genericTimeDelay,"OK");
+
+
+        if(productInUse == "laraR2" || productInUse == "saraR5" || productInUse == "saraR42")
+        {
+            if (SENDAT("AT+UPSD=0,0," + IPV,1000,"OK") != "OK")
+            {
+                STOP("ERROR: unable to set IP version");
+            }
+            
+            if (SENDAT("AT+UPSD=0,100,1", 2000, "OK") != "OK")
+            {
+                STOP("ERROR: unable to map PSD profile");
+            }
+        }
+        
+        if(productInUse == "laraR2" || productInUse == "saraR5")
+        {
+            if(SENDAT("AT+UPSDA=0,3",150000,"OK") != "OK")
+            {
+                STOP("ERROR: unable to map PSD profile");
+            }
+        }
+        
+        if(productInUse == "laraR6" || productInUse == "saraR42")
+        {
+            if(!(productInUse == "laraR6" && rat == "7"))
+            { 
+                if (SENDAT("AT+CGACT=1,1",5000,"OK") != "OK")
+                {
+                    STOP("ERROR: unable to activate context");
+                }
+            }
+        }
+
+        SENDAT("AT+UDNSRN=0,\"www.google.com\"",genericTimeDelay,"OK");
+        SENDAT("AT+USOCR=6",genericTimeDelay,"OK");
+        SENDAT("AT+USOCO=0,\"echo.u-blox.com\",7",genericTimeDelay,"OK");
+        WAIT("+UUSORD:",genericTimeDelay);
+        SENDAT("AT+USORD=0,28",genericTimeDelay,"OK");
+        SENDAT("AT+USOWR=0,212,\"Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat, sed diam voluptua. At vero eos et accusam et justo duo dolores et ea rebum.\"",genericTimeDelay,"OK");
+        WAIT("+UUSORD:",genericTimeDelay);
+        SENDAT("AT+USORD=0,212",genericTimeDelay,"OK");
+        SENDAT("AT+USOWR=0,238,\"Stet clita kasd gubergren, no sea takimata sanctus est Lorem ipsum dolor sit amet. Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat, sed diam voluptua.\"",genericTimeDelay,"OK");
+        WAIT("+UUSORD:",genericTimeDelay);
+        SENDAT("AT+USORD=0,238",genericTimeDelay,"OK");
+        SENDAT("AT+USOCR=17",genericTimeDelay,"OK");
+        SENDAT("AT+USOST=1,\"echo.u-blox.com\",7,35,\"Konstantin Eduardowitsch Ziolkowski\"",genericTimeDelay,"OK");
+        WAIT("+UUSORF:",genericTimeDelay);
+        SENDAT("AT+USORF=1,35",genericTimeDelay,"OK");
+        SENDAT("AT+USOCL=0",genericTimeDelay,"OK");
+        SENDAT("AT+USOCL=1",genericTimeDelay,"OK");
+        SENDAT("AT+CFUN=0",genericTimeDelay,"OK");
+        ECHO("******************** End Loop   #"+i+" ********************");
+        PAUSE(180000);
+    }
+} 
