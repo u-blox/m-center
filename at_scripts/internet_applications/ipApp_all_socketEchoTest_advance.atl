@@ -15,7 +15,7 @@
 ******************************************************************************
 * Synopsis:     ipApp_all_socketEchoTest_advance.atl
 * Topic:        internet_application
-* Version:      1.0
+* Version:      2.0
 * Author:       dtro
 * Description:
 *       This script has the purpose to demonstrate a TCP/UDP socket connection
@@ -24,18 +24,19 @@
 *       must be activated. 
 ******************************************************************************
 * Modules:      All products
-* Tested on:    LARA-R2
+* Tested on:    LARA-R2, SARA-R42
 ******************************************************************************/
 
 // Configurable parameters
-string protocol = "TCP"; // protocol can be TCP or UDP
+string protocol = "TCP";                // protocol can be TCP or UDP
 string server_ip = "185.215.195.137";
 int server_port = 7;
 string echo_text = "Hello world!";
 int length_greeting_server = 28;
 int waiting_time_at = 5000;
 int waiting_timeout = 180000;
-bool hex_mode_enabled = false;
+bool hex_mode_enabled = false;          // HEX mode controlled with +UDCONF=1,x
+bool binary_mode_enabled = false;       // use or not "binary mode" on +USOWR
 string command;
 
 
@@ -93,26 +94,37 @@ if(check_ping.findFirst("+UUPINGER") == -1 && check_rtt.findFirst("-1") == -1) {
     }
     
     string returned_echo;
-    if (hex_mode_enabled) {
-        command = "AT+USOWR=" + socket_id + "," + echo_text_hex.length()/2 + ",\"" + echo_text_hex + "\"";
-        send_at_command(command, 120000, "OK");
-        WAIT("+UUSORD", waiting_timeout);
-
-        command = "AT+USORD=" + socket_id + "," + echo_text_hex.length()/2;
-        returned_echo = HEX2STRING(SENDAT(command, 1000, "OK"));
-    } else {
-        command = "AT+USOWR=" + socket_id + "," + echo_text.length() + ",\"" + echo_text + "\"";
-        send_at_command(command, 120000, "OK");
+    if (binary_mode_enabled){
+        command = "AT+USOWR=" + socket_id + "," + echo_text.length();
+        send_at_command(command, waiting_time_at, "@");
+        send_at_command(echo_text, waiting_time_at, "OK");
         WAIT("+UUSORD", waiting_timeout);
 
         command = "AT+USORD=" + socket_id + "," + echo_text.length();
-        returned_echo = SENDAT(command, 1000, "OK");
+        returned_echo = SENDAT(command, waiting_time_at, "OK");
         ECHO(returned_echo);
     }
-    
+    else{ // if the "binary mode" is not used, we need to differentiate the two HEX mode cases
+        if (hex_mode_enabled) {
+            command = "AT+USOWR=" + socket_id + "," + echo_text_hex.length()/2 + ",\"" + echo_text_hex + "\"";
+            send_at_command(command, waiting_timeout, "OK");
+            WAIT("+UUSORD", waiting_timeout);
+
+            command = "AT+USORD=" + socket_id + "," + echo_text_hex.length()/2;
+            returned_echo = HEX2STRING(SENDAT(command, waiting_time_at, "OK"));
+        } else {
+            command = "AT+USOWR=" + socket_id + "," + echo_text.length() + ",\"" + echo_text + "\"";
+            send_at_command(command, waiting_timeout, "OK");
+            WAIT("+UUSORD", waiting_timeout);
+
+            command = "AT+USORD=" + socket_id + "," + echo_text.length();
+            returned_echo = SENDAT(command, waiting_time_at, "OK");
+            ECHO(returned_echo);
+        }
+    }
 
     // Closing the socket
-    send_at_command("AT+USOCL=" + socket_id, 120000, "OK");
+    send_at_command("AT+USOCL=" + socket_id, waiting_timeout, "OK");
     
     if(returned_echo.findFirst(echo_text) != -1) {
         ECHO("*************************************************************************************************************");
