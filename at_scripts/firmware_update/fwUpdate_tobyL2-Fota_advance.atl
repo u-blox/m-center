@@ -1,0 +1,83 @@
+/******************************************************************************
+*  Copyright (c) 2020 u-blox AG, Thalwil, Switzerland.
+*
+* Licensed under the Apache License, Version 2.0 (the "License");
+* you may not use this file except in compliance with the License.
+* You may obtain a copy of the License at
+*
+* http://www.apache.org/licenses/LICENSE-2.0
+*
+* Unless required by applicable law or agreed to in writing, software
+* distributed under the License is distributed on an "AS IS" BASIS,
+* WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+* See the License for the specific language governing permissions and
+* limitations under the License.
+******************************************************************************
+* Synopsis:     fwUpdate_tobyL2-Fota_advance.atl
+* Topic:        firmware_update
+* Version:      1.0
+* Author:       rmcn
+* Description:
+*       This scrip can be used to perform the FOTA update on TOBY-L2 modules.
+******************************************************************************
+* Modules:      TOBY-L2
+* Tested on:    TOBY-L2
+******************************************************************************/
+
+// Initialization
+ECHO("*************************************************************************************************************");
+ECHO("This script requires to set some configurable parameters.");
+ECHO("Be sure those are correctly configured before the initialization of this.");
+ECHO("*************************************************************************************************************");
+
+// Configurable parameters
+string file_md5 = '';
+string ftp_address = '';
+string ftp_name = '';
+string ftp_password = '';
+string ftp_file_path = '';
+
+// Other variables
+string resp;
+string command;
+
+// Initial commands
+ATI
+ATI9
+AT+CGDCONT?
+
+// PDP context activation
+AT+UPSD=0,0,0
+AT+UPSD=0,100,4
+AT+UPSDA=0,3
+
+// FTP configuration
+command = 'AT+UFTP=1,"' + ftp_address + '"';
+SENDAT(command,6000,'OK');
+command = 'AT+UFTP=2,"' + ftp_name + '"';
+SENDAT(command,6000,'OK');
+command = 'AT+UFTP=3,"' + ftp_password + '"';
+SENDAT(command,6000,'OK');
+AT+UFTP=6,1
+
+resp = SENDAT('AT+UFTPC=1',60000,'+UUFTPCR:');
+if (FIND(resp,'+UUFTPCR: 1,1') == -1)
+{
+    STOP('Failed to connect to server');
+}
+
+command = 'AT+UFTPC=100,"' + ftp_file_path + '"';
+resp = SENDAT(command,180000,'+UUFTPCR:');
+if (FIND(resp,'+UUFTPCR: 100,1') == -1)
+{
+    STOP('Failed to download image');
+}
+
+resp = SENDAT('AT+UFTPC=0',60000,'+UUFTPCR:');
+if (FIND(resp,'+UUFTPCR: 0,1') == -1)
+{
+    STOP('Failed to disconnect from server');
+}
+
+command = 'AT+UFWINSTALL=' + file_md5;
+SENDAT(command,400,'+UUFTPCR:');

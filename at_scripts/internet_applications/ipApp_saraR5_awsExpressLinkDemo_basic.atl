@@ -1,0 +1,96 @@
+/*******************************************************************************
+*  Copyright (c) 2020 u-blox AG, Thalwil, Switzerland.
+*
+* Licensed under the Apache License, Version 2.0 (the "License");
+* you may not use this file except in compliance with the License.
+* You may obtain a copy of the License at
+*
+* http://www.apache.org/licenses/LICENSE-2.0
+*
+* Unless required by applicable law or agreed to in writing, software
+* distributed under the License is distributed on an "AS IS" BASIS,
+* WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+* See the License for the specific language governing permissions and
+* limitations under the License.
+******************************************************************************
+* Synopsis:     ipApp_saraR5_awsExpressLinkDemo_basic.atl
+* Topic:        internet_application
+* Version:      1.0
+* Author:       mreb
+* Description:
+*       This script has the purpose to demonstrate the MQTT use for
+*       communication between the u-blox SARA-R510AWS module and the AWS
+*       server. As an application's example, it simply sends 10 times
+*       the time to the AWS server.  
+* Product page:
+*       https://www.u-blox.com/en/product/SARA-R510AWS-module
+******************************************************************************
+* Modules:      SARA-R510AWS
+* Tested on:    SARA-R510AWS
+******************************************************************************/
+
+
+// fixed variables
+string command, resp, data_message;
+int wait_ten_minutes = 600000;
+int wait_one_minute = 60000;
+int wait_five_seconds = 5000;
+int times = 10;
+
+// variable settings
+string apn_address = "jtm2m";
+int topic_id = 1;
+string topic_name = "/example_topic_name";
+
+
+// specific AWS AT command function to handle OK or ERROR response
+void send_aws_at_command(string aws_command, int waiting_time){
+    
+    aws_command = aws_command + "\r\n";
+    SENDTEXT(aws_command);
+    resp = "ERR Timeout"; // this error is used in case waiting_time expires
+    resp = WAIT("OK", "ERR", waiting_time);
+    if(FIND(resp, "ERR") != -1)
+    {
+        STOP("Command: " + aws_command + " is failing with error: " + resp);
+    }
+}
+
+
+void main(){
+    // Initialization
+    ECHO("*************************************************************************************************************");
+    ECHO("This script requires to set some configurable parameters.");
+    ECHO("Moreover the script can be used once the module providion has been already completed.");
+    ECHO("Be sure parameters and AWS end-point address are correctly configured before the initialization of this.");
+    ECHO("*************************************************************************************************************");
+
+    ECHO("Configuring...");
+    if (apn_address != "")
+    {
+        command = "AT+CONF APN=" + apn_address;
+        send_aws_at_command(command, wait_five_seconds);
+    }
+
+    ECHO("Performing the connection.");
+    send_aws_at_command("AT+CONNECT", 3*wait_ten_minutes);
+
+    command = "AT+CONF Topic" + topic_id + "=" + topic_name;
+    send_aws_at_command(command, wait_one_minute);
+
+    command = "AT+SUBSCRIBE" + topic_id;
+    send_aws_at_command(command, wait_one_minute);
+
+    int count = 0;
+    while (count < times)
+    {
+        data_message = "The time now is " + get_date_time_now();
+        command = "AT+SEND" + topic_id + " " +  data_message;
+        send_aws_at_command(command, wait_one_minute);
+        PAUSE(wait_one_minute);
+        count++;
+    }
+
+    ECHO("Performing the disconnection.");
+    SENDAT("AT+DISCONNECT", wait_ten_minutes,"OK");
+}

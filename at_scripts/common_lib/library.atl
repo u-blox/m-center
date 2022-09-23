@@ -37,6 +37,13 @@ void date_time_print(datetime d)
     ECHO(d.get_year()+":"+d.get_month()+":"+d.get_day()+"-"+d.get_hour()+":"+d.get_minute()+":"+d.get_second());
 }
 
+// This function returns a string with the current date time variable into a standard format.
+string get_date_time_now()
+{
+    datetime now;
+    return now.get_year()+":"+now.get_month()+":"+now.get_day()+"-"+now.get_hour()+":"+now.get_minute()+":"+now.get_second();
+}
+
 // This function gets the information regarding modem via selected commands.
 void get_modem_identity(void)
 {

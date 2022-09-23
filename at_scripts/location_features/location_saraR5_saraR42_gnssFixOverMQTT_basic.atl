@@ -1,0 +1,342 @@
+/*******************************************************************************
+*  Copyright (c) 2020 u-blox AG, Thalwil, Switzerland.
+*
+* Licensed under the Apache License, Version 2.0 (the "License");
+* you may not use this file except in compliance with the License.
+* You may obtain a copy of the License at
+*
+* http://www.apache.org/licenses/LICENSE-2.0
+*
+* Unless required by applicable law or agreed to in writing, software
+* distributed under the License is distributed on an "AS IS" BASIS,
+* WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+* See the License for the specific language governing permissions and
+* limitations under the License.
+******************************************************************************
+* Synopsis:     location_saraR5_saraR42_gnssFixOverMQTT_basic.atl
+* Topic:        location_features
+* Version:      1.0
+* Author:       mreb
+* Description:
+*       This script has the purpose to demonstrate the use of the GNSS chip 
+*       Integrated into the modules. 
+*       This script needs a "+STARTUP" greeting message active on boot. The
+*       greeting text can be activated using the command AT+CSGT=1,"+STARTUP"
+*       and using a fixed baud rate. 
+******************************************************************************
+* Modules:      All products
+* Tested on:    SARA-R510M8S, SARA-R422M8S, SARA-R422M10S, SARA-R510S
+******************************************************************************/
+
+// defined global variable
+string gnss_command, command, resp;
+int wait_ten_seconds = 10000;
+string topic_name = "example_topic_name";
+
+// User needs to configure the device_cert_name, device_key_name and 
+// the device_secret_id before using the script. In particular, the 
+// certificates need to be stored in the module filesystem while here, 
+// it is only necessary to report the correct internal name used.
+string device_cert_name = "device.pem";
+string device_key_name = "device.key";
+string device_secret_id = "device:xxx";
+
+// configurable parameters
+int max_iteration = 200; // iteration cycles
+string apn_initial_def_bearer = "ibox.tim.it"; // APN for initial default bearer
+
+// modem type
+// 0 - SARA-R510M8S or SARA-R5 product series
+// 1 - SARA-R422M8S or SARA-R422M10S or SARA-R422 product series
+int modem_type = 0;
+
+// aiding type to be configured, values allowed are:
+// • 0 (default value): no aiding
+// • 1: automatic local aiding
+// • 2: AssistNow Offline
+// • 4: AssistNow Online
+// • 8: AssistNow Autonomous
+int aiding_type = 1;
+
+// gnss system to be actived
+// • 1: GPS (L1CA)
+// • 2: SBAS (L1CA)
+// • 4: Galileo (E1)
+// • 8: BeiDou (B1I)
+// • 16: IMES (L1)
+// • 32: QZSS (L1CA)
+// • 64: GLONASS (L1)
+// • 128: BEIDOU (B1C) available on M10 combo modules only
+// • 256: QZSS (L1S) available on M10 combo modules only
+int gnss_system = 67;
+
+
+// function to wait for AT interface ready
+// it looks for the string '+STARTUP'
+void wait_for_at_ready()
+{
+    command = "+STARTUP";
+    resp = WAIT(command, 60000);
+
+    if(FIND(resp, "+STARTUP") != -1)
+    {
+        ECHO("Module ready");
+    }
+    else
+    {
+        ECHO("Module not ready");
+        STOP("************ SCRIPT STOPPED **************");
+    }
+}
+
+void modem_initialization ()
+{ 
+    ECHO("Waiting for registration");
+    command = "AT+CFUN=4";
+    SENDAT(command, 200, "OK");
+    PAUSE 20;
+    command = "AT+CMEE=2";
+    SENDAT(command, 200, "OK");
+    PAUSE 20;
+    command = "AT+CREG=2";
+    SENDAT(command, 200, "OK");
+    PAUSE 20;
+    command = "AT+CGREG=2";
+    SENDAT(command, 200, "OK");
+    PAUSE 20;
+    command = "AT+CEREG=2";
+    SENDAT(command, 200, "OK");
+    PAUSE 200;
+    command = "AT+CGDCONT=1,\"IP\",\"" + apn_initial_def_bearer + "\"";
+    SENDAT(command, 200, "OK");
+    PAUSE 20;
+    command = "AT+CFUN=1";
+    SENDAT(command, 200, "OK");  
+}
+
+void wait_for_registration()
+{
+    int registration = 0;
+
+    while (registration < 1)
+    {
+        ECHO("Waiting for registration");
+        // wait for URC
+        string command1 = "+C";
+        resp = WAIT(command1, 300000);
+        if(FIND(resp, "+CREG: 1") != -1)
+        {
+            ECHO("Registered on network (HPLMN)");
+            registration = 1;
+        }
+        else if(FIND(resp, "+CREG: 5") != -1)
+        {
+            ECHO("Registered on roaming (VPLMN)");
+            registration = 1;
+        }
+        else if(FIND(resp, "+CEREG: 1") != -1)
+        {
+            ECHO("Registered on network (HPLMN)");
+            registration = 1;
+        }
+        else if(FIND(resp, "+CEREG: 5") != -1)
+        {
+            ECHO("Registered on roaming (VPLMN)");
+            registration = 1;
+        }
+        else
+        {
+            ECHO("Registration status to be checked (not HPLMN)");
+        }
+    }
+
+    command = "AT+CGACT=1,1";
+    resp = SENDAT(command, 10000, "OK");
+    if (modem_type == 0)
+    {
+        command = "AT+UPSD=0,0,0";
+        SENDAT(command, 10000, "OK");
+        command = "AT+UPSD=0,100,1";
+        SENDAT(command, 10000, "OK");
+        command = "AT+UPSDA=0,3";
+        SENDAT(command, 10000, "OK");
+    }
+}
+
+
+void wait_for_gnss_fix()
+{
+    bool fix_acquired = false;
+    int max_number_iterations = 10000;
+
+    while (!fix_acquired && max_number_iterations > 0){
+        resp = get_fix();
+        string resp_param = resp.split(',')[3];
+
+        if(resp_param == "A"){
+            fix_acquired = true;
+        }
+        PAUSE 200;
+        max_number_iterations--;
+    }
+}
+
+
+string get_fix()
+{
+    command = "AT+UGRMC?";
+    resp = SENDAT(command, 1000, "OK");
+    return resp;
+}  
+
+
+void configure_mqtt_flex()
+{
+    command = 'AT+USECMNG=1,1,"MQTTFlex_cert","' + device_cert_name + '"';
+    SENDAT(command, wait_ten_seconds, "OK");
+    command = 'AT+USECMNG=1,2,"MQTTFlex_key", "' + device_key_name + '"';
+    SENDAT(command, wait_ten_seconds, "OK");
+    command = 'AT+USECPRF=0';
+    SENDAT(command, 1000, "OK");
+    command = 'AT+USECPRF=0,0,0';
+    SENDAT(command, 1000, "OK");
+    command = 'AT+USECPRF=0,1,3';
+    SENDAT(command, 1000, "OK");
+    command = 'AT+USECPRF=0,2,99,"C0","30"';
+    SENDAT(command, 1000, "OK");
+    command = 'AT+USECPRF=0,5,"MQTTFlex_cert"';
+    SENDAT(command, 1000, "OK");
+    command = 'AT+USECPRF=0,6,"MQTTFlex_key"';
+    SENDAT(command, 1000, "OK");
+    command = 'AT+UMQTTSN=0,"' + device_secret_id + '"';
+    SENDAT(command, 1000, "OK");
+    command = 'AT+UMQTTSN=1,"mqtt-flex.thingstream.io",2443';
+    SENDAT(command, 1000, "OK");
+    command = 'AT+UMQTTSN=9,1,0';
+    SENDAT(command, 1000, "OK");
+}
+
+
+void connnect_mqtt()
+{
+    command = 'AT+UMQTTSNC=1';
+    resp = SENDAT(command, 180000, "+UUMQTTSNC: 1,");
+    if(!is_mqttsn_response_ok(resp, 1)){
+        STOP("Script is unable to connect MQTT-SN client.");
+    }
+}
+
+
+void send_data(string resp_from_fix)
+{
+    string location = resp_from_fix.split(',')[4] + ", " +
+                      resp_from_fix.split(',')[5] + ", " +
+                      resp_from_fix.split(',')[6] + ", " +
+                      resp_from_fix.split(',')[7];
+
+    // This is just nmea location. See function return_latitude_longitude_from_nmea()
+    // in script in /at_scripts/location_features/location_saraR5_saraR42_laraR6_gnssCellInfo_advanced.atl
+    // for method to extract latitude and longitude data
+    
+    command = 'AT+UMQTTSNC=4,1,0,0,0,"1","' + location + '"';
+    resp = SENDAT(command, 180000, "+UUMQTTSNC: 4,");
+    if(!is_mqttsn_response_ok(resp, 4)){
+        STOP("Script is unable to send MQTT-SN message.");
+    }
+    ECHO(location + " has been sent");
+}
+
+
+void confgure_mqtt_topic(string name)
+{
+    command = 'AT+UMQTTSNC=2,"' + name + '"';
+    resp = SENDAT(command, 180000, "+UUMQTTSNC: 2,");
+    if(!is_mqttsn_response_ok(resp, 2)){
+        STOP("Script is unable to configure MQTT-SN topic.");
+    }
+}
+
+
+void disconnect_mqtt()
+{
+    command = 'AT+UMQTTSNC=0';
+    resp = SENDAT(command, 180000, "+UUMQTTSNC: 0,");
+    if(!is_mqttsn_response_ok(resp, 0)){
+        STOP("Script is unable to disconnect MQTT-SN.");
+    }
+    PAUSE 200;
+}
+
+
+bool is_mqttsn_response_ok(string response, int command)
+{
+    resp=response.split('+UUMQTTSNC:')[1];
+    string match = command + ",1";
+    if (FIND(resp, match) == -1){
+        return false;
+    }
+    return true;
+}
+
+
+void main()
+{
+    ECHO("*************************************************************************************************************");
+    ECHO("This script needs '+STARTUP' greeting message active on boot");
+    ECHO("The greeting text can be actived using the command +CSGT=1,\"+STARTUP\" and using a fixed baud rate (+IPR)");
+    ECHO("");
+    ECHO("");
+    ECHO("*************************************************************************************************************");
+    ECHO("REMEMBER TO HAVE ALREADY SET A VALID TOKEN on the module with +UGSRV for accessing online aiding");
+    ECHO("*************************************************************************************************************");
+    ECHO("");
+    ECHO("");
+    ECHO("*************************************************************************************************************");
+    ECHO("REMEMBER TO CONFIGURE THE GNSS SYSTEM AND THE AIDING MODE");
+    ECHO("*************************************************************************************************************");
+
+    wait_for_at_ready();
+    modem_initialization();
+    wait_for_registration();
+
+    configure_mqtt_flex();
+
+    // configuring GNSS
+    command ="AT+UGIND=1";
+    SENDAT(command, 1000, "OK");
+    command ="AT+UGRMC=1";
+    SENDAT(command, 1000, "OK");
+    command ="AT+ULOCIND=1";
+    SENDAT(command, 1000, "OK");
+
+    ECHO("*************************************************************************************************************");
+    ECHO("STARTING GNSS");
+    ECHO("If external GNSS is used, the GPIO needs to be problerly configured with AT+UGPIOC command.");
+    ECHO("*************************************************************************************************************");
+    gnss_command ="AT+UGPS=1," + aiding_type + "," + gnss_system + "\r\n";
+    SENDTEXT(gnss_command);
+    resp = WAIT("OK", "+CME ERROR", 6000);
+    if (FIND(resp, "ERROR") != -1){
+        STOP("Unable to turn ON the GNSS. Check GPIO configuration if external GNSS is used.");
+    }
+    PAUSE 2000;
+
+    wait_for_gnss_fix();
+    connnect_mqtt();
+    confgure_mqtt_topic(topic_name);
+
+    for (int i = 0; i < max_iteration; i++)
+    {
+        resp = get_fix();
+        send_data(resp);
+        PAUSE 2000;
+    }
+
+    disconnect_mqtt();
+
+    command ="AT+UGPS=0";
+    resp = SENDAT(command, 5000, "OK");
+    PAUSE 1000;
+    command ="AT+CPWROFF";
+    resp = SENDAT(command, 10000, "OK");
+}
