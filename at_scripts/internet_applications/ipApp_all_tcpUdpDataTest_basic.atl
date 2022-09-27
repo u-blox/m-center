@@ -35,10 +35,11 @@ int maxCnt=20;
 int genericTimeDelay = 10000;
 
 void main()
-{
-    
-    ECHO("Test zyklische Verbindung TCP UDP - V2.0");
-    ECHO("Laufzeit ca. 1h - "+maxCnt+" Loops");
+{ 
+    ECHO("*************************************************************************************************************");
+    ECHO("TESTING THE REACHABILITY OF THE ECHO SERVER");
+    ECHO("*************************************************************************************************************");
+
     ECHO("******************** Start Init ********************");
     SENDAT("ATE0",genericTimeDelay,"OK");
     SENDAT("ATI",genericTimeDelay,"OK");
@@ -78,7 +79,6 @@ void main()
         SENDAT("AT+CESQ",genericTimeDelay,"OK");
         SENDAT("AT+CREG?",genericTimeDelay,"OK");
         SENDAT("AT+CEREG?",genericTimeDelay,"OK");
-
 
         if(productInUse == "laraR2" || productInUse == "saraR5" || productInUse == "saraR42")
         {
@@ -120,13 +120,10 @@ void main()
         SENDAT("AT+USOWR=0,212,\"Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat, sed diam voluptua. At vero eos et accusam et justo duo dolores et ea rebum.\"",genericTimeDelay,"OK");
         WAIT("+UUSORD:",genericTimeDelay);
         SENDAT("AT+USORD=0,212",genericTimeDelay,"OK");
-        SENDAT("AT+USOWR=0,238,\"Stet clita kasd gubergren, no sea takimata sanctus est Lorem ipsum dolor sit amet. Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat, sed diam voluptua.\"",genericTimeDelay,"OK");
-        WAIT("+UUSORD:",genericTimeDelay);
-        SENDAT("AT+USORD=0,238",genericTimeDelay,"OK");
         SENDAT("AT+USOCR=17",genericTimeDelay,"OK");
-        SENDAT("AT+USOST=1,\"echo.u-blox.com\",7,35,\"Konstantin Eduardowitsch Ziolkowski\"",genericTimeDelay,"OK");
+        SENDAT("AT+USOST=1,\"echo.u-blox.com\",7,16,\"Example of text.\"",genericTimeDelay,"OK");
         WAIT("+UUSORF:",genericTimeDelay);
-        SENDAT("AT+USORF=1,35",genericTimeDelay,"OK");
+        SENDAT("AT+USORF=1,16",genericTimeDelay,"OK");
         SENDAT("AT+USOCL=0",genericTimeDelay,"OK");
         SENDAT("AT+USOCL=1",genericTimeDelay,"OK");
         SENDAT("AT+CFUN=0",genericTimeDelay,"OK");
