@@ -24,7 +24,7 @@
 *       void SETCOMRTS(bool &in): sets the RTS with value = 'in'
 ******************************************************************************
 * Modules:      All Products
-* Tested on:    SARA-R42
+* Tested on:    SARA-R42, LENA-R8
 ******************************************************************************/
 
 void send_AT_command(string cmd, int ms_timeout, string exp_resp){

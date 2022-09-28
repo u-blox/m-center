@@ -24,7 +24,7 @@
 *       and the script continues
 *******************************************************************************
 * Modules:      All Products
-* Tested on:    LARA-R2
+* Tested on:    LARA-R2, LENA-R8
 *******************************************************************************/
 
 ECHO("*************************************************************************************************************");
@@ -38,7 +38,7 @@ ECHO("**************************************************************************
 // Network registration status (all products series)
 AT+CREG=2
 
-// Signalling connection status (LARA-R2, TOBY-R2 and SARA-R4 series)
+// Signalling connection status (TOBY-R2, LENA-R8, LARA-R2 and SARA-R4 series)
 
 AT+CSCON=1
 AT+CSCON=2
@@ -57,10 +57,10 @@ AT+CCIOTOPT=1
 //*********************************
 //* PACKET SWITCHED DATA SERVICES *
 //*********************************
-// GPRS network registration status (TOBY-L4, TOBY-L2, MPCI-L2, LARA-R2, TOBY-R, SARA-R4, SARA-U, LISA-U, SARA-G and SARA-N4 series)
+// GPRS network registration status (TOBY-L4, TOBY-L2, MPCI-L2, LENA-R8, LARA-R2, TOBY-R, SARA-R4, SARA-U, LISA-U, SARA-G and SARA-N4 series)
 AT+CGREG=2
 
-// EPS network registration status (TOBY-L4, TOBY-L2, MPCI-L2, LARA-R, TOBY-R, SARA-R and SARA-N series)
+// EPS network registration status (TOBY-L4, TOBY-L2, MPCI-L2, LENA-R8, LARA-R, TOBY-R, SARA-R and SARA-N series)
 AT+CEREG=2
 
 // Extended Packet Switched network registration status (TOBY-L4, TOBY-L2, MPCI-L2, LARA-R2, TOBY-R, SARA-U and LISA-U series)
@@ -79,6 +79,8 @@ AT+UPCO=3
 // Time zone reporting (all products series)
 AT+CTZR=1
 
+// Mobile termination event reporting (LENA-R8)
+// AT+CMER=3
 // Mobile termination event reporting (all products series)
 AT+CMER=1
 
@@ -90,7 +92,7 @@ AT+CMER=1
 // Set reporting call status (TOBY-L4, TOBY-L2, MPCI-L2, LARA-R2, TOBY-R, SARA-U, LISA-U and SARA-G series)
 AT+UCALLSTAT=1
 
-// Call waiting (TOBY-L4, TOBY-L2, MPCI-L2, LARA-R2, TOBY-R, SARA-U, LISA-U and SARA-G series)
+// Call waiting (TOBY-L4, TOBY-L2, MPCI-L2, LENA-R8, LARA-R2, TOBY-R, SARA-U, LISA-U and SARA-G series)
 AT+CCWA=1
 
 // Information to in-band-tones availability (TOBY-L4, TOBY-L2, MPCI-L2, LARA-R2, TOBY-R, SARA-U and LISA-U series)
@@ -120,7 +122,7 @@ AT+UCMT3GPP2=1
 //* IP MULTIMEDIA SYSTEM *
 //************************
 
-// IMS registration information (TOBY-L2, MPCI-L2, LARA-R2 and TOBY-R series)
+// IMS registration information (TOBY-L2, MPCI-L2, LENA-R8, LARA-R2 and TOBY-R series)
 AT+CIREG=2
 
 // IMS network reporting (TOBY-L2, LARA-R2 and TOBY-R series)
@@ -139,7 +141,7 @@ AT+USIMSTAT=7
 //* SIM TOOLKIT *
 //***************
 
-// Bearer Independent Protocol (BIP) status indication (all products series)
+// Bearer Independent Protocol (BIP) status indication (all products series, except LENA-R8)
 AT+UBIP=1
 AT+UBIP=2
 

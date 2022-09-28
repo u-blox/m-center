@@ -26,7 +26,7 @@
 *       void SETCOMDTR(bool &in): sets the DTR with value = 'in'
 ******************************************************************************
 * Modules:      All Products
-* Tested on:    SARA-R42
+* Tested on:    SARA-R42, LENA-R8
 ******************************************************************************/
 
 

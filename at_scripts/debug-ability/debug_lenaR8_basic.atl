@@ -13,35 +13,38 @@
 * See the License for the specific language governing permissions and
 * limitations under the License.
 *******************************************************************************
-* Synopsis:     debug_laraR6_basic.atl
+* Synopsis:     debug_lenaR8_basic.atl
 * Topic:        debug-ability
 * Version:      1.0
-* Author:       mdem
+* Author:       mrod
 * Description:
 *       This script has the general purpose to collect debug info from
-*       the target module.
+*       the target module without changing any settings.
+*       After the execution of this script, some Unsolicited Result Code (URC) 
+*       will be actived. 
 *******************************************************************************
-* Modules:      LARA-R6
-* Tested on:    LARA-R6
+* Modules:      LENA-R8
+* Tested on:    LENA-R8
 *******************************************************************************/
+
 
 #########################
 # MODULE IDENTIFICATION #
 #########################
-// returns the manufactor identificator
+// returns the manufactor identificator 
 AT+CGMI
 
-// returns the model identificator
+// returns the model identificator 
 AT+CGMM
 
-// returns the firmware identificator
+// returns the firmware identificator 
 AT+CGMR
 
-// returns the modem,application version
+// returns the modem and application version
 ATI9
 
 // returns the type number
-ATI0
+ATI
 
 // returns the serial number identificator 
 AT+CGSN
@@ -64,16 +67,13 @@ AT+CPIN?
 # MODULE CONFIGURATION #
 ########################
 // returns info about the profiles
-AT+UUARTCONF?
-
-// returns info about the serial interfaces configuration
-AT+USIO?
+AT&V
 
 
 ###########################
 # MOBILE EQUIPMENT STATUS #
 ###########################
-// returns the power mode
+// returns the modem functionality
 AT+CFUN?
 
 
@@ -84,7 +84,7 @@ AT+CFUN?
 AT+CMEE=2
 
 // enables the network registration and location information URC status
-AT+CEREG=2
+AT+CEREG=3
 
 // enables network registation status 
 AT+CREG=2
@@ -92,14 +92,11 @@ AT+CREG=2
 // enables GPRS registration status
 AT+CGREG=2
 
+// enables the signaling connection status URC
+AT+CSCON=1
+
 // enables the packet switched event reporting
 AT+CGEREP=2,1
-
-// enables the IMS registration status 
-AT+CIREG=2
-
-// enables reporting call status
-AT+UCALLSTAT=1
 
 
 ###################
@@ -111,8 +108,11 @@ AT+CEREG?
 // returns the CS network registation status
 AT+CREG?
 
-// returns the GPRS (PS) registration status
+// returns the GPRS (PS) registration status 
 AT+CGREG?
+
+// returns the operator selection
+AT+COPS?
 
 // returns the signal quality
 AT+CSQ
@@ -123,18 +123,6 @@ AT+CESQ
 // returns the configured Radio Access Technology (RAT)
 AT+URAT?
 
-// returns the enabled bands
-AT+UBANDMASK?
-
-// returns the selected Mobile Network Operator (MNO) profile
-AT+UMNOPROF?
-
-// returns the operator selection
-AT+COPS?
-
-// returns the device service domain configuration
-AT+USVCDOMAIN?
-
 
 #################################
 # PACKET SWITCHED DATA SERVICES #
@@ -142,51 +130,24 @@ AT+USVCDOMAIN?
 // returns info about PDP context
 AT+CGDCONT?
 
-// returns info about primary active PDP context
+// returns info about primary active PDP context 
 AT+CGCONTRDP=1
 
 // returns the status of the defined PDP contexts
 AT+CGACT?
 
 
-####################
-# SECURITY SERVICE #
-####################
-// enables mobile termination errors
-AT+CMEE=2
-
-// returns the seal device information
-AT+USECDEVINFO?
-
-// returns the immutable chip ID
-AT+USECCHIP
-
-// returns the Root of Trust (RoT) public Unique IDentifier (UID)
-AT+USECROTUID
-
-
-########################
-# DESIGN FOR LOW POWER #
-########################
-// returns the power saving status
+#####################
+# LOW POWER RELATED #
+#####################
+// returns the power saving status 
 AT+UPSV?
 
-// returns the used power saving mode settings
+// returns the used power saving mode settings 
 AT+CPSMS?
 
+// returns the eDRX setting 
+AT+CEDRXS?
 
-##############################
-# IP MULTIMEDIA SYSTEM (IMS) #
-##############################
-// returns IMS client configuration
-AT+UIMSCFG=1
-
-// returns IMS registration information
-AT+CIREG?
-
-
-##################
-# OTHER SERVICES #
-##################
-// returns the LwM2M activation status
-AT+ULWM2M?
+// returns eDRX dynamic parameters
+AT+CEDRXRDP
