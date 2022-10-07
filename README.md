@@ -3,13 +3,16 @@
 # m-center
 
 The latest version of m-center release can be downloaded from [here](https://www.u-blox.com/en/product/m-center).
-![image](https://user-images.githubusercontent.com/39135614/133438111-dc2cdd53-f5c5-4c0f-8d7d-6dfa5c0e9ac9.png)
+
+![m-center_Main_01](https://user-images.githubusercontent.com/6113690/194055231-b26950f1-14fb-48bf-b230-da8ef966e819.png)
+
 
 
 ## AT-Scripts Directory:
 This directory contains the AT scripts, these scripts can be used to send AT commands and get responses in a specific manner or on some event using if, else conditions, and loops.
 GitHub AT scripts repository can be automatically downloaded using the m-center GitHub download button.
-![image](https://user-images.githubusercontent.com/39135614/132846109-7e1f4ef0-500a-422f-bd89-62a9c54899f5.png)
+
+![m-center_Scripts](https://user-images.githubusercontent.com/6113690/194054993-eb0ca850-e601-4be7-a2d2-e736b3194e36.png)
 
 
 ### How to use:
@@ -23,10 +26,9 @@ If the loop count value is set to "0", the selected AT script will run for an in
 The iteration number is displayed in the 'Iteration' label.
 
 ### Create New AT Script:
-The AT script files have `.atl` extension and are saved in `\at_script` in the m-center folder.
-To create a new AT script file, open a file in notepad and save it with extension `.atl` at location `m-center\at_script`.
-Add AT commands in small or capital letters and save them.
-Make sure each AT command is entered in a separate line.
+The AT script files are simple text file with the `.atl` extension.
+The user can create a new AT script by creating a file on notepad, or any other text editor application, and saving it with the `.atl` extension.
+Scrips accept AT commands in small or capital letters, the only constraint is to write each AT command in a separate line.
 
 See m-center **help** menu for more details.
 
