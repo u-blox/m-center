@@ -156,6 +156,9 @@ AT+CGACT?
 # SECURITY SERVICE #
 ####################
 // errors may be received as a response if the security feature is not enabled on the module 
+// returns security services information
+AT+USECMODE?
+
 // returns the seal device information
 AT+USECDEVINFO?
 

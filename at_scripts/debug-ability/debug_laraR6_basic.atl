@@ -155,6 +155,9 @@ AT+CGACT?
 // enables mobile termination errors
 AT+CMEE=2
 
+// returns security services information
+AT+USECMODE?
+
 // returns the seal device information
 AT+USECDEVINFO?
 

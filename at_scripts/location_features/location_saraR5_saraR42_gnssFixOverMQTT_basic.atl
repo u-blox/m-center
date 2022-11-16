@@ -50,6 +50,13 @@ string apn_initial_def_bearer = "ibox.tim.it"; // APN for initial default bearer
 // 1 - SARA-R422M8S or SARA-R422M10S or SARA-R422 product series
 int modem_type = 0;
 
+// MQTT-SN quality of service
+// 0 - at most once delivery
+// 1 - at least once delivery
+// 2 - exactly once delivery
+// 3 - special publish QoS of 3
+int quality_of_service = 1;
+
 // aiding type to be configured, values allowed are:
 // • 0 (default value): no aiding
 // • 1: automatic local aiding
@@ -238,7 +245,7 @@ void send_data(string resp_from_fix)
     // in script in /at_scripts/location_features/location_saraR5_saraR42_laraR6_gnssCellInfo_advanced.atl
     // for method to extract latitude and longitude data
     
-    command = 'AT+UMQTTSNC=4,1,0,0,0,"1","' + location + '"';
+    command = 'AT+UMQTTSNC=4,' + quality_of_service + ',0,0,0,"1","' + location + '"';
     resp = SENDAT(command, 180000, "+UUMQTTSNC: 4,");
     if(!is_mqttsn_response_ok(resp, 4)){
         STOP("Script is unable to send MQTT-SN message.");
