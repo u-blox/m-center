@@ -159,12 +159,13 @@ void wait_for_registration()
 
     command = "AT+CGACT=1,1";
     resp = SENDAT(command, 10000, "OK");
+    command = "AT+UPSD=0,0,0";
+    SENDAT(command, 10000, "OK");
+    command = "AT+UPSD=0,100,1";
+    SENDAT(command, 10000, "OK");
+    
     if (modem_type == 0)
     {
-        command = "AT+UPSD=0,0,0";
-        SENDAT(command, 10000, "OK");
-        command = "AT+UPSD=0,100,1";
-        SENDAT(command, 10000, "OK");
         command = "AT+UPSDA=0,3";
         SENDAT(command, 10000, "OK");
     }

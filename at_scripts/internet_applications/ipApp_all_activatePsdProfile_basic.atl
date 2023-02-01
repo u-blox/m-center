@@ -21,12 +21,12 @@
 *
 ******************************************************************************
 * Modules:      All Products
-* Tested on:    LARA-R2, SARA-R5, SARA-R42, LARA-R6
+* Tested on:    LARA-R2, SARA-R5, SARA-R42, LARA-R6, LENA-R8
 ******************************************************************************/
 
 // Configurable parameters
 
-string productInUse = "laraR6";       // Possible options are "saraR5" , "saraR42" , "laraR2", "laraR6" 
+string productInUse = "lenaR8";       // Possible options are "saraR5" , "saraR42" , "laraR2", "laraR6", "lenaR8"  
 string CID          = "1";            // default CID
 string PDPtype      = "IP";           // IP, NONIP, IPV6, IPV4V6
 string APN          = "internet";
@@ -100,7 +100,7 @@ void main()
         ECHO("SUCCESS!");
     }
     
-    if(productInUse == "laraR6" || productInUse == "saraR42")
+    if(productInUse == "laraR6" || productInUse == "saraR42" || productInUse == "lenaR8")
     {
         if(productInUse == "laraR6")
         {   
@@ -116,4 +116,6 @@ void main()
             }
         }
     }
+
+    ECHO("Script completed with success");
 }
