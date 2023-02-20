@@ -1,0 +1,165 @@
+/******************************************************************************
+*  Copyright (c) 2020 u-blox AG, Thalwil, Switzerland.
+*
+* Licensed under the Apache License, Version 2.0 (the "License");
+* you may not use this file except in compliance with the License.
+* You may obtain a copy of the License at
+*
+* http://www.apache.org/licenses/LICENSE-2.0
+*
+* Unless required by applicable law or agreed to in writing, software
+* distributed under the License is distributed on an "AS IS" BASIS,
+* WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+* See the License for the specific language governing permissions and
+* limitations under the License.
+******************************************************************************
+* Synopsis:     ipApp_all_EchoStatsCollector_advance.atl
+* Topic:        internet_application
+* Version:      1.0
+* Author:       dtro
+* Description:
+*       This script has the purpose to measure RTT and PLR computed performing
+*       ping ECHO request on a test server. 
+*       The module must be connected to internet and the internal context
+*       must be activated. 
+******************************************************************************
+* Modules:      All products
+* Tested on:    LENA-R8, LARA-R6, SARA-R42, SARA-R5
+******************************************************************************/
+
+// Configurable parameters
+int number_echo_request = 250;
+string echo_server_ip = "8.8.8.8";
+int waiting_timeout = 60000;
+int waiting_time_at = 1000;
+int number_uping = 4;
+
+// Variables
+string command, resp, check_ping;
+bool server_reachable = true;
+int counted_rtt = 0;
+float total_rtt = 0;
+int failed_rtt = 0;
+
+
+command = "AT+CSCON=1";
+resp = SENDAT(command, 100, "OK");
+
+ECHO("*************************************************************************************************************");
+ECHO("This script needs an internet connection and an activated internal context.");
+ECHO("*************************************************************************************************************");
+ECHO("");
+ECHO("");
+ECHO("*************************************************************************************************************");
+ECHO("TESTING THE REACHABILITY OF THE ECHO SERVER");
+ECHO("*************************************************************************************************************");
+
+command = "AT+UPING=\"" + echo_server_ip + "\"";
+resp = SENDAT(command, 1000, "OK");
+
+if (FIND(resp, "ERROR") != -1) {
+    server_reachable = false;
+} else {
+    check_ping = WAIT("+UUPINGER", "+UUPING", waiting_timeout);
+
+    if ((FIND(check_ping, "+UUPINGER") != -1) || (FIND(check_ping, "-1") != -1)) {
+        server_reachable = false;
+    }
+}
+
+if(server_reachable) {
+
+    for (int c = 1; c < number_uping; c++) {
+        WAIT("+UUPING", waiting_timeout);
+    }
+
+    PAUSE(waiting_time_at);
+
+    ECHO("*************************************************************************************************************");
+    ECHO("SERVER REACHABLE, PERFORMING ECHO TEST");
+    ECHO("*************************************************************************************************************");
+
+    int i = 0;
+    bool found_cscon_0 = false;
+    bool skip;
+
+    while (i < number_echo_request) {
+
+        skip = false;
+        if (!found_cscon_0) {
+            command = "AT+UPING=\"" + echo_server_ip + "\"";
+            resp = SENDAT(command, 1000, "OK");
+
+            if (FIND(resp, "ERROR") != -1) {
+                ECHO("*************************************************************************************************************");
+                ECHO("ERROR received while testing, stopping the test.");
+                ECHO("*************************************************************************************************************");
+                break;
+            }
+        }
+
+        for (int c = 0; c < number_uping && !skip; c++) {
+            resp = WAIT("+UUPING", "+CSCON", waiting_timeout);
+            
+            if (FIND(resp, "+CSCON: 0") != -1) {
+                ECHO("*************************************************************************************************************");
+                ECHO("+CSCON: 0 URC received during ECHO test, skipping next " + (number_uping - c) + " requests");
+                ECHO("*************************************************************************************************************");
+                found_cscon_0 = true;
+                c--; //we want to receive #number_echo_request, CSCON URCs must be skipped
+                skip = true;
+            } else if (FIND(resp, "+CSCON: 1") != -1) {
+                ECHO("*************************************************************************************************************");
+                ECHO("+CSCON: 1 URC received during ECHO test, test can continue");
+                ECHO("*************************************************************************************************************");
+                found_cscon_0 = false;
+                c--; //we want to receive #number_echo_request, CSCON URCs must be skipped
+                skip = true;
+            } else if (FIND(resp, "+UUPINGER") != -1) {
+                ECHO("*************************************************************************************************************");
+                ECHO("+UUPINGER received while testing, stopping the test.");
+                ECHO("*************************************************************************************************************");
+            } else if (resp.split(",").length() == 6){
+
+                if (FIND((resp.split(",")[5]), "-1") != -1) {
+                    ECHO("*************************************************************************************************************");
+                    ECHO("ECHO request lost, will not be counted for RTT mean stat");
+                    ECHO("*************************************************************************************************************");
+                    failed_rtt++;
+                } else {
+                    total_rtt = total_rtt + parseFloat(resp.split(",")[5]);
+                    counted_rtt++;
+                }
+            } else {
+                ECHO("*************************************************************************************************************");
+                ECHO("Unhandled received URC.");
+                STOP("*************************************************************************************************************");
+            }
+        }
+
+        ECHO("*************************************************************************************************************");
+        ECHO("PROGRESS: " + ((100.0 * (i + 1)) / number_echo_request) + "%");
+        ECHO("*************************************************************************************************************");
+        i++;
+
+        PAUSE(waiting_time_at);
+    }
+
+    if(counted_rtt != 0) {
+        ECHO("*************************************************************************************************************");
+        ECHO("TEST COMPLETED!");
+        ECHO("Number of packets used for RTT calculation: " + counted_rtt);
+        ECHO("Mean RTT: " + total_rtt / counted_rtt + "ms");
+        ECHO("Packet Loss Ratio: " + (100.0 * failed_rtt) / (number_echo_request * number_uping) + "%");
+        ECHO("*************************************************************************************************************");
+    } else {
+        ECHO("*************************************************************************************************************");
+        ECHO("RTT not measured");
+        ECHO("*************************************************************************************************************");
+    }
+
+} else {
+    ECHO("*************************************************************************************************************");
+    ECHO("THE ECHO SERVER CANNOT BE REACHED!");
+    ECHO("*************************************************************************************************************");
+}
