@@ -1,0 +1,48 @@
+/*******************************************************************************
+* Copyright (c) 2021 u-blox AG, Thalwil, Switzerland.
+*
+* Licensed under the Apache License, Version 2.0 (the "License");
+* you may not use this file except in compliance with the License.
+* You may obtain a copy of the License at
+*
+* http://www.apache.org/licenses/LICENSE-2.0\
+*
+* Unless required by applicable law or agreed to in writing, software
+* distributed under the License is distributed on an "AS IS" BASIS,
+* WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+* See the License for the specific language governing permissions and
+* limitations under the License.
+******************************************************************************
+* Synopsis:     lib_ntp_functions.atl
+* Topic:        common_lib
+* Version:      1.0
+* Author:       fmeh
+* Description:
+*       This script has the purpose to maintain common functions to be use in
+*       all the scripts. All functions related to Network Time Protocol (NTP)
+*       are defined in this library file.
+******************************************************************************/
+
+// This function swaps the unsigned long integer from host byte order to network byte order
+uint32 htonl(uint32 input)
+{
+	return (SWAPENDIAN(input));
+}
+
+// This function swaps the unsigned short integer from host byte order to network byte order
+uint16 htons(uint16 input)
+{
+	return (SWAPENDIAN(input));
+}
+
+// This function swaps the unsigned long integer from network byte order to host byte order
+uint32 ntohl(uint32 input) 
+{
+	return (htonl(input));
+}
+
+// This function swaps the unsigned short integer from network byte order to host byte order
+uint16 ntohs(uint16 input) 
+{
+	return (htons(input));
+}
