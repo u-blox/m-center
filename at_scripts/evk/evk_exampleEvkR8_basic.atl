@@ -1,0 +1,88 @@
+/******************************************************************************
+*  Copyright (c) 2020 u-blox AG, Thalwil, Switzerland.
+*
+* Licensed under the Apache License, Version 2.0 (the "License");
+* you may not use this file except in compliance with the License.
+* You may obtain a copy of the License at
+*
+* http:// www.apache.org/licenses/LICENSE-2.0
+*
+* Unless required by applicable law or agreed to in writing, software
+* distributed under the License is distributed on an "AS IS" BASIS,
+* WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+* See the License for the specific language governing permissions and
+* limitations under the License.
+*******************************************************************************
+* Synopsis:     evk_exampleEvkR8_basic.atl
+* Topic:        evk
+* Version:      1.0
+* Author:       mreb
+* Description:
+*       Example script associated to EVK-R8_UserGuide_UBX-22018774.pdf
+*       application note document. 
+*******************************************************************************
+* Modules:      EVK-R8
+* Tested on:    LARA-R8
+*******************************************************************************/
+
+
+// Configurable parameters
+string apn_address = "<to_be_completed>";
+string ip_type = "IP"; // either IP, IPV6 or IPV4V6
+
+
+// Initialization
+ECHO("The APN of the context need to be properly configured before the script execution.\n");
+
+
+// define the initial default bearer for connectivity
+AT+COPS?
+
+AT+CEREG=2;+CGEREP=1,1
+
+AT+CGDCONT?
+
+string command = 'AT+CGDCONT=1,"' + ip_type + '","' + apn_address + '"';
+send_at_command(command, 1000, "OK");
+
+AT+COPS=0
+
+
+// data connection using internal TCP/IP stack
+AT+CGACT=1,1
+
+AT+CGDCONT?
+
+AT+CGCONTRDP=1 
+
+
+// network configuration for socket use
+AT+CMEE=2
+
+AT+CGATT? 
+
+AT+CEREG?
+
+AT+COPS?
+
+
+// opening a TCP socket
+AT+USOCR=6 
+
+AT+USOCO=0,"185.215.195.137",7
+
+PAUSE(5000);
+AT+USORD=0,30
+
+AT+USOCL=0
+
+
+// opening a UDP socket
+AT+USOCR=17
+
+AT+USOST=0,"185.215.195.137",7,13,"TestNumberOne"
+
+PAUSE(5000);
+AT+USORF=0,30
+
+AT+USOCL=0

@@ -1,0 +1,95 @@
+/*******************************************************************************
+*  Copyright (c) 2020 u-blox AG, Thalwil, Switzerland.
+*
+* Licensed under the Apache License, Version 2.0 (the "License");
+* you may not use this file except in compliance with the License.
+* You may obtain a copy of the License at
+*
+* http://www.apache.org/licenses/LICENSE-2.0
+*
+* Unless required by applicable law or agreed to in writing, software
+* distributed under the License is distributed on an "AS IS" BASIS,
+* WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+* See the License for the specific language governing permissions and
+* limitations under the License.
+******************************************************************************
+* Synopsis:     cell_all_sms_functionality_PDU_advance.atl
+* Topic:        cell_modem
+* Version:      1.0
+* Author:       asci
+* Description:
+*       This script has the purpose to test the SMS behavior in PDU mode 
+*       with set character GSM 7-bit and proper connected SIM and antenna.
+*       The script first reads and deletes the first message (number #0) in the
+*       list. After that it sends a new PDU message and display all the
+*       messages in PDU mode. The operations is repeated a number of times
+*       equal to the parameter "loop-count".
+******************************************************************************
+* Modules:      All Products
+* Tested on:    LARA-R6 
+******************************************************************************/
+
+
+//----configuration settings------//
+
+string sms_PDU_body = "039121430100038166F6000004E374F80D";
+int lenght_sms = 13;
+int loop_count = 50;
+
+//--------------------------------//
+
+void send_AT_command(string cmd, int ms_timeout, string exp_resp)
+{
+    PAUSE(50);
+    string resp = SENDAT(cmd, ms_timeout, exp_resp);
+    ECHO("response = " + resp);
+}
+
+// sms sending
+void SMS_sending()
+{
+    // setting PDU mode
+    send_AT_command("AT+CMGF=0", 100, "OK");
+    // set the number of bytes of the PDU message without the phone number
+    string lenght_sms_cmd  ="AT+CMGW=" + lenght_sms;
+    send_AT_command(lenght_sms_cmd, 1000, ">");
+    // reset the string
+    string body = sms_PDU_body;
+    body = body + 1;
+    body[body.length() - 1] = 26;
+    // set the body of PDU message.
+    send_AT_command(body, 180000, "OK");
+}
+
+// sms deleting
+void SMS_reading_and_deleting()
+{
+    send_AT_command("AT+CMGR=0", 1000, "OK");
+    send_AT_command("AT+CMGD=0", 1000, "OK");
+}
+
+// display all messages
+void SMS_display_all_messages()
+{
+    send_AT_command("AT+CMGL=4", 1000, "OK");
+}
+
+void main()
+{
+    ECHO("*************************************************************************************************************");
+    ECHO("Add a valid PDU message in string sms_PDU_body and ");
+    ECHO("a valid number in lenght_sms (PDU's length in octets without the Service Center's address)");
+    ECHO("*************************************************************************************************************");
+    // set character set GSM 7-bit default alphabet
+    string gsm = "GSM";
+    send_AT_command("AT+CSCS=\"" + gsm + "\"", 1000, "OK");
+
+    for (int i = 0; i < loop_count; i++)
+    {
+        if (i != 0) {
+            SMS_reading_and_deleting();
+        }
+        SMS_sending();
+        SMS_display_all_messages();
+    }
+}
