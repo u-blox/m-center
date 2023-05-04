@@ -1,0 +1,80 @@
+/******************************************************************************
+*  Copyright (c) 2020 u-blox AG, Thalwil, Switzerland.
+*
+* Licensed under the Apache License, Version 2.0 (the "License");
+* you may not use this file except in compliance with the License.
+* You may obtain a copy of the License at
+*
+* http://www.apache.org/licenses/LICENSE-2.0
+*
+* Unless required by applicable law or agreed to in writing, software
+* distributed under the License is distributed on an "AS IS" BASIS,
+* WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+* See the License for the specific language governing permissions and
+* limitations under the License.
+******************************************************************************
+* Synopsis:     ipApp_all_socketCongestionTest_basic.atl
+* Topic:        internet_application
+* Version:      1.0
+* Author:       mreb
+* Description:
+*       This script has the purpose to test and demonstrate a TCP socket
+        connection with congestion and respective handling. 
+*       The module must be connected to internet and the internal context
+*       must be activated.
+******************************************************************************
+* Modules:      All products
+* Tested on:    SARA-R5, SARA-R42, LARA-R6
+******************************************************************************/
+
+// Configurable parameters
+string server_ip = "185.215.195.137";
+int server_port = 7;
+int small_wait = 200;
+int waiting_time_at = 5000;
+int waiting_timeout = 180000;
+int max_count = 1000;
+int max_string_size = 1000;
+
+// Other variables
+string command, resp, socket_id, long_string;
+
+
+ECHO("");
+ECHO("*************************************************************************************************************");
+ECHO("This script needs an internet connection and an activated internal context.");
+ECHO("*************************************************************************************************************");
+ECHO("");
+
+SENDAT('AT+CMEE=2', small_wait, 'OK');
+
+resp = SENDAT('AT+USOCR=6', small_wait, '+USOCR');
+socket_id = resp.split(':')[1];
+
+command = "AT+USOCO=" + socket_id + ",\"" + server_ip + "\"," + server_port;
+SENDAT(command, waiting_timeout, "OK");
+
+
+for(int i = 0; i < max_string_size; i++)
+{
+    long_string = long_string + "a";
+}
+
+
+for(int i = 1; i < max_count + 1; i++)
+{ 
+    ECHO("Iteratation n.: " + i);
+
+    command = "AT+USOWR=" + socket_id + "," + max_string_size +",\"" + long_string + "\"";
+    SENDAT(command, waiting_timeout, "OK");
+
+    // Option 11 of USOCTL is not supported on SARA-R5 modules series.
+    // TX queue is limited to 8kB (8191 bytes) on LARA-R6 and 10kB (10240 bytes) on SARA-R42
+    command= "AT+USOCTL=" + socket_id +",2;" + "+USOCTL=" + socket_id +",10;" + "+USOCTL=" + socket_id +",11";
+    SENDAT(command, waiting_timeout, "OK");
+}
+
+
+// Closing the socket
+command = "AT+USOCL=" + socket_id;
+SENDAT(command, waiting_timeout, "OK");

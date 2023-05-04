@@ -21,11 +21,18 @@
 *       This script has the purpose to present a simple FTP retrieve.
 *       Some configurations, such as FTP server address, username and password
 *       must be set.
+*       The module must be connected to internet and the internal context
+*       must be activated.
 ******************************************************************************
 * Modules:      SARA-R5, SARA-R42
 * Tested on:    SARA-R5, SARA-R42
 ******************************************************************************/
 
+ECHO("*************************************************************************************************************");
+ECHO("This script needs an internet connection and an activated internal context.");
+ECHO("*************************************************************************************************************");
+ECHO("");
+ECHO("");
 ECHO("******************************************************************************");
 ECHO("This script requires the configuration of address,");
 ECHO("username and password of the FTP server!");

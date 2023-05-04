@@ -138,6 +138,14 @@ AT+URAT?
 // returns the enabled bands
 AT+UBANDMASK?
 
+// enables the protocol stack and network environment information collection
+AT+UCGED=2
+
+PAUSE 5000;
+
+// returns the channel and network environment descriptions 
+AT+UCGED?
+
 
 #################################
 # PACKET SWITCHED DATA SERVICES #

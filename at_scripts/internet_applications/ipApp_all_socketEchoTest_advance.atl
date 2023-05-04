@@ -21,7 +21,7 @@
 *       This script has the purpose to demonstrate a TCP/UDP socket connection
 *       with an ECHO server test. 
 *       The module must be connected to internet and the internal context
-*       must be activated. 
+*       must be activated.
 ******************************************************************************
 * Modules:      All products
 * Tested on:    LARA-R2, SARA-R42, LENA-R8
@@ -85,12 +85,12 @@ if(check_ping.findFirst("+UUPINGER") == -1 && check_rtt.findFirst("-1") == -1) {
     // +USOCO and greeting message only with TCP
     if (protocol == "TCP") {
         command = "AT+USOCO=" + socket_id + ",\"" + server_ip + "\"," + server_port;
-        send_at_command(command, 180000, "OK");
+        send_at_command(command, waiting_timeout, "OK");
 
         PAUSE(waiting_time_at);
 
         command = "AT+USORD=" + socket_id + "," + length_greeting_server;
-        send_at_command("AT+USORD=" + socket_id + "," + length_greeting_server, 1000, "OK");
+        send_at_command(command, waiting_timeout, "OK");
     }
     
     string returned_echo;
