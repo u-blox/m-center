@@ -31,7 +31,7 @@ string IPV          = 0;                //0: IPV4, 1: IPV6
 string rat;
 string resp;
 
-int maxCnt=20;
+int maxCnt = 20;
 int genericTimeDelay = 10000;
 
 void main()

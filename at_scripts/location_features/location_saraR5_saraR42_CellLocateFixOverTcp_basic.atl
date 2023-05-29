@@ -1,0 +1,98 @@
+/*******************************************************************************
+*  Copyright (c) 2020 u-blox AG, Thalwil, Switzerland.
+*
+* Licensed under the Apache License, Version 2.0 (the "License");
+* you may not use this file except in compliance with the License.
+* You may obtain a copy of the License at
+*
+* http://www.apache.org/licenses/LICENSE-2.0
+*
+* Unless required by applicable law or agreed to in writing, software
+* distributed under the License is distributed on an "AS IS" BASIS,
+* WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+* See the License for the specific language governing permissions and
+* limitations under the License.
+******************************************************************************
+* Synopsis:     location_saraR5_saraR42_CellLocateFixOverTcp_basic.atl
+* Topic:        location_features
+* Version:      1.0
+* Author:       dtro
+* Description:
+*       This script has the purpose to demonstrate the use of CellLocate and
+*       sockets to send the received CellLocate location to a server using
+*       TCP connection.
+*       Script needs a valid CellLocate thingstream token and an activated
+*       internal context.
+*       Also a erver_ip address is needed.
+******************************************************************************
+* Modules:      All products
+* Tested on:    LARA-R6, LARA-L6, SARA-R5, SARA-R42
+******************************************************************************/
+
+// defined global variable
+string command, resp;
+int generic_timeout = 10000;
+int timeout_CellLocate = 30;
+int socket_timeout = 180000;
+
+string first_aiding_server = "cell-live1.services.u-blox.com";
+string second_aiding_server = "cell-live2.services.u-blox.com";
+string token = "<cellLocate_token>";
+
+string cellLocate_command = "AT+ULOC=2,2,2," + timeout_CellLocate + ",2"; //script created for mode and response_type 2
+
+string server_ip = "<ip_server>";
+int server_port = 7;
+
+ECHO("*************************************************************************************************************");
+ECHO("This script needs an internet connection and an activated internal context.");
+ECHO("*************************************************************************************************************");
+
+// enable CellLocate URC
+command = "AT+ULOCIND=1";
+resp = SENDAT(command, generic_timeout, "OK");
+
+// enable network URC
+command = "AT+CEREG=2;+CREG=2;+CGREG=2;+CSCON=1;+CGEREP=2,1;+CMEE=2";
+resp = SENDAT(command, generic_timeout, "OK");
+
+// set the aiding servers
+command = "AT+UGSRV=\""+ first_aiding_server + "\",\""+ second_aiding_server + "\",\"" + token + "\",14,4,1,1,0,15";
+SENDAT(command, 200, "OK");
+
+command = cellLocate_command;
+resp = SENDAT(command, generic_timeout, "OK");
+
+bool uuloc_found = false;
+int counter = 0;
+// worst case scenario
+while (!uuloc_found && counter < 10) {
+    resp = WAIT("+UULOC", timeout_CellLocate * 1000);
+    if (FIND(resp, "+UULOC: ") != -1) {
+        uuloc_found = true;
+    }
+    counter++;
+}
+
+string valid_point = resp.split(",")[2];
+string CellLocate_response = resp.split(" ")[1];
+
+if (FIND(valid_point, "2") != -1) {
+    command = "AT+USOCR=6";
+    resp = SENDAT(command, generic_timeout, "+USOCR");
+    string socket_id = resp.split(':')[1];
+
+    command = "AT+USOCO=" + socket_id + ",\"" + server_ip + "\"," + server_port;
+    resp = SENDAT(command, socket_timeout, "OK");
+
+    command = "AT+USOWR=" + socket_id + "," + CellLocate_response.length() + ",\"" + CellLocate_response + "\"";
+    resp = SENDAT(command, socket_timeout, "OK");
+
+    command = "AT+USOCL=" + socket_id;
+    resp = SENDAT(command, generic_timeout, "OK");
+
+} else {
+    ECHO("*************************************************************************************************************");
+    ECHO("Position obtained by CellLocate is not valid!");
+    ECHO("*************************************************************************************************************");
+}
