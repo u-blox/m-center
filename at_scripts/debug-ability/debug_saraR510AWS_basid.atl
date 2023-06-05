@@ -1,0 +1,84 @@
+/******************************************************************************
+*  Copyright (c) 2020 u-blox AG, Thalwil, Switzerland.
+*
+* Licensed under the Apache License, Version 2.0 (the "License");
+* you may not use this file except in compliance with the License.
+* You may obtain a copy of the License at
+*
+* http:// www.apache.org/licenses/LICENSE-2.0
+*
+* Unless required by applicable law or agreed to in writing, software
+* distributed under the License is distributed on an "AS IS" BASIS,
+* WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+* See the License for the specific language governing permissions and
+* limitations under the License.
+*******************************************************************************
+* Synopsis:     debug_saraR510AWS_basic.atl
+* Topic:        debug-ability
+* Version:      1.0
+* Author:       mreb
+* Description:
+*       This script has the general purpose to collect debug info from
+*       the target module without changing any settings.
+*       After the execution of this script, some Unsolicited Result Code (URC) 
+*       will be actived. 
+*******************************************************************************
+* Modules:      SARA-R510AWS
+* Tested on:    SARA-R510AWS
+*******************************************************************************/
+
+string command;
+int max_timeout = 180000;
+
+#########################
+# MODULE IDENTIFICATION #
+#########################
+// returns the ExpressLink applciation version 
+AT+DIAG Version?
+
+
+#########################
+# MODULE CONFIGURATIONS #
+#########################
+// returns the configured APN 
+AT+CONF? APN
+
+// returns the configured Endpoint address 
+AT+CONF? Endpoint
+
+// returns the Certificate if module is already provisioned
+AT+CONF? Certificate
+
+// returns the devie name ID 
+AT+CONF? ThingName
+
+
+
+###########################
+# MOBILE EQUIPMENT STATUS #
+###########################
+
+// initialized a connection attemp
+command = 'AT+CONNECT';
+SENDAT(command, max_timeout, 'OK');
+
+// returns a list of available cells
+command = 'AT+DIAG CELLS?';
+SENDAT(command, max_timeout, 'OK');
+
+// returns the network registration status 
+command = 'AT+DIAG CEREG?';
+SENDAT(command, max_timeout, 'OK');
+
+// returns information about the network with which the device is connected
+command = 'AT+DIAG COPS?';
+SENDAT(command, max_timeout, 'OK');
+
+// returns equivalent to +CESQ? information about the network quality
+command = 'AT+DIAG CESQ?';
+SENDAT(command, max_timeout, 'OK');
+
+// returns information about the current MNO profile selected (equivalent to AT+UMNOPROF?)
+command = 'AT+DIAG MNOPROF?';
+SENDAT(command, max_timeout, 'OK');
+
