@@ -28,22 +28,16 @@
 
 /******************************************************************************/
 /****************************Configurations************************************/
+/******Note: Please set these configurations before starting of the script*****/
 /******************************************************************************/
 
-// starting required echos
-void starting_ECHO(void){
-    ECHO("This script requires to set some configurable parameters.");
-    ECHO("Be sure those are correctly configured before the initialization of this.");
-}
-
-// Note: Please set these configurations before starting of the script
 // COM port related configurations
 string valid_com_port     = "COM65";         // valid port name
 int com_port_baud         = 115200;          // valid baud rates
 int com_port_flow_ctrl    = 0;               // 0:none, 1:hardware, 2:xon-xoff
 int com_port_data_bit     = 8;               // 5 - 8
 int com_port_stop_bit     = 1;               // 0 - 2
-int com_port_parity       = 1;               // 0:none, 1:even, 2:odd
+int com_port_parity       = 0;               // 0:none, 1:even, 2:odd
 
 // Trace port related configurations
 string trace_file_name      = "C:\\Users\\[USERNAME]\\.mcenterws\\trace\\file";
@@ -54,7 +48,7 @@ int trace_port_baud         = 460800;          // valid baud rates
 int trace_port_flow_ctrl    = 0;               // 0:none, 1:hardware, 2:xon-xoff
 int trace_port_data_bit     = 8;               // 5 - 8
 int trace_port_stop_bit     = 1;               // 0 - 2
-int trace_port_parity       = 1;               // 0:none, 1:even, 2:odd
+int trace_port_parity       = 0;               // 0:none, 1:even, 2:odd
 
 // Socket port related configurations
 string socket_ip = "192.168.10.1";
@@ -69,7 +63,7 @@ int uart_port_baud         = 115200;          // valid baud rates
 int uart_port_flow_ctrl    = 0;               // 0:none, 1:hardware, 2:xon-xoff
 int uart_port_data_bit     = 8;               // 5 - 8
 int uart_port_stop_bit     = 1;               // 0 - 2
-int uart_port_parity       = 1;               // 0:none, 1:even, 2:odd
+int uart_port_parity       = 0;               // 0:none, 1:even, 2:odd
 
 // file system related configurations
 string file_path = "C:\\Users\\[USERNAME]\\.mcenterws\\"; 
@@ -77,6 +71,12 @@ string send_file_name = "FFStestfile.txt"; // test file name to create and send 
 string receive_file_name = "FFStestfile_received.txt"; // name of file received from modem
 
 /******************************************************************************/
+
+// starting required echos
+void starting_ECHO(void){
+    ECHO("This script requires to set some configurable parameters.");
+    ECHO("Be sure those are correctly configured before the initialization of this.");
+}
 
 // vaiables used
 string test_pass          = "pass";

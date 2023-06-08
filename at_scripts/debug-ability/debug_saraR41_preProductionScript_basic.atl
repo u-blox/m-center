@@ -46,6 +46,12 @@
 * Tested on:    SARA-R41x-04
 ***************************************************************************************/
 
+void send_AT_command(string cmd, int msTimeOut, string expResp)
+{
+    PAUSE(50);
+    string resp = SENDAT(cmd, msTimeOut, expResp);
+    ECHO("response = " + resp);
+}
 
 // this function is used to send the AT commands and prints the response
 void repeated_at_command(string cmd, int msTimeOut, string expResp)
@@ -73,79 +79,79 @@ void run_bootup_commands(void)
 
     PAUSE(5000);                        	// first time bootup delay
     
-    send_at_command("AT", 10000, "OK");
+    send_AT_command("AT", 10000, "OK");
     
     // this command enables Verbose Error values
-    send_at_command("AT+CMEE=2", 10000, "OK");
+    send_AT_command("AT+CMEE=2", 10000, "OK");
     
     // this command provides with the FW version of Module
-    send_at_command("AT+CGMR", 10000, "OK");
+    send_AT_command("AT+CGMR", 10000, "OK");
     
     // this command provides with the IMEI of Module
-    send_at_command("AT+CGSN", 10000, "OK");
+    send_AT_command("AT+CGSN", 10000, "OK");
     
     // this command provides with the Module Type
-    send_at_command("ATI0", 10000, "OK");
+    send_AT_command("ATI0", 10000, "OK");
     
     // this command provides with the Module Type and other parameters
-    send_at_command("ATI9", 10000, "OK");
+    send_AT_command("ATI9", 10000, "OK");
     
     // checks for previous backup operation details
-    send_at_command("AT+UBKUPDATA?", 10000, "OK");
+    send_AT_command("AT+UBKUPDATA?", 10000, "OK");
     
     // checks for the previous set Greeting message
-    send_at_command("AT+CSGT?", 10000, "OK");
+    send_AT_command("AT+CSGT?", 10000, "OK");
     
     // setting the desired Greeting Text
-    send_at_command('AT+CSGT=1,"<greeting_text>"', 10000, "OK");
+    send_AT_command('AT+CSGT=1,"<greeting_text>"', 10000, "OK");
     
     // reading the device functionality mode
-    send_at_command("AT+CFUN?", 10000, "OK");
+    send_AT_command("AT+CFUN?", 10000, "OK");
     
     // set the module to minimum functionality mode
-    send_at_command("AT+CFUN=0", 10000, "OK");
+    send_AT_command("AT+CFUN=0", 10000, "OK");
     
     // setting the module to desired profile
-    send_at_command("AT+UMNOPROF=<mno_profile>", 10000, "OK");
+    send_AT_command("AT+UMNOPROF=<mno_profile>", 10000, "OK");
     
     // rebooting the module
-    send_at_command("AT+CFUN=15", 10000, "OK");
+    send_AT_command("AT+CFUN=15", 10000, "OK");
     
     // wait for Greeting Text
     WAIT("Modem Ready", 15000);
     
     // reading the MNO profile value 
-    send_at_command("AT+UMNOPROF?", 10000, "OK");
+    send_AT_command("AT+UMNOPROF?", 10000, "OK");
 
     // disabling LWM2M. This setting is persistant and please do not turn off/ reboot the module before 4 sec, thus adding 4Sec delay below before CFUN=15 
-    send_at_command("AT+ULWM2M=1,1", 10000, "OK");
+    send_AT_command("AT+ULWM2M=1,1", 10000, "OK");
     
     // reading Power saving control value
-    send_at_command("AT+UPSV?", 10000, "OK");
+    send_AT_command("AT+UPSV?", 10000, "OK");
     
     // setting the module to minimum functionality mode
-    send_at_command("AT+CFUN=0", 10000, "OK");
+    send_AT_command("AT+CFUN=0", 10000, "OK");
     
     // setting the desired Bandmask
-    send_at_command("AT+UBANDMASK=0,<bandmask>", 10000, "OK");
+    send_AT_command("AT+UBANDMASK=0,<bandmask>", 10000, "OK");
     
     // setting the preferred RAT type
-    send_at_command("AT+URAT=<rat_type>", 10000, "OK");
+    send_AT_command("AT+URAT=<rat_type>", 10000, "OK");
     
     // setting the preferred service domain
-    send_at_command("AT+USVCDOMAIN=<srv_domain>", 10000, "OK");
+    send_AT_command("AT+USVCDOMAIN=<srv_domain>", 10000, "OK");
     
     // enabling CSCON URC's
-    send_at_command("AT+CSCON=1", 10000, "OK");
+    send_AT_command("AT+CSCON=1", 10000, "OK");
 
     // enabling PSM URC's
-    send_at_command("AT+UPSMR=1", 10000, "OK");
+    send_AT_command("AT+UPSMR=1", 10000, "OK");
     
     // reading the UTEST command
-    send_at_command("AT+UTEST?", 10000, "OK");
+    send_AT_command("AT+UTEST?", 10000, "OK");
     
     // setting The UTEST mode
-    send_at_command("AT+UTEST=1", 10000, "OK");	
+    send_AT_command("AT+UTEST=1", 10000, "OK");	
     
     ECHO("Setting the desired APN");
     
@@ -153,81 +159,81 @@ void run_bootup_commands(void)
     repeated_at_command('AT+CGDCONT=1,"IP","<APN>"', 10000, "OK");
     
     // reading the APN
-    send_at_command("AT+CGDCONT?", 10000, "OK");
+    send_AT_command("AT+CGDCONT?", 10000, "OK");
     
     // disabling the eDRX feature
-    send_at_command("AT+CEDRXS=0,2", 10000, "OK");
-    send_at_command("AT+CEDRXS=0,4", 10000, "OK");
-    send_at_command("AT+CEDRXS=0,5", 10000, "OK");
+    send_AT_command("AT+CEDRXS=0,2", 10000, "OK");
+    send_AT_command("AT+CEDRXS=0,4", 10000, "OK");
+    send_AT_command("AT+CEDRXS=0,5", 10000, "OK");
     
     // disabling the PSM feature
-    send_at_command("AT+CPSMS=0", 10000, "OK");
+    send_AT_command("AT+CPSMS=0", 10000, "OK");
      
     // reading the time zone update setting
-    send_at_command("AT+CTZU?", 10000, "OK");
+    send_AT_command("AT+CTZU?", 10000, "OK");
     
     // setting the storage type for SMS
-    send_at_command('AT+CPMS="ME","ME","ME"', 10000, "OK");
+    send_AT_command('AT+CPMS="ME","ME","ME"', 10000, "OK");
     
     // pause needed after disabling LwM2M to ensure 4sec gap if a power down or reboot sent
     PAUSE(4000);
     
     // rebooting the module
-    send_at_command("AT+CFUN=15 ", 10000, "OK");
+    send_AT_command("AT+CFUN=15 ", 10000, "OK");
     
     // waiting for the Greeting Text
     WAIT("Modem Ready", 15000);
     
     // reading the UTEST settings
-    send_at_command("AT+UTEST?", 10000, "OK");
+    send_AT_command("AT+UTEST?", 10000, "OK");
     
     // setting the module to non signalling mode
-    send_at_command("AT+UTEST=1", 10000, "OK");
+    send_AT_command("AT+UTEST=1", 10000, "OK");
     
     // reading the Device mode
-    send_at_command("AT+CFUN?", 10000, "OK");
+    send_AT_command("AT+CFUN?", 10000, "OK");
     
     // TX test executed on B12 TX
-    send_at_command("AT+UTEST=3,123130,17,,,5000", 10000, "OK");
+    send_AT_command("AT+UTEST=3,123130,17,,,5000", 10000, "OK");
     
     // setting the device to signalling mode
-    send_at_command("AT+UTEST=0", 10000, "OK");
+    send_AT_command("AT+UTEST=0", 10000, "OK");
     
     // checking device mode
-    send_at_command("AT+CFUN?", 10000, "OK");
+    send_AT_command("AT+CFUN?", 10000, "OK");
     
     ECHO("please check the following parameters +CFUN:1 and +UTEST:0 for signalling mode");
     
     // reading the LWM2M settings
-    send_at_command("AT+ULWM2M?", 10000, "OK");
+    send_AT_command("AT+ULWM2M?", 10000, "OK");
     
     ECHO(" Turn off LWM2M manually at bootup if not turned off");
     
     // reading the bandmask
-    send_at_command("AT+UBANDMASK?", 10000, "OK");
+    send_AT_command("AT+UBANDMASK?", 10000, "OK");
     
     // reading the RAT type
-    send_at_command("AT+URAT?", 10000, "OK");
+    send_AT_command("AT+URAT?", 10000, "OK");
     
     // reading the eDRX Settings
-    send_at_command("AT+CEDRXS?", 10000, "OK");
+    send_AT_command("AT+CEDRXS?", 10000, "OK");
     
     // reading then PSM settings
-    send_at_command("AT+CPSMS?", 10000, "OK");
+    send_AT_command("AT+CPSMS?", 10000, "OK");
     
     // reading the service domain values
-    send_at_command("AT+USVCDOMAIN?", 10000, "OK");
+    send_AT_command("AT+USVCDOMAIN?", 10000, "OK");
     
     // reading the URC enabling status
-    send_at_command("AT+CSCON?", 10000, "OK");
+    send_AT_command("AT+CSCON?", 10000, "OK");
     
     // reading the URC enabling status
-    send_at_command("AT+UPSMR?", 10000, "OK");
+    send_AT_command("AT+UPSMR?", 10000, "OK");
     
     ECHO("Module ready to use; device will power off now");
     
     // gracefully shutdown the module
-    send_at_command("AT+CPWROFF", 40000, "OK");
+    send_AT_command("AT+CPWROFF", 40000, "OK");
 
 }
 
