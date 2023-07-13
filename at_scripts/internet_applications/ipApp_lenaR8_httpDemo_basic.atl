@@ -80,7 +80,7 @@ rat = resp.split(',')[3].split('\r')[0];
 
 // additional AT+CGACT command is necessary
 command = "AT+CGACT=1," + cid;
-send_at_command(command, 200, "OK");
+SendAtCommand(command, 200, "OK");
 
 
 // Configure HTTP internal application

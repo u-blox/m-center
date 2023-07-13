@@ -34,16 +34,11 @@ string index = "14";
 
 int resp_timeout = 35000;
 
-void send_AT_command(string cmd, int ms_timeout, string exp_resp){
-    PAUSE(50);
-    string resp = SENDAT(cmd, ms_timeout, exp_resp);
-    ECHO("response = " + resp);
-}
 
 void get_phonebook(){
     // get list
-    send_AT_command("AT+CPBS=\"SM\"",resp_timeout ,"OK");
-    send_AT_command("AT+CPBR=1,500",resp_timeout ,"OK");
+    SendAtCommand("AT+CPBS=\"SM\"",resp_timeout ,"OK");
+    SendAtCommand("AT+CPBR=1,500",resp_timeout ,"OK");
 }
 
 
@@ -54,7 +49,7 @@ void add_new_contact(string number, string name){
     command = command + "\",,\"";
     command = command + name;
     command = command + "\"";
-    send_AT_command(command,resp_timeout ,"OK");
+    SendAtCommand(command,resp_timeout ,"OK");
 }
 
 void edit_contact(string index, string number, string name){
@@ -66,20 +61,20 @@ void edit_contact(string index, string number, string name){
     command = command + "\",,\"";
     command = command + name;
     command = command + "\"";
-    send_AT_command(command,resp_timeout ,"OK");
+    SendAtCommand(command,resp_timeout ,"OK");
 }
 
 void delete_contact(string index){
     // delete selected index
     string command = "AT+CPBW=";
     command = command + index;
-    send_AT_command(command,resp_timeout ,"OK");
+    SendAtCommand(command,resp_timeout ,"OK");
 }
 
 void get_last_dialed_calls(){
     // get last dialed calls
-    send_AT_command("AT+CPBS=\"LD\"",resp_timeout ,"OK");
-    send_AT_command("AT+CPBR=1,10",resp_timeout ,"OK");
+    SendAtCommand("AT+CPBS=\"LD\"",resp_timeout ,"OK");
+    SendAtCommand("AT+CPBR=1,10",resp_timeout ,"OK");
 }
 
 void main(){

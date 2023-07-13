@@ -20,29 +20,29 @@
 * Description:
 *       This script has the purpose to maintain common functions to be use in
 *       all the scripts. All functions related to Network Time Protocol (NTP)
-*       are defined in this library file.
+*	are defined in this library file.
 ******************************************************************************/
 
 // This function swaps the unsigned long integer from host byte order to network byte order
-uint32 htonl(uint32 input)
+uint32 Htonl(uint32 input)
 {
 	return (SWAPENDIAN(input));
 }
 
 // This function swaps the unsigned short integer from host byte order to network byte order
-uint16 htons(uint16 input)
+uint16 Htons(uint16 input)
 {
 	return (SWAPENDIAN(input));
 }
 
 // This function swaps the unsigned long integer from network byte order to host byte order
-uint32 ntohl(uint32 input) 
+uint32 Ntohl(uint32 input) 
 {
-	return (htonl(input));
+	return (Htonl(input));
 }
 
 // This function swaps the unsigned short integer from network byte order to host byte order
-uint16 ntohs(uint16 input) 
+uint16 Ntohs(uint16 input) 
 {
-	return (htons(input));
+	return (Htons(input));
 }

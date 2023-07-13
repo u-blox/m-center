@@ -29,22 +29,21 @@ void main()
 {
     ECHO("Port should be connected and AT should be working before running this script!");
     connect_port_with_baud(115200);
-    send_AT_command();
+    SendAtCommand("AT",500, "OK");
+	PAUSE(2000);
     connect_port_with_baud(230400);
-    send_AT_command();
+    SendAtCommand("AT",500, "OK");
+	PAUSE(2000);
     connect_port_with_baud(460800);
-    send_AT_command();
+    SendAtCommand("AT",500, "OK");
+	PAUSE(2000);
     connect_port_with_baud(921600);
-    send_AT_command();
+    SendAtCommand("AT",500, "OK");
+	PAUSE(2000);
     connect_port_with_baud(115200);
-    send_AT_command();  
+    SendAtCommand("AT",500, "OK");  
+	PAUSE(2000);
 } 
-
-void send_AT_command()
-{
-    SENDAT("AT",500, "OK");
-    PAUSE(2000);
-}
 
 void connect_port_with_baud(int baud)
 {

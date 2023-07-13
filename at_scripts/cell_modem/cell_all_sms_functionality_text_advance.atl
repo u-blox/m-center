@@ -34,39 +34,33 @@ int loop_count = 50;
 
 //--------------------------------//
 
-void send_AT_command(string cmd, int ms_timeout, string exp_resp){
-    PAUSE(50);
-    string resp = SENDAT(cmd, ms_timeout, exp_resp);
-    ECHO("response = " + resp);
-}
-
 
 // sms sending
 void SMS_sending(int i){
     // setting text mode
-    send_AT_command("AT+CMGF=1", 100, "OK");
+    SendAtCommand("AT+CMGF=1", 100, "OK");
     // set the number to which sms should be sent
     string phone_number_cmd = "AT+CMGS=\"" + phone_number + "\"";
-    send_AT_command(phone_number_cmd ,1000, ">");
+    SendAtCommand(phone_number_cmd ,1000, ">");
     // reset the string
     string body = sms_body;
     body = body + i;
     body = body + 1;
     body[body.length() - 1] = 26;
     // set the body of text message.
-    send_AT_command(body, 180000, "OK");
+    SendAtCommand(body, 180000, "OK");
 }
 
 // sms deleting
 void SMS_deleting(){
-    send_AT_command("AT+CMGR=0", 1000, "OK");
-    send_AT_command("AT+CMGD=0", 1000, "OK");
+    SendAtCommand("AT+CMGR=0", 1000, "OK");
+    SendAtCommand("AT+CMGD=0", 1000, "OK");
 }
 
 // display all messages
 void SMS_display_all_messages(){
     string all = "ALL";
-    send_AT_command("AT+CMGL=\"" + all + "\"", 1000, "OK");
+    SendAtCommand("AT+CMGL=\"" + all + "\"", 1000, "OK");
 }
 
 void main(){

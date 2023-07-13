@@ -84,7 +84,7 @@ void main(){
     int count = 0;
     while (count < times)
     {
-        data_message = "The time now is " + get_date_time_now();
+        data_message = "The time now is " + GetDateTimeNow();
         command = "AT+SEND" + topic_id + " " +  data_message;
         send_aws_at_command(command, wait_one_minute);
         PAUSE(wait_one_minute);

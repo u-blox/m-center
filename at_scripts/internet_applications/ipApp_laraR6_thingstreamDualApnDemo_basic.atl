@@ -90,7 +90,7 @@ AT+UMQTTSN=10,1
 // If <cid> used is different than default, the mapping is necessary
 if (cid != 1){
     command = 'AT+UMQTTSN=20,' + cid;
-    send_at_command(command, 200, "OK");
+    SendAtCommand(command, 200, "OK");
 }
 
 // MQTT Anywhere connection

@@ -43,7 +43,7 @@ ECHO("**************************************************************************
 ECHO("");
 
 command = 'AT+UPING="' + test_connectivity + '"';
-send_at_command(command, waiting_time_at, "OK");
+SendAtCommand(command, waiting_time_at, "OK");
 
 string check_ping = WAIT("+UUPINGER", waiting_time_at);
 string check_rtt = WAIT("+UUPING", waiting_time_at);
@@ -55,19 +55,19 @@ if(check_ping.findFirst("+UUPINGER") == -1 && check_rtt.findFirst("-1") == -1) {
     ECHO("*************************************************************************************************************");
 
     // Configuration of the FTP client
-    send_at_command('AT+UFTP=1,"' + server_address + '"', waiting_time_at, "OK");
-    send_at_command('AT+UFTP=2,"' + client_name + '"', waiting_time_at, "OK");
-    send_at_command('AT+UFTP=3,"' + client_password + '"', waiting_time_at, "OK");
-    send_at_command('AT+UFTP=6,1', waiting_time_at, "OK");
+    SendAtCommand('AT+UFTP=1,"' + server_address + '"', waiting_time_at, "OK");
+    SendAtCommand('AT+UFTP=2,"' + client_name + '"', waiting_time_at, "OK");
+    SendAtCommand('AT+UFTP=3,"' + client_password + '"', waiting_time_at, "OK");
+    SendAtCommand('AT+UFTP=6,1', waiting_time_at, "OK");
 
     // Configure server port only if specified
     if (server_port != -1){
-        send_at_command('AT+UFTP=7,' + server_port, waiting_time_at, "OK");
+        SendAtCommand('AT+UFTP=7,' + server_port, waiting_time_at, "OK");
     } 
 
     // Basic functionality, please note that some FTP servers require TLS thus, its configuration
-    send_at_command('AT+UFTPC=1', waiting_timeout, "+UUFTPCR:");
-    send_at_command('AT+UFTPC=13', waiting_time_at, "+UUFTPCR:");
+    SendAtCommand('AT+UFTPC=1', waiting_timeout, "+UUFTPCR:");
+    SendAtCommand('AT+UFTPC=13', waiting_time_at, "+UUFTPCR:");
     
 } else {
     ECHO("*************************************************************************************************************");

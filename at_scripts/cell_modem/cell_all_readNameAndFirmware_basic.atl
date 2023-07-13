@@ -26,17 +26,10 @@
 ******************************************************************************/
 
 
-void send_AT_command(string cmd, int ms_timeout, string exp_resp){
-    PAUSE(50);
-    string resp = SENDAT(cmd, ms_timeout, exp_resp);
-    ECHO("response = " + resp);
-}
-
-
 void main(){
-    send_AT_command("ATI0", 100, "OK");
-    send_AT_command("ATI9", 100, "OK");
-    send_AT_command("AT+CGMM", 100, "OK");
-    send_AT_command("AT+CGMR", 100, "OK");
-    send_AT_command("AT+CGSN", 100, "OK");
+    SendAtCommand("ATI0", 100, "OK");
+    SendAtCommand("ATI9", 100, "OK");
+    SendAtCommand("AT+CGMM", 100, "OK");
+    SendAtCommand("AT+CGMR", 100, "OK");
+    SendAtCommand("AT+CGSN", 100, "OK");
 }

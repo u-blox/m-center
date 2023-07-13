@@ -38,40 +38,33 @@ int loop_count = 50;
 
 //--------------------------------//
 
-void send_AT_command(string cmd, int ms_timeout, string exp_resp)
-{
-    PAUSE(50);
-    string resp = SENDAT(cmd, ms_timeout, exp_resp);
-    ECHO("response = " + resp);
-}
-
 // sms sending
 void SMS_sending()
 {
     // setting PDU mode
-    send_AT_command("AT+CMGF=0", 100, "OK");
+    SendAtCommand("AT+CMGF=0", 100, "OK");
     // set the number of bytes of the PDU message without the phone number
     string lenght_sms_cmd  ="AT+CMGW=" + lenght_sms;
-    send_AT_command(lenght_sms_cmd, 1000, ">");
+    SendAtCommand(lenght_sms_cmd, 1000, ">");
     // reset the string
     string body = sms_PDU_body;
     body = body + 1;
     body[body.length() - 1] = 26;
     // set the body of PDU message.
-    send_AT_command(body, 180000, "OK");
+    SendAtCommand(body, 180000, "OK");
 }
 
 // sms deleting
 void SMS_reading_and_deleting()
 {
-    send_AT_command("AT+CMGR=0", 1000, "OK");
-    send_AT_command("AT+CMGD=0", 1000, "OK");
+    SendAtCommand("AT+CMGR=0", 1000, "OK");
+    SendAtCommand("AT+CMGD=0", 1000, "OK");
 }
 
 // display all messages
 void SMS_display_all_messages()
 {
-    send_AT_command("AT+CMGL=4", 1000, "OK");
+    SendAtCommand("AT+CMGL=4", 1000, "OK");
 }
 
 void main()
@@ -82,7 +75,7 @@ void main()
     ECHO("*************************************************************************************************************");
     // set character set GSM 7-bit default alphabet
     string gsm = "GSM";
-    send_AT_command("AT+CSCS=\"" + gsm + "\"", 1000, "OK");
+    SendAtCommand("AT+CSCS=\"" + gsm + "\"", 1000, "OK");
 
     for (int i = 0; i < loop_count; i++)
     {

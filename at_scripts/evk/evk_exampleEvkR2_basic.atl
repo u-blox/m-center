@@ -43,7 +43,7 @@ AT+CREG=2;+CGREG=2;+CEREG=2;+CGEREP=1,1;+CIREG=1
 AT+CGDCONT?
 
 string command = 'AT+CGDCONT=1,"' + ip_type + '","' + apn_address + '"';
-send_at_command(command, 1000, "OK");
+SendAtCommand(command, 1000, "OK");
 
 AT+COPS=0
 
@@ -71,7 +71,7 @@ else{
     STOP("Error in the IP type configuration.");
 }
 command = 'AT+UPSD=0,0,' + ip_tpye_id + '';
-send_at_command(command, 1000, "OK");
+SendAtCommand(command, 1000, "OK");
 
 AT+UPSDA=0,3
 

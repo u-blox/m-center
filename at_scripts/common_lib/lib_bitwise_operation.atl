@@ -24,7 +24,7 @@
 
 // Converts int 'n' to boolean format and return it in string format. 
 // size is the minimum size required for the output string.
-string int_to_bitstream_converter(int n, int size){
+string IntToBitstreamConverter(int n, int size){
     bool negVal = false;
     string s = "";
     if (n < 0){
@@ -56,7 +56,7 @@ string int_to_bitstream_converter(int n, int size){
 
 // Converts bitstream in string format to int type.
 // returns -1 if the input is not in bitstream format.
-int bitstream_to_int_converter(string bitstream){
+int BitstreamToIntConverter(string bitstream){
     int ret_val = 0; 
     int len = bitstream.length();
     int mul_factor = 1;
@@ -77,27 +77,27 @@ int bitstream_to_int_converter(string bitstream){
 
 
 // compute xor of two numbers and returns it
-int compute_XOR(int x, int y)
+int ComputeXor(int x, int y)
 {
     return x^y;
 }
 
 
 // compute and of two numbers and returns it
-int compute_AND(int x, int y)
+int ComputeAnd(int x, int y)
 {
     return x & y;
 }
 
 
 // compute and of two numbers and returns it
-int compute_OR(int x, int y)
+int ComputeOr(int x, int y)
 {
     return x | y;
 }
 
 // return left bit shift (<< , 010 -> 100) of a number
-int compute_left_bit_shift(int num, int shift){
+int ComputeLeftBitShift(int num, int shift){
     for(int i = 0; i < shift; i++){
         num *= 2;
     }
@@ -105,7 +105,7 @@ int compute_left_bit_shift(int num, int shift){
 }
 
 // return right bit shift (>> , 010 -> 001) of a number
-int compute_right_bit_shift(int num, int shift){
+int ComputeRightBitShift(int num, int shift){
     for(int i = 0; i < shift; i++){
         num /= 2;
     }

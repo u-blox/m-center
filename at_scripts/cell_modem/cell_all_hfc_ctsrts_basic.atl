@@ -27,12 +27,6 @@
 * Tested on:    SARA-R42, LENA-R8
 ******************************************************************************/
 
-void send_AT_command(string cmd, int ms_timeout, string exp_resp){
-    PAUSE(50);
-    string resp = SENDAT(cmd, ms_timeout, exp_resp);
-    ECHO("response = " + resp);
-}
-
 void update_status(){
     ECHO("GET updated status");
     ECHO("{DSR:" + GETCOMDSR()+"},{RI:" + GETCOMRI()+"},{DCD:" + GETCOMDCD()+"}");
@@ -45,7 +39,7 @@ void RTS_testing(){
     SETCOMRTS(false);
 
     PAUSE(3000);
-    send_AT_command("ATI9", 3000, "OK");
+    SendAtCommand("ATI9", 3000, "OK");
 
     update_status();
     

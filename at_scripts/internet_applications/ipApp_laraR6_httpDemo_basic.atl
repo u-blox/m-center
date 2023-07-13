@@ -81,7 +81,7 @@ rat = resp.split(',')[3].split('\r')[0];
 // additional AT+CGACT command is necessary
 if (rat != "7"){
     command = "AT+CGACT=1," + cid;
-    send_at_command(command, 200, "OK");
+    SendAtCommand(command, 200, "OK");
 }
 
 // Configure HTTP internal application
@@ -92,7 +92,7 @@ AT+UHTTP=0,5,80
 // If <cid> used is different than default, the mapping is necessary
 if (cid != 1){
     command = 'AT+UHTTP=0,20,' + cid;
-    send_at_command(command, 200, "OK");
+    SendAtCommand(command, 200, "OK");
 }
 
 // HEAD request of the default page and store the result into the "head.ffs" file on the local file system
@@ -114,5 +114,5 @@ PAUSE(1000);
 if (rat != "7"){
     ECHO("Once communication is termianted, release by deactivating the context used.");
     command = "AT+CGACT=0," + cid;
-    send_at_command(command, 200, "OK");
+    SendAtCommand(command, 200, "OK");
 }

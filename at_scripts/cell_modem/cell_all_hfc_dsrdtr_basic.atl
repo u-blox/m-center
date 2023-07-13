@@ -30,12 +30,6 @@
 ******************************************************************************/
 
 
-void send_AT_command(string cmd, int ms_timeout, string exp_resp){
-    PAUSE(50);
-    string resp = SENDAT(cmd, ms_timeout, exp_resp);
-    ECHO("response = " + resp);
-}
-
 void update_status(){
     ECHO("GET updated status");
     ECHO("{DSR:" + GETCOMDSR()+"},{RI:" + GETCOMRI()+"},{DCD:" + GETCOMDCD()+"}");
@@ -44,16 +38,16 @@ void update_status(){
 void DTR_testing(){
     ECHO("DTR TESTING START");
 
-    send_AT_command("AT+UPSV=3", 1000, "OK");
+    SendAtCommand("AT+UPSV=3", 1000, "OK");
 
-    send_AT_command("AT+UPSV?", 1000, "OK");
+    SendAtCommand("AT+UPSV?", 1000, "OK");
 
     ECHO("SET DTR TO FALSE");
     SETCOMDTR(false);
     PAUSE(100);
     update_status();
 
-    send_AT_command("AT", 100, "OK");
+    SendAtCommand("AT", 100, "OK");
 
     update_status();
     PAUSE(2000);
@@ -63,7 +57,7 @@ void DTR_testing(){
 
     update_status();
     PAUSE(2000);
-    send_AT_command("AT+UPSV=0", 1000, "OK");
+    SendAtCommand("AT+UPSV=0", 1000, "OK");
 
     ECHO("DTR TESTING END");
 }

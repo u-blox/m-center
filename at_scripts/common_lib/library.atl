@@ -24,7 +24,7 @@
 ******************************************************************************/
 
 // Properly sending AT command. Pausing for 50 seconds. Sending AT command and ECHOing the response.
-void send_at_command(string cmd, int msTimeOut, string expResp)
+void SendAtCommand(string cmd, int msTimeOut, string expResp)
 {
     PAUSE(50);
     string resp = SENDAT(cmd, msTimeOut, expResp);
@@ -32,28 +32,28 @@ void send_at_command(string cmd, int msTimeOut, string expResp)
 }
 
 // This function prints the date time variable into a standard format used for scripts.
-void date_time_print(datetime d)
+void DateTimePrint(datetime d)
 {
     ECHO(d.get_year()+":"+d.get_month()+":"+d.get_day()+"-"+d.get_hour()+":"+d.get_minute()+":"+d.get_second());
 }
 
 // This function returns a string with the current date time variable into a standard format.
-string get_date_time_now()
+string GetDateTimeNow()
 {
     datetime now;
     return now.get_year()+":"+now.get_month()+":"+now.get_day()+"-"+now.get_hour()+":"+now.get_minute()+":"+now.get_second();
 }
 
 // This function gets the information regarding modem via selected commands.
-void get_modem_identity(void)
+void GetModemIdentity(void)
 {
-    send_at_command("AT+CGMM", 100, "OK");
-    send_at_command("AT+CGMR", 100, "OK");
-    send_at_command("AT+CGSN", 100, "OK");
+    SendAtCommand("AT+CGMM", 100, "OK");
+    SendAtCommand("AT+CGMR", 100, "OK");
+    SendAtCommand("AT+CGSN", 100, "OK");
 }
 
 // checks if the input parameter string has "ERROR" in it.
-bool check_error(string str)
+bool CheckError(string str)
 {
     if(str.findFirst("ERROR") > 0)
         return true;
