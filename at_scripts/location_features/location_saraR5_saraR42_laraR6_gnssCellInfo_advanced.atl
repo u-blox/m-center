@@ -21,7 +21,6 @@
 *               the GNSS position in which the info are collected.
 *               The script encapsuletes the info with two set strings in order to make
 *               the results easy to parse.
-*
 ******************************************************************************
 * Modules:      SARA-R5, SARA-R42, LARA-R6
 * Tested on:    SARA-R5, SARA-R42, LARA-R6

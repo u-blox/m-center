@@ -13,11 +13,11 @@
 * See the License for the specific language governing permissions and
 * limitations under the License.
 ******************************************************************************
-* Synopsis:     cell_all_network_registrationCommands_advance.atl
+* Synopsis:     cell_all_networkRegistrationCommands_advance.atl
 * Topic:        cell_modem
-* Version:      1.0
+
 * Author:       bkha
-* Description:	
+* Description:
 *       This script has the purpose to test network related advance commands.
 ******************************************************************************
 * Modules:      All Products

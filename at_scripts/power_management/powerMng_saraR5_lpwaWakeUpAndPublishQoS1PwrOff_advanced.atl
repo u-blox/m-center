@@ -13,16 +13,16 @@
 * See the License for the specific language governing permissions and
 * limitations under the License.
 ******************************************************************************
-* Synopsis:     powerMng_saraR5_lpwa_wake_up_and_publish_QoS-1_pwr_off_advanced.atl
+* Synopsis:     powerMng_saraR5_lpwaWakeUpAndPublishQoS1PwrOff_advanced.atl
 * Topic:        power_management
 * Version:      1.0
 * Author:       pwar
 * Description:
 *       This script is used to publish a message to the Thingstream 
-*       MQTT-Anywhere IoT Platform using QoS: -1
-*       QoS: -1 does not require to connect to the broker, so the 
-*       message is sent very soon after power on. The module then uses
-*       +CPWROFF to turn off.
+*       MQTT-Anywhere IoT Platform using QoS: 1
+*       QoS: 1 requires to connect to the broker before publishing a message
+*       The module then uses +CPWROFF to turn off.
+*       
 *       The powerMng_saraR5_lpwa_first_configuration_pwr_off_advanced.atl
 *       script needs to be run first to configure the device. 
 *       This script assumes the module is in the power-off state and waits
@@ -30,7 +30,6 @@
 *       
 *       You MUST configure the IdentityID parameter below from your Thingstream 
 *       thing device.
-*
 ******************************************************************************
 * Modules:      SARA-R510-01B
 * Tested on:    SARA-R510-01B
@@ -72,17 +71,29 @@ AT+UPSDA=0,3
 SENDAT('AT+UMQTTSN=0,"' + client_id + '"', 1000, "OK");
 SENDAT('AT+UMQTTSN=2,"' + ip_address + '",' + ip_port, 1000, "OK");
 
+// Login to the MQTT-Anywhere broker
+AT+UMQTTSNC=1
+
+// Wait for the successful URC:
+WAIT("+UUMQTTSNC: 1,1", 30000);
+
 /*****************************************************************************/
 /* Parameters for the publishing of a message to the MQTT-Anywhere broker    */
 string topic_alias = "1";
-string QoS = "3";
+string qos = "1";
 string message = "Hello World";
 
 // Publish the message
-SENDAT('AT+UMQTTSNC=4,' + QoS + ',0,0,1,"' + topic_alias + '","' + message + '"', 1000, "OK");
+SENDAT('AT+UMQTTSNC=4,' + qos + ',0,0,1,"' + topic_alias + '","' + message + '"', 1000, "OK");
 
-// Wait for the successful URC
+// Wait for the successful URC (ACK)
 WAIT("+UUMQTTSNC: 4,1", 10000);
+
+// Logout from the MQTT-Anywhere broker
+AT+UMQTTSNC=0
+
+// Wait for the successful URC (ACK):
+WAIT("+UUMQTTSNC: 0,1", 10000);
 
 // Turn off the module
 AT+CPWROFF

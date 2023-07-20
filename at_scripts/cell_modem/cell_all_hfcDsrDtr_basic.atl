@@ -13,11 +13,11 @@
 * See the License for the specific language governing permissions and
 * limitations under the License.
 ******************************************************************************
-* Synopsis:        cell_all_hfc_dsrdtr_basic.atl
+* Synopsis:     cell_all_hfcDsrDtr_basic.atl
 * Topic:        cell_modem
 * Version:      1.0
 * Author:       hmeh, bkha
-* Description:	
+* Description:
 *       This script has the purpose to test the flow control line status
 *       using DSR and DTR lines.
 *       bool GETCOMDSR(void): return the status of DSR line
