@@ -18,8 +18,7 @@
 * Version:      1.0
 * Author:       hmeh, bkha
 * Description:
-*       This script has the purpose to perform various bitwise operation 
-*       functions.
+*       This script contains functions to perform various bitwise operation.
 ******************************************************************************/
 
 // Converts int 'n' to boolean format and return it in string format. 

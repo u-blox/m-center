@@ -1,3 +1,3 @@
 # mno_certifications
 
-Abstract: MNO policies. Certification of end-devices related scripts.
+This directory contains MNO policies. Certification of end-devices related scripts.

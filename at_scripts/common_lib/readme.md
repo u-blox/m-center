@@ -21,3 +21,11 @@ These syntax rules need to be followed for lib compatibility.
 - **ECHO:**  	ECHO("Hello World");
 
 - **SENDAT:** Use SENDAT("AT",1000,"OK") macro to send AT command. Using AT command directly without macro will not work.
+
+## Table of content ##
+
+| **Script** | **Description** |
+| :---  | :---  |
+| `lib_bitwiseOperation` | This script contains functions to perform various bitwise operation. |
+| `lib_ntpFunctions` | This script contains functions related to Network Time Protocol (NTP). |
+| `library` | This script has the purpose to maintain common functions to be use in all the scripts. |

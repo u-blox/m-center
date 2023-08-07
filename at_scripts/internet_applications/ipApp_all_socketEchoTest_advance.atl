@@ -162,4 +162,3 @@ if(check_ping.findFirst("+UUPINGER") == -1 && check_rtt.findFirst("-1") == -1) {
     ECHO("THE ECHO SERVER CANNOT BE REACHED!");
     ECHO("*************************************************************************************************************");
 }
-

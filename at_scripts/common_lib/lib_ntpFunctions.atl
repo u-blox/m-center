@@ -18,9 +18,7 @@
 * Version:      1.0
 * Author:       fmeh
 * Description:
-*       This script has the purpose to maintain common functions to be use in
-*       all the scripts. All functions related to Network Time Protocol (NTP)
-*       are defined in this library file.
+*       This script contains functions related to Network Time Protocol (NTP).
 ******************************************************************************/
 
 // This function swaps the unsigned long integer from host byte order to network byte order
