@@ -1,0 +1,334 @@
+/*******************************************************************************
+*  Copyright (c) 2020 u-blox AG, Thalwil, Switzerland.
+*
+* Licensed under the Apache License, Version 2.0 (the "License");
+* you may not use this file except in compliance with the License.
+* You may obtain a copy of the License at
+*
+* http://www.apache.org/licenses/LICENSE-2.0
+*
+* Unless required by applicable law or agreed to in writing, software
+* distributed under the License is distributed on an "AS IS" BASIS,
+* WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+* See the License for the specific language governing permissions and
+* limitations under the License.
+******************************************************************************
+* Synopsis:     location_lenaR8_gnssAiding_advanced.atl
+* Topic:        location_features
+* Version:      1.1
+* Author:       rtud
+* Description:
+*       This script has the purpose to demonstrate the use of the M10 GNSS chip 
+*       Integrated into the R8 CEL package.
+*       Once the script has been executed, the R8 module will be turned off.
+*       In case of Assisted GNSS usage, be sure to set the assist_now_online_token.
+******************************************************************************
+* Modules:      LENA-R8001M10
+* Tested on:    LENA-R8001M10
+******************************************************************************/
+
+// aiding type to be configured, values allowed are:
+// • 0 (default value): no aiding
+// • 1: local aiding
+// • 2: AssistNow Offline
+// • 4: AssistNow Online
+// • 8: AssistNow Autonomous
+
+int aiding_type = 4;
+
+// gnss system to be actived
+// • 1: GPS
+// • 2: SBAS
+// • 4: Galileo
+// • 8: BeiDou
+// • 16: IMES
+// • 32: QZSS
+// • 64: GLONASS
+
+int gnss_system = 67;
+string gnss_command;
+
+// APN for initial default bearer
+string apn_initial_def_bearer = "";
+string assist_now_online_token = "";
+int normal_time_out = 1000;
+
+
+void modem_connect_and_initialization ()
+{
+    string command, resp;
+    bool com_port_connected = false; 
+    com_port_connected = MC_PORT_CONNECT();
+    while (!com_port_connected)
+    {
+        ECHO("");
+        ECHO("Response from COM port connection:" + com_port_connected);
+        ECHO("");
+        ECHO("");
+        ECHO("Please connect USB cable from PC to EVK");
+        ECHO("");
+        PAUSE(10*normal_time_out);
+        com_port_connected = MC_PORT_CONNECT();
+    }
+    
+    command ="AT";
+    resp = SENDAT(command, normal_time_out, "OK");
+
+    command ="ATE0";
+    resp = SENDAT(command, normal_time_out, "OK");
+
+    command ="AT+CMEE=2";
+    resp = SENDAT(command, normal_time_out, "OK");
+
+    command ="AT+CGMI";
+    resp = SENDAT(command, normal_time_out, "");
+
+    command ="AT+CGMM";
+    resp = SENDAT(command, normal_time_out, "");
+
+    command ="ATI0";
+    resp = SENDAT(command, normal_time_out, "");
+
+    command ="AT+CGMR";
+    resp = SENDAT(command, normal_time_out, "");
+
+    command ="ATI9";
+    resp = SENDAT(command, normal_time_out, "");
+
+    command ="AT+CGSN";
+    resp = SENDAT(command, normal_time_out, "");
+
+    command ="AT+COPS?";
+    resp = SENDAT(command, normal_time_out, "");
+
+    command ="AT+CSQ";
+    resp = SENDAT(command, normal_time_out, "");
+
+    command ="AT+CEREG?";
+    resp = SENDAT(command, normal_time_out, "");
+
+    command ="AT+UPSV?";
+    resp = SENDAT(command, normal_time_out, "");
+
+    command ="AT+CLCK=\"SC\",2";
+    resp = SENDAT(command, normal_time_out, "");
+
+    command ="AT+CPIN?";
+    resp = SENDAT(command, normal_time_out, "");
+
+    command ="AT+CCLK?";
+    resp = SENDAT(command, normal_time_out, "");
+}
+
+
+void urc_initialization ()
+{
+    string command, resp;
+
+    command ="AT+UGIND=1";
+    resp = SENDAT(command, normal_time_out, "OK");
+
+    command ="AT+UGRMC=1";
+    resp = SENDAT(command, normal_time_out, "OK");
+
+    command ="AT+ULOCIND=1";
+    resp = SENDAT(command, normal_time_out, "OK");
+
+    command ="AT+CEREG=1";
+    resp = SENDAT(command, normal_time_out, "OK");
+
+    command ="AT+CREG=1";
+    resp = SENDAT(command, normal_time_out, "OK");
+}
+
+
+void wait_for_registration()
+{
+    string command, resp;
+    int registration = 0;   
+
+    command = "AT+CFUN=0";
+    resp = SENDAT(command, 3*normal_time_out, "OK");
+
+    command = "AT+CGDCONT=1,\"IP\",\"" + apn_initial_def_bearer + "\"";
+    resp = SENDAT(command, 2*normal_time_out, "OK");
+
+    command = "AT+CFUN=1";
+    resp = SENDAT(command, 3*normal_time_out, "OK");
+
+    while (registration < 1)
+    {
+        ECHO("Waiting for CID 0 registration");
+        // wait for URC
+        string command1 = "+C";
+        string resp1 = WAIT(command1, 10*normal_time_out);
+
+        if(FIND(resp1, "+CEREG: 1") != -1)
+        {
+            ECHO("");
+            ECHO("Registered on network (HPLMN)");
+            ECHO("");
+
+            registration = 1;
+            command = "AT+CGACT=1,1";
+            resp = SENDAT(command, 3*normal_time_out, "OK");
+
+            PAUSE(10*normal_time_out);
+
+            command = "AT+UPING=\"8.8.8.8\"";
+            resp = SENDAT(command, 3*normal_time_out, "");
+            ECHO("");
+            ECHO("Response:" + resp);
+            ECHO("");
+        }
+        else if(FIND(resp1, "+CEREG: 3") != -1)
+        {
+            STOP("Registration denied");
+        }
+        else if(FIND(resp1, "+CEREG: 5") != -1)
+        {   
+            ECHO("Registered on roaming (VPLMN)");
+            registration = 1;
+            
+            command = "AT+CGACT=1,1";
+            resp = SENDAT(command, 3*normal_time_out, "OK");
+
+            PAUSE(10*normal_time_out);
+
+            command = "AT+UPING=\"8.8.8.8\"";
+            resp = SENDAT(command, 3*normal_time_out, "");
+        }
+        else if(FIND(resp1, "+CEREG: 8") != -1)
+        {
+            ECHO("");
+            ECHO("Attached for emergency bearer services ");
+            ECHO("");
+
+            registration = 1;
+        }
+        else
+        {
+            ECHO("Verifying registration status...");
+        }
+    }
+}
+
+
+void main()
+{ 
+    string command, resp, parse_a;
+    bool do_loop = true;
+    int counter_find_fix = 0;
+    int location_done = 0;
+
+    modem_connect_and_initialization();
+    urc_initialization();
+
+    if ((aiding_type & 4) == 4 || (aiding_type & 2) == 2)
+    {
+        ECHO("");
+        ECHO("Aiding configured requires data connection and a valid AssistNow token.");
+        ECHO("");
+
+        wait_for_registration();
+
+        command = "AT+UGSRV=\"lscellapi.services.u-blox.com\",\"lscellapi.services.u-blox.com\",\"" + assist_now_online_token + "\",14,4,1,65,0,15";
+        resp = SENDAT(command, 3*normal_time_out, "");
+    }
+    else 
+    {
+        ECHO("");
+        ECHO("Aiding configured does not require data connection.");
+        ECHO("");
+    }
+
+    ECHO("*************************************************************************************************************");
+    ECHO("Starting GNSS");
+    ECHO("*************************************************************************************************************");
+    
+    gnss_command ="AT+UGPS=1," + aiding_type + "," + gnss_system;
+    resp = SENDAT(gnss_command, 6*normal_time_out, "OK");
+    PAUSE(2*normal_time_out);
+
+    while (do_loop)
+    {
+        command ="AT+UGRMC?";
+        resp = SENDAT(command, normal_time_out, "OK");
+        PAUSE(normal_time_out);
+        counter_find_fix = counter_find_fix + 1000;
+        parse_a = resp.split(',')[3];
+        if (FIND(parse_a, "A") != -1) 
+        {
+            ECHO("");
+            ECHO("Found fix. Taken time in s: " + counter_find_fix/1000);
+            ECHO("");
+
+            do_loop = false;
+        }
+    }
+
+    command = "AT+UGPS=0";
+    resp = SENDAT(command, 3*normal_time_out, "");
+
+    command = "AT+ULOCGNSS=" + aiding_type;
+    resp = SENDAT(command, 3*normal_time_out, "");
+
+    PAUSE(2*normal_time_out);
+
+    command = "AT+ULOC=2,1,1,150,100";
+    resp = SENDAT(command, 3*normal_time_out, "");
+
+    while (location_done < 1)
+    {
+        ECHO("");
+        ECHO("Waiting for location");
+        ECHO("");
+
+        // wait for URC
+        string command1 = "+U";
+        string resp1 = WAIT(command1, 10*normal_time_out);
+        if(FIND(resp1, "+UULOC:") != -1)
+        {
+            location_done = 1;
+        }
+    }
+
+    ECHO("");
+    ECHO("Please unscrew GNSS antenna for testing Assist Now services...1st message");
+    ECHO("");
+    PAUSE(10*normal_time_out);
+    ECHO("");
+    ECHO("Please unscrew GNSS antenna for testing Assist Now services...2nd message");
+    ECHO("");
+    PAUSE(10*normal_time_out);
+    ECHO("");
+    ECHO("Please unscrew GNSS antenna for testing Assist Now services...3rd and last message");
+    ECHO("");
+    PAUSE(5*normal_time_out);
+
+    location_done = 0;
+
+    command = "AT+ULOC=2,1,1,150,100";
+    resp = SENDAT(command, 3*normal_time_out, "");
+
+    while (location_done < 1)
+    {
+        ECHO("");
+        ECHO("Waiting for location with missing antenna");
+        ECHO("");
+        // wait for URC
+        string command2 = "+U";
+        string resp2 = WAIT(command2, 10*normal_time_out);
+        if(FIND(resp2, "+UULOC:") != -1)
+        {
+            location_done = 1;
+            ECHO("");
+            ECHO("Please check Thingstream dashboard under the activity of the token used in this script. If under billing events the count has gone up it is a valid use of Assist Now services");
+            ECHO("");
+        }
+    }
+
+    PAUSE(20*normal_time_out);
+    command ="AT+CPWROFF";
+    resp = SENDAT(command, 10*normal_time_out, "OK");    
+}

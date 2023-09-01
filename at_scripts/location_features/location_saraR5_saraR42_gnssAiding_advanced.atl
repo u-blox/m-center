@@ -59,7 +59,6 @@ int aiding_type = 2;
 int gnss_system = 67;
 
 
-
 string gnss_command;
 
 // APN for initial default bearer
@@ -162,7 +161,6 @@ void wait_for_registration()
 }
 
 
-
 void main()
 {   
     string command, resp;
@@ -229,7 +227,6 @@ void main()
     ECHO("TTFF in UBX-NAV-STATUS is " + ttff +" s");
     PAUSE 1000;
 
-    
     command ="AT+UGPS=0";
     resp = SENDAT(command, 5000, "OK");
     PAUSE 1000;
