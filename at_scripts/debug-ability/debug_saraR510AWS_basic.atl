@@ -21,7 +21,7 @@
 *       This script has the general purpose to collect debug info from
 *       the target module without changing any settings.
 *       After the execution of this script, some Unsolicited Result Code (URC) 
-*       will be actived. 
+*       will be actived.
 *******************************************************************************
 * Modules:      SARA-R510AWS
 * Tested on:    SARA-R510AWS
@@ -53,7 +53,6 @@ AT+CONF? Certificate
 AT+CONF? ThingName
 
 
-
 ###########################
 # MOBILE EQUIPMENT STATUS #
 ###########################
@@ -81,4 +80,3 @@ SENDAT(command, max_timeout, 'OK');
 // returns information about the current MNO profile selected (equivalent to AT+UMNOPROF?)
 command = 'AT+DIAG MNOPROF?';
 SENDAT(command, max_timeout, 'OK');
-

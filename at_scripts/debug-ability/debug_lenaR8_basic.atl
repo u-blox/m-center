@@ -21,7 +21,7 @@
 *       This script has the general purpose to collect debug info from
 *       the target module without changing any settings.
 *       After the execution of this script, some Unsolicited Result Code (URC) 
-*       will be actived. 
+*       will be actived.
 *******************************************************************************
 * Modules:      LENA-R8
 * Tested on:    LENA-R8

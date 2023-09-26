@@ -13,16 +13,18 @@
 * See the License for the specific language governing permissions and
 * limitations under the License.
 *******************************************************************************
-* Synopsis:     debug_laraR2_tobyR2_basic.atl
+* Synopsis:     debug_lexiR10_basic.atl
 * Topic:        debug-ability
 * Version:      1.0
-* Author:       bkha
+* Author:       mreb
 * Description:
 *       This script has the general purpose to collect debug info from
-*       the target module.
+*       the target module without changing any settings.
+*       After the execution of this script, some Unsolicited Result Code (URC) 
+*       will be actived.
 *******************************************************************************
-* Modules:      LARA-R2, TOBY-R2
-* Tested on:    LARA-R2, TOBY-R2
+* Modules:      LEXI-R10
+* Tested on:    LEXI-R10
 *******************************************************************************/
 
 
@@ -54,16 +56,13 @@ AT+CGSN
 // returns International Mobile Subscriber Identification (IMSI)
 AT+CIMI
 
-// returns the Integrated Circuit Card ID (ICCID)
-AT+CCID
-
-// returns the SIM status
-AT+CPIN?
-
 
 ########################
 # MODULE CONFIGURATION #
 ########################
+// returns info about the profiles
+AT+UUARTCONF?
+
 // returns info about the profiles
 AT&V
 
@@ -85,32 +84,26 @@ AT+CFUN?
 AT+CMEE=2
 
 // enables the network registration and location information URC status
-AT+CEREG=2
+AT+CEREG=3
 
 // enables network registation status 
 AT+CREG=2
 
-// enables GPRS registration status
-AT+CGREG=2
-
 // enables the signaling connection status URC
 AT+CSCON=1
+
+// enables the packet switched event reporting
+AT+CGEREP=1
 
 
 ###################
 # NETWORK SERVICE #
 ###################
-// returns the selected Mobile Network Operator (MNO) profile
-AT+UMNOPROF?
-
 // returns the Evolved Packet System (EPS) network registation status
 AT+CEREG?
 
 // returns the CS network registation status
 AT+CREG?
-
-// returns the GPRS (PS) registration status 
-AT+CGREG?
 
 // returns the operator selection
 AT+COPS?
@@ -118,14 +111,13 @@ AT+COPS?
 // returns the extended signal quality
 AT+CESQ
 
-// returns the configured Radio Access Technology (RAT)
-AT+URAT?
+// enables the protocol stack and network environment information collection
+AT+UCGED=2
 
-// returns the enabled bands
-AT+UBANDMASK?
+PAUSE 5000;
 
-// returns the Verizon wireless APN table
-AT+VZWAPNE?
+// returns the channel and network environment descriptions 
+AT+UCGED?
 
 
 #################################
@@ -140,18 +132,18 @@ AT+CGCONTRDP=1
 // returns the status of the defined PDP contexts
 AT+CGACT?
 
-// returns the UE mode of operation for EPS
-AT+CEMODE?
 
+#####################
+# LOW POWER RELATED #
+#####################
+// returns the power saving status 
+AT+UPSV?
 
-##############################
-# IP MULTIMEDIA SYSTEM (IMS) #
-##############################
-// returns the IMS client configuration
-AT+UIMSCFG=1
+// returns the used power saving mode settings 
+AT+CPSMS?
 
-// returns the IMS registration information
-AT+CIREG?
+// returns the eDRX setting 
+AT+CEDRXS?
 
-// returns the IMS network reporting
-AT+CIREP?
+// returns eDRX dynamic parameters
+AT+CEDRXRDP

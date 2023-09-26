@@ -96,9 +96,6 @@ AT+CGREG?
 // returns the operator selection
 AT+COPS?
 
-// returns the signal quality
-AT+CSQ
-
 // returns the extended signal quality
 AT+CESQ
 

@@ -55,7 +55,6 @@ void main()
     SENDAT("ATI0",2000,"");
     SENDAT("ATI9",2000,"");
     SENDAT("AT+COPS?",2000,"");
-    SENDAT("AT+CSQ",2000,"");
     SENDAT("AT+CESQ",2000,"");
     SENDAT("AT+CREG?",2000,"");
     SENDAT("AT+CGREG?",2000,"");
