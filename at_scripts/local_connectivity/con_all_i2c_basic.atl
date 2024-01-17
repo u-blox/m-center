@@ -1,0 +1,296 @@
+/******************************************************************************
+*  Copyright (c) 2020 u-blox AG, Thalwil, Switzerland.
+*
+* Licensed under the Apache License, Version 2.0 (the "License");
+* you may not use this file except in compliance with the License.
+* You may obtain a copy of the License at
+*
+* http://www.apache.org/licenses/LICENSE-2.0
+*
+* Unless required by applicable law or agreed to in writing, software
+* distributed under the License is distributed on an "AS IS" BASIS,
+* WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+* See the License for the specific language governing permissions and
+* limitations under the License.
+******************************************************************************
+* Synopsis:     con_all_i2c_basic.atl
+* Topic:        local_connectivity
+* Version:      1.0
+* Author:       rtud
+* Description:
+*       This script has the purpose to demonstrate the read of GNSS messages
+*       from the external GNSS module through I2C and also modify the
+*       UBX-CFG-RATE settings. The I2C lines are continuously polled.
+*       Once a valid GNSS message is found it is added to a final buffer
+*       for console printing.
+******************************************************************************
+* Modules:      All products
+* Tested on:    LARA-L6004, SARA-R510S (NEO-M8N)
+******************************************************************************/
+
+// I2C polling cycles
+int standard_waiting_time = 1000;
+int how_many_iterations = 6;
+string gnss_command ="AT+UGPIOW=23,1";
+string first_buffer;
+string second_buffer;
+string third_buffer;
+
+
+void modem_initialization()
+{
+    SENDAT("AT+CMEE=2", 2*standard_waiting_time, "OK");
+}
+
+
+void query_using_ubx()
+{
+    string resp;
+    string parse_a;
+    bool counting_flag_fixes = true;
+    int counting_fixes = 0;
+
+    SENDAT("AT+UGPIOC=23,3", standard_waiting_time, "OK");
+    PAUSE(1000);
+    SENDAT("AT+UGPIOC=24,4", standard_waiting_time, "OK");
+    PAUSE(1000);
+    SENDAT("AT+UGIND=1", standard_waiting_time, "OK");
+    SENDAT("AT+UGRMC=1", standard_waiting_time, "OK");
+    SENDAT("AT+ULOCIND=1", standard_waiting_time, "OK");
+    SENDAT("AT+UGPS=1,0,67", standard_waiting_time, "OK");
+    PAUSE(3000);
+
+    while (counting_flag_fixes)
+    {
+        counting_fixes = counting_fixes + 1;
+
+        if (counting_fixes == 1)
+        {
+            ECHO("\n\r===== Query navigation rate solution (UBX-CFG-RATE) using UBX protocol: =====\n\r");
+            resp = SENDAT("AT+UGUBX=\"B562060800000E30\"", 10*standard_waiting_time, "OK");
+            first_buffer = resp.split("+UGUBX: ")[1];
+
+            ECHO("\n\r===== Change of navigation rate solution (UBX-CFG-RATE) using UBX protocol  to \"D117\" =====\n\r");
+            resp = SENDAT("AT+UGUBX=\"B56206080600D11701000100FE13\"", 10000, "OK");
+            resp = SENDAT("AT+UGUBX=\"B562060800000E30\"", 10*standard_waiting_time, "OK");
+            second_buffer = resp.split("+UGUBX: ")[1];
+            SENDAT("AT+UGUBX=\"B56206080600E80301000100023B\"", 10*standard_waiting_time, "OK");
+        }
+
+        ECHO("\n\r===== Query " + formatInt((how_many_iterations + 4),"l") +" times NMEA $RMC message using +UGRMC:: =====\n\r");
+        PAUSE(2000);
+        resp = SENDAT("AT+UGRMC?", standard_waiting_time, "OK");
+        parse_a = resp.split(',')[3];
+        third_buffer = resp.split("+UGRMC: ")[1];
+
+        if ((FIND(parse_a, "A") != -1) or (counting_fixes > (how_many_iterations + 4)))
+        {
+            ECHO("\n\r===== Setting up I2C connection: =====\n\r");
+            counting_flag_fixes = false;
+            PAUSE(3000);
+        }
+    }
+}
+
+
+void init_pins_i2c()
+{
+    SENDAT("AT+UGIND=0", standard_waiting_time, "OK");
+    SENDAT("AT+UGRMC=0", standard_waiting_time, "OK");
+    SENDAT("AT+ULOCIND=0", standard_waiting_time, "OK");
+    SENDAT("AT+UGPS=0", standard_waiting_time, "OK");
+    PAUSE(3000);
+    SENDAT("AT+UGPIOC=23,0", standard_waiting_time, "OK");
+    PAUSE(2000);
+    SENDAT("AT+UI2CCFG=0", standard_waiting_time, "OK");
+    SENDAT("AT+UI2CO=1,0,0,0x42,0", standard_waiting_time, "OK");
+    SENDAT("AT+UGPIOW=23,1", standard_waiting_time, "OK");
+    PAUSE(3000);
+}
+
+
+string get_rate_register_values()
+{
+    bool do_loop = true;
+    string resp;
+    string what_string;
+    string full_string;
+    string register_string;
+    array<string> array_i2c;
+
+    while(do_loop)
+    {
+        PAUSE(300);
+        //Queried navigation rate solution (UBX-CFG-RATE)
+        SENDAT("AT+UI2CW=\"B562060800000E30\",8", standard_waiting_time, "OK");
+        resp = SENDAT("AT+UI2CR=72", 10*standard_waiting_time, "OK");
+        array_i2c = resp.split("UI2CR");
+
+        for (int i=0; i < array_i2c.length(); i++)
+        {
+            if(array_i2c[i].length() > 2)
+            {
+                if (array_i2c[i].split("0x")[1].split("\r\n")[0].length() == 1)
+                {
+                    what_string = what_string + "0" + resp.split("0x")[i].split("\r\n")[0];
+                }
+                else if (array_i2c[i].split("0x")[1].split("\r\n")[0].length() == 2)
+                {
+                    what_string = what_string + resp.split("0x")[i].split("\r\n")[0];
+                }
+                else
+                {
+                    ECHO("\n\r===== Error on buffer length =====\n\r");
+                }
+            }
+        }
+        
+        if ((FIND(what_string, "B5620608060") != -1) and (what_string.split("B5620608060")[1].length() > 30))
+        {
+            what_string= "B5620608060" + what_string.split("B5620608060")[1].substr(0,17);
+            do_loop = false;
+        }
+
+        if (what_string.length() > 250)
+        {
+            what_string = '';
+        }
+    }
+
+    return what_string;
+}
+
+
+string get_my_location()
+{
+    bool getting_location = true;
+    string resp;
+    string what_string;
+
+    while (getting_location)
+    {
+        resp = SENDAT("AT+UI2CR=1", standard_waiting_time, "OK");
+        what_string = what_string + HEX2STRING(resp.split("0x")[1].split("\r\nOK")[0]);
+        ECHO("\n\r===== Reading registers and buffering: " + what_string + " =====\n\r");
+        if (((FIND(what_string, "GNRMC") != -1) and (FIND(what_string, ",A") != -1) and (FIND(what_string, "A*") != -1)) or ((FIND(what_string, "GNRMC") != -1) and (FIND(what_string, "N*") != -1)))
+        {
+            getting_location = false;
+        }
+    }
+
+    return what_string;
+}
+
+
+void start_i2c_gnss()
+{
+    array<string> array_i2c;
+    array<string> array_i2c_before;
+    array<string> array_i2c_after;
+    string what_string;
+    string full_string;
+    string response_registers;
+    string loading = "LOADING===";
+    bool do_loop = true;
+    bool got_messages = false;
+    bool before_doubling = true;
+    bool got_registers = false;
+    int counting_loops = 0;
+    
+    while (do_loop) 
+    {
+        full_string = get_my_location();
+
+        if (FIND(full_string, "GNRMC") != -1)
+        {
+            counting_loops = counting_loops + 1;
+            
+            if (before_doubling)
+            {
+                if (!got_registers)
+                {
+                    response_registers = get_rate_register_values();
+                    got_registers = true;
+                }
+                
+                array_i2c_before.insertLast(response_registers);
+                array_i2c_before.insertLast("$GNRMC" + full_string.split("$GNRMC")[1].split("ÿ")[0]);
+                loading = loading + "===";
+                ECHO("\n\r===== Adding message before register modification to final buffer =====\n\r");
+                ECHO("\n\r" + loading + (counting_loops*100/how_many_iterations) + "%\n\r");
+                PAUSE(2000);
+            } 
+            else
+            {
+                if (got_registers)
+                {
+                    response_registers = get_rate_register_values();
+                    got_registers = false;
+                }
+                
+                array_i2c_after.insertLast(response_registers);
+                array_i2c_after.insertLast("$GNRMC" + full_string.split("$GNRMC")[1].split("ÿ")[0]);
+                loading = loading + "===";
+                ECHO("\n\r===== Adding message after register modification to final buffer =====\n\r");
+                ECHO("\n\r" + loading + (counting_loops*100/how_many_iterations) + "%\n\r");
+                PAUSE(2000);
+            }
+            
+            full_string = '';
+            what_string = '';
+
+            if (counting_loops == how_many_iterations)
+            {
+                got_messages = true;
+                counting_loops = 0;
+            }
+
+            if (got_messages and before_doubling)
+            {
+                before_doubling = false;
+                //Change of navigation rate solution (UBX-CFG-RATE)
+                SENDAT("AT+UI2CW=\"B56206080600D11701000100FE13\",14", standard_waiting_time, "OK");
+                PAUSE(1000);
+                got_messages = false;
+                loading = "LOADING===";
+            }
+
+            if (got_messages and !before_doubling)
+            {
+                ECHO("\n\r\n\r");
+                ECHO("\n\r===== Summary report: =====\n\r");
+
+                ECHO("\n\r===== Queried NMEA $RMC message using +UGRMC: =====\n\r");
+                ECHO(third_buffer);
+
+                ECHO("\n\r===== Queried navigation rate solution (UBX-CFG-RATE) using UBX protocol: =====\n\r");
+                ECHO(first_buffer);
+
+                ECHO("\n\r===== After change of navigation rate solution (UBX-CFG-RATE) using UBX protocol  to \"D117\": =====\n\r");
+                ECHO(second_buffer);
+
+                ECHO("\n\r===== Queried NMEA $RMC message through I2C: =====\n\r");
+                ECHO(array_i2c_after[(how_many_iterations*2) - 1]);
+
+                ECHO("\n\r===== Queried navigation rate solution (UBX-CFG-RATE) through I2C: =====\n\r");
+                ECHO(array_i2c_before[(how_many_iterations*2) - 2]);
+                
+                ECHO("\n\r===== After change of navigation rate solution (UBX-CFG-RATE) through I2C to \"D117\": =====\n\r");
+                ECHO(array_i2c_after[(how_many_iterations*2) - 2]);
+                
+                do_loop = false;
+                ECHO("\n\r\n\r");
+                STOP("Finished!");
+                SENDAT("AT+UGPIOW=23,0", 100, "OK");
+            }
+        }
+    }
+}
+
+
+void main()
+{
+    query_using_ubx();
+    init_pins_i2c();
+    start_i2c_gnss();
+}
