@@ -19,7 +19,7 @@
 * Author:       dtro
 * Description:
 *       This script has the purpose to demonstrate a TCP/UDP socket connection
-*       with an ECHO server test. 
+*       with an ECHO server test.
 *       The module must be connected to internet and the internal context
 *       must be activated.
 ******************************************************************************

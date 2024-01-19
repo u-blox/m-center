@@ -1,0 +1,116 @@
+/******************************************************************************
+*  Copyright (c) 2020 u-blox AG, Thalwil, Switzerland.
+*
+* Licensed under the Apache License, Version 2.0 (the "License");
+* you may not use this file except in compliance with the License.
+* You may obtain a copy of the License at
+*
+* http://www.apache.org/licenses/LICENSE-2.0
+*
+* Unless required by applicable law or agreed to in writing, software
+* distributed under the License is distributed on an "AS IS" BASIS,
+* WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+* See the License for the specific language governing permissions and
+* limitations under the License.
+******************************************************************************
+* Synopsis:     ipApp_all_continueSocketEchoTest_advance.atl
+* Topic:        internet_application
+* Version:      1.0
+* Author:       mreb
+* Description:
+*       This script has the purpose to continuously test a UDP socket
+*       connection with an ECHO server test.
+*       The module must be connected to internet and the internal context
+*       must be activated.
+******************************************************************************
+* Modules:      All products
+* Tested on:    LEXI-R10
+******************************************************************************/
+
+// Configurable parameters
+string protocol = "TCP";                // protocol can be TCP or UDP
+string server_ip = "185.215.195.137";
+int server_port = 7;
+int packet_size = 10;
+int length_greeting_server = 28;
+int waiting_time_at = 5000;
+int waiting_timeout = 60000;
+int loop_count = 10;
+int pause_between_loops = 3000;
+
+string command, resp, socket_id, returned_echo;
+
+
+ECHO("*************************************************************************************************************");
+ECHO("This script needs an internet connection and an activated internal context.");
+ECHO("*************************************************************************************************************");
+ECHO("");
+ECHO("");
+ECHO("*************************************************************************************************************");
+ECHO("TESTING THE REACHABILITY OF THE ECHO SERVER");
+ECHO("*************************************************************************************************************");
+
+string echo_text = "";
+for (int i = 0; i < packet_size; i++){
+    echo_text = echo_text + "A";
+}
+
+if (protocol == "TCP") {
+    resp = SENDAT('AT+USOCR=6', waiting_time_at, '+USOCR');
+    socket_id = resp.split(':')[1];
+}
+if (protocol == "UDP") {
+    resp = SENDAT('AT+USOCR=17', waiting_time_at, '+USOCR');
+    socket_id = resp.split(':')[1];
+}
+
+// +USOCO and greeting message only with TCP
+if (protocol == "TCP") {
+    command = "AT+USOCO=" + socket_id + ",\"" + server_ip + "\"," + server_port;
+    SENDAT(command, waiting_timeout, "OK");
+
+    PAUSE(waiting_time_at);
+
+    command = "AT+USORD=" + socket_id + "," + length_greeting_server;
+    SENDAT(command, waiting_timeout, "OK");
+}
+
+for (int i = 0; i < loop_count; i++) {
+    ECHO("Loop count: " + i);
+    if (protocol == "TCP") {
+        command = "AT+USOWR=" + socket_id + "," + echo_text.length() + ",\"" + echo_text + "\"";
+        resp = SENDAT(command, waiting_timeout, "+UUSORD");
+        if(FIND(resp, "+UUSORD") != -1){
+            command = "AT+USORD=" + socket_id + "," + echo_text.length();
+        }
+        else{
+            STOP("Error in the USOWR procedure.");
+        }
+    }
+    if (protocol == "UDP") {
+        command = "AT+USOST=" + socket_id + ",\"" + server_ip + "\"," + server_port + "," + echo_text.length() + ",\"" + echo_text + "\"";
+        resp = SENDAT(command, waiting_timeout, "+UUSORF");
+        if(FIND(resp, "+UUSORF") != -1){
+            command = "AT+USORF=" + socket_id + "," + echo_text.length();
+        }
+        else{
+            STOP("Error in the USOST procedure.");
+        }
+    }
+
+    returned_echo = SENDAT(command, waiting_time_at, "OK");
+    PAUSE(pause_between_loops);
+}
+
+// Closing the socket
+SENDAT("AT+USOCL=" + socket_id, waiting_timeout, "OK");
+
+if(returned_echo.findFirst(echo_text) != -1) {
+    ECHO("*************************************************************************************************************");
+    ECHO("TEST PASSED!");
+    ECHO("*************************************************************************************************************");
+} else {
+    ECHO("*************************************************************************************************************");
+    ECHO("TEST NOT PASSED!");
+    ECHO("*************************************************************************************************************");
+}

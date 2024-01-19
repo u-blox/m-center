@@ -6,6 +6,7 @@ This directory contains all m-center scripts related to internet applications.
 | **Script** | **Description** | **Modules** |
 | :---  | :---  | :---  |
 | `ipApp_all_activatePsdProfile_basic` | This script has the purpose to activate PSD profile. | All Products |
+| `ipApp_all_continueSocketEchoTest_advance` | This script has the purpose to continuously test a UDP socket connection with an ECHO server test. | All Products |
 | `ipApp_all_EchoStatsCollector_advance` | This script has the purpose to measure RTT and PLR computed performing ping ECHO request on a test server. The module must be connected to internet and the internal context must be activated. | All products |
 | `ipApp_all_ftpClientTest_basic` | This script has the purpose to demonstrate a FTP client connection to specific server. The module must be connected to internet and the internal context must be activated. |
 | `ipApp_all_socketCongestionAvoidance_advance` | This script has the purpose to demonstrate a TCP socket connection with congestion avoidance by monitoring the TX queue. The module must be connected to internet and the internal context must be activated. | All products supporing +USOCTL option 11 |

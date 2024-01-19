@@ -1,0 +1,71 @@
+/******************************************************************************
+*  Copyright (c) 2020 u-blox AG, Thalwil, Switzerland.
+*
+* Licensed under the Apache License, Version 2.0 (the "License");
+* you may not use this file except in compliance with the License.
+* You may obtain a copy of the License at
+*
+* http://www.apache.org/licenses/LICENSE-2.0
+*
+* Unless required by applicable law or agreed to in writing, software
+* distributed under the License is distributed on an "AS IS" BASIS,
+* WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+* See the License for the specific language governing permissions and
+* limitations under the License.
+******************************************************************************
+* Synopsis:     con_lexiR10_wifiScan_basic.atl
+* Topic:        local_connectivity
+* Version:      1.0
+* Author:       rtud
+* Description:
+*       This script has the purpose to demonstrate Wi-Fi scan on LEXI-R10.
+*       Just name the search variable "wifi_ssid_to_find".
+******************************************************************************
+* Modules:      LEXI-R10
+* Tested on:    LEXI-R10
+******************************************************************************/
+
+string wifi_ssid_to_find;
+int standard_waiting_time = 1000;
+int pause_between_scans = 30000;
+int max_number_of_attemt = 10;
+
+void do_wifi_scan()
+{
+    for (int j = 0; j < max_number_of_attemt; j++)
+    {
+        string resp;
+        array<string> array_wifi;
+        resp = SENDAT("AT+UWIFISCAN=12000,1,5,5,0,280,1,0", 24*standard_waiting_time, "OK");
+        array_wifi = resp.split("+UWIFISCAN");
+
+        for (int i = 1; i < array_wifi.length(); i++)
+        {
+            if (array_wifi[i].split(",")[0].split(" ")[1].split('"')[1].split('"')[0] == wifi_ssid_to_find)
+            {
+                ECHO("*************************************************************************************************************");
+                ECHO("Wi-Fi match found: " + wifi_ssid_to_find + ". Finished!");
+                STOP("*************************************************************************************************************");
+            }
+            else
+            {
+                ECHO("No match, getting next Wi-Fi SSID");
+            }
+        }
+
+        PAUSE(pause_between_scans);
+    }
+}
+
+
+void main()
+{
+    ECHO("*************************************************************************************************************");
+    ECHO("This script requires to set the wifi_ssid_to_find.");
+    ECHO("Be sure those are correctly configured before the initialization of this.");
+    ECHO("*************************************************************************************************************");
+    ECHO("");
+
+    wifi_ssid_to_find = UI_INPUT("Provide Wi-Fi SSID to find:");
+    do_wifi_scan();
+}
