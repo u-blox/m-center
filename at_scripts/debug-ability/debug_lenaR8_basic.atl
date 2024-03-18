@@ -87,7 +87,7 @@ AT+CMEE=2
 AT+CEREG=3
 
 // enables network registation status 
-AT+CREG=2
+AT+CREG=3
 
 // enables GPRS registration status
 AT+CGREG=2

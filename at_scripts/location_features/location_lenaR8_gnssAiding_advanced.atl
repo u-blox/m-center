@@ -72,52 +72,52 @@ void modem_connect_and_initialization ()
     }
     
     command ="AT";
-    resp = SENDAT(command, normal_time_out, "OK");
+    SENDAT(command, normal_time_out, "OK");
 
     command ="ATE0";
-    resp = SENDAT(command, normal_time_out, "OK");
+    SENDAT(command, normal_time_out, "OK");
 
     command ="AT+CMEE=2";
-    resp = SENDAT(command, normal_time_out, "OK");
+    SENDAT(command, normal_time_out, "OK");
 
     command ="AT+CGMI";
-    resp = SENDAT(command, normal_time_out, "");
+    SENDAT(command, normal_time_out, "");
 
     command ="AT+CGMM";
-    resp = SENDAT(command, normal_time_out, "");
+    SENDAT(command, normal_time_out, "");
 
     command ="ATI0";
-    resp = SENDAT(command, normal_time_out, "");
+    SENDAT(command, normal_time_out, "");
 
     command ="AT+CGMR";
-    resp = SENDAT(command, normal_time_out, "");
+    SENDAT(command, normal_time_out, "");
 
     command ="ATI9";
-    resp = SENDAT(command, normal_time_out, "");
+    SENDAT(command, normal_time_out, "");
 
     command ="AT+CGSN";
-    resp = SENDAT(command, normal_time_out, "");
+    SENDAT(command, normal_time_out, "");
 
     command ="AT+COPS?";
-    resp = SENDAT(command, normal_time_out, "");
+    SENDAT(command, normal_time_out, "");
 
     command ="AT+CSQ";
-    resp = SENDAT(command, normal_time_out, "");
+    SENDAT(command, normal_time_out, "");
 
     command ="AT+CEREG?";
-    resp = SENDAT(command, normal_time_out, "");
+    SENDAT(command, normal_time_out, "");
 
     command ="AT+UPSV?";
-    resp = SENDAT(command, normal_time_out, "");
+    SENDAT(command, normal_time_out, "");
 
     command ="AT+CLCK=\"SC\",2";
-    resp = SENDAT(command, normal_time_out, "");
+    SENDAT(command, normal_time_out, "");
 
     command ="AT+CPIN?";
-    resp = SENDAT(command, normal_time_out, "");
+    SENDAT(command, normal_time_out, "");
 
     command ="AT+CCLK?";
-    resp = SENDAT(command, normal_time_out, "");
+    SENDAT(command, normal_time_out, "");
 }
 
 
@@ -126,19 +126,19 @@ void urc_initialization ()
     string command, resp;
 
     command ="AT+UGIND=1";
-    resp = SENDAT(command, normal_time_out, "OK");
+    SENDAT(command, normal_time_out, "OK");
 
     command ="AT+UGRMC=1";
-    resp = SENDAT(command, normal_time_out, "OK");
+    SENDAT(command, normal_time_out, "OK");
 
     command ="AT+ULOCIND=1";
-    resp = SENDAT(command, normal_time_out, "OK");
+    SENDAT(command, normal_time_out, "OK");
 
     command ="AT+CEREG=1";
-    resp = SENDAT(command, normal_time_out, "OK");
+    SENDAT(command, normal_time_out, "OK");
 
     command ="AT+CREG=1";
-    resp = SENDAT(command, normal_time_out, "OK");
+    SENDAT(command, normal_time_out, "OK");
 }
 
 
@@ -148,13 +148,13 @@ void wait_for_registration()
     int registration = 0;   
 
     command = "AT+CFUN=0";
-    resp = SENDAT(command, 3*normal_time_out, "OK");
+    SENDAT(command, 3*normal_time_out, "OK");
 
     command = "AT+CGDCONT=1,\"IP\",\"" + apn_initial_def_bearer + "\"";
-    resp = SENDAT(command, 2*normal_time_out, "OK");
+    SENDAT(command, 2*normal_time_out, "OK");
 
     command = "AT+CFUN=1";
-    resp = SENDAT(command, 3*normal_time_out, "OK");
+    SENDAT(command, 3*normal_time_out, "OK");
 
     while (registration < 1)
     {
