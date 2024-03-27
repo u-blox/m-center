@@ -1,0 +1,816 @@
+/*******************************************************************************
+*  Copyright (c) 2020 u-blox AG, Thalwil, Switzerland.
+*
+* Licensed under the Apache License, Version 2.0 (the "License");
+* you may not use this file except in compliance with the License.
+* You may obtain a copy of the License at
+*
+* http://www.apache.org/licenses/LICENSE-2.0
+*
+* Unless required by applicable law or agreed to in writing, software
+* distributed under the License is distributed on an "AS IS" BASIS,
+* WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+* See the License for the specific language governing permissions and
+* limitations under the License.
+******************************************************************************
+* Synopsis:     cell_laraR6_connectionManager_advance.atl
+* Topic:        cell_modem
+* Version:      0.3
+* Author:       asci
+* Description:
+*       This script has the purpose to implement a possible example of
+*       Connection Manager (in the comments reported as "CM").
+*       Some initial configurations are necessary in order to run the script.
+******************************************************************************
+* Modules:      LARA-R6
+* Tested on:    LARA-R6
+******************************************************************************/
+
+// Costants
+int standard_waiting_time = 1000;      // standard waiting time when an AT command is sent (1 sec.)
+int static_condition = 60000;          // Waiting time before to check registration in static condition (60 sec.)
+int dynamic_condition = 10000;         // Waiting time before to check registration in dynamic condition (10 sec.)
+int LTE_Only_application = 1;          // Multiple value of time registration in LTE only application (multiple of 60 sec.)
+int Multi_RAT_Home_application = 3;    // Multiple value of time registration in multi-RAT home application (multiple of 60 sec.)
+int Multi_RAT_Roaming_application = 4; // Multiple value of time registration in multi-RAT roaming application (multiple of 60 sec.)
+
+/******************************************************************************
+* Customizable costants
+* This variables are customizable by the user.
+* It depends on user condition, application and MNO.
+* Please, change it accordingly before to run the script.
+******************************************************************************/
+string cid = "1";                                     // Indicates the cid used
+string apn_name = "\"<apn_name>\"";                // Indicates the APN of the MNO
+string mno_prof = "90";                               // Indicates the mno configuration
+string pin_code = "\"xxxx\"";                         // pin code to be used if necessary
+bool vzw_mno = false;                                 // Indicates if the MNO is VZW
+bool req_cs_registration = true;                      // Indicates if it is required to monitor the CS domain (false=no, true=yes)
+int product_condition = dynamic_condition;            // Indicates if the module is working in static or dynamic condition (see contants above, can be static_condition or dynamic_condition)
+int product_application = Multi_RAT_Home_application; // Indicates the type of network registration in the application (see contants above, can be Multi_RAT_Home_application or Multi_RAT_Roaming_application)
+//****************************************************************************/
+
+// Global variables
+string command;                                                   // Variable of the current registration AT command (+CREG, +CGREG, +CEREG)
+string resp;                                                      // Variable of the reply to an AT command
+string cesq;                                                      // Variable of the reply to +CESQ
+string obt_cops = "";                                             // Variable of the reply to +COPS
+string act = "";                                                  // Variable of the current RAT (<act> parameter)
+string stat = "";                                                 // Variable of the current state of the registration (<stat> parameter)
+bool first_time_bad_signal = true;                                // Internal variable to store the first time bad signal has seen
+bool first_time_MNO = true;                                       // Internal variable to store the first time MNO has seen
+int timer_min_funct;                                              // Internal variable to store the interval time of a +CFUN=0/1 cycle
+int entry_point = 0;                                              // Internal variable to store the entry point in the "boot_sequence" function
+int max_reg_delay = 60*standard_waiting_time*product_application; // 60 seconds, must be a int multiple of standard_waiting_time
+int max_bad_strenght_2G = 5;                                      // Max value+1 of bad signal strenght in 2G
+int min_bad_quality_2G = 5;                                       // Min value-1 of bad signal quality in 2G (it goes in opposite way, smaller is better)
+int max_bad_strenght_3G = 16;                                     // Max value+1 of bad signal strenght in 3G
+int max_bad_quality_3G = 14;                                      // Max value+1 of bad signal quality in 3G
+int max_bad_strenght_4G = 35;                                     // Max value+1 of bad signal strenght in 4G
+int max_bad_quality_4G = 10;                                      // Max value+1 of bad signal quality in 4G
+
+
+/* Method to write the "echo_msg" on m-center window.
+*/
+void do_echoing(string echo_msg)
+{
+    ECHO("*************************************************************************************************************");
+    ECHO(echo_msg);
+    ECHO("*************************************************************************************************************");
+}
+
+/* Check and insert the pin.
+   If something is not correct, stops the script.
+*/
+void check_pin()
+{
+    resp = SENDAT("AT+CPIN?", standard_waiting_time, "OK");
+
+    if (FIND(resp, "+CPIN: ") != -1)
+        resp = resp.split("\r\nOK")[0].split("+CPIN: ")[1];
+    else
+    {
+        do_echoing("ERROR: " + resp);
+        STOP("+CPIN ERROR");
+    }
+
+    if (resp == "READY")
+    {
+        do_echoing("SIM READY");
+    }
+    else if (resp == "SIM PIN")
+    {
+        do_echoing("PIN required");
+        SENDAT("AT+CPIN=" + pin_code, standard_waiting_time, "OK");
+    }
+    else
+    {
+        do_echoing("ERROR; +CPIN: " + resp);
+        STOP("SIM ERROR");
+    }
+}
+
+/* Reboots the module.
+ */
+void reboot_module()
+{
+bool module_is_off = true;
+
+    SENDAT("AT+CFUN=16", 10*standard_waiting_time, "OK");
+    PAUSE(standard_waiting_time/5);                               // waiting 200 ms
+    
+    while (module_is_off)
+    {
+        resp = SENDAT("AT", 200, "OK");
+        if (FIND(resp, "OK") != -1) {
+            module_is_off = false;
+        }
+    }
+
+    PAUSE(2*standard_waiting_time); 
+}
+
+/* Check and set the persistent conf: APN, CID and MNO if necessary.
+ */
+void check_set_persistent_conf()
+{
+string resp2;
+
+    SENDAT("AT+CFUN=1", 10*standard_waiting_time, "OK");
+    resp = SENDAT("AT+CGDCONT?", standard_waiting_time, "OK");
+
+    if (FIND(resp, "+CGDCONT: ") != -1)
+    {
+        resp = resp.split("\r\nOK")[0].split("+CGDCONT: ")[1];
+        resp = resp.split(",")[2];
+        do_echoing("APN: " + resp);
+    }
+    else
+    {
+        do_echoing("ERROR; +CGDCONT: " + resp);
+        STOP("check_set_persistent ERROR");
+    }
+
+    resp2 = SENDAT("AT+UMNOPROF?", standard_waiting_time, "OK");
+
+    if (FIND(resp2, "+UMNOPROF: ") != -1)
+    {
+        resp2 = resp2.split("\r\nOK")[0].split("+UMNOPROF: ")[1];
+        do_echoing("UMNOPROF: " + resp2);
+    }
+    else
+    {
+        do_echoing("ERROR; +UMNOPROF: " + resp2);
+        STOP("check_set_persistent ERROR");
+    }
+
+    if ((resp != apn_name) || (resp2 != mno_prof))
+    {
+        SENDAT("AT+CFUN=0", 10*standard_waiting_time, "OK");
+        SENDAT("AT+CGDCONT=" + cid + ",\"IP\"," + apn_name, 10*standard_waiting_time, "OK");
+        SENDAT("AT+UMNOPROF=" + mno_prof, standard_waiting_time, "OK");
+        reboot_module();
+        check_pin();
+        SENDAT("AT+CFUN=1", 10*standard_waiting_time, "OK");
+    }
+}
+
+/* Set the initial URCs.
+ */
+void init_urcs()
+{
+    SENDAT("AT+CEREG=3;+CREG=2;+CGREG=2;+CMEE=2", standard_waiting_time, "OK");
+}
+
+/* This method checks the +COPS based on the logic of CM.
+
+ @return +cops reply
+ */
+string check_cops()
+{
+int counter_cycle = 0;
+bool stop_check_cops = false;
+int max_number_retry_registration = max_reg_delay / standard_waiting_time;
+
+    ECHO("Check module cops");
+    do_echoing("max_number_retry_registration = " + formatInt(max_number_retry_registration,'l'));
+
+   while (!stop_check_cops)
+    {
+        resp = SENDAT("AT+COPS?", standard_waiting_time, "OK");
+
+        if (FIND(resp, "+COPS: 0,") != -1)
+            stop_check_cops = true;
+        else if (counter_cycle < max_number_retry_registration)
+        {
+            counter_cycle++;
+            do_echoing("counter_cycle = " + formatInt(counter_cycle,'l'));
+        }
+        else
+            stop_check_cops = true;
+
+        PAUSE(standard_waiting_time);
+    }
+    
+    return resp;
+}
+
+/* This method processes +COPS to get the act parameter.
+
+ @return act
+ */
+string act_from_cops()
+{
+    if (FIND(obt_cops, "+COPS: 0,") != -1)
+    {
+        obt_cops = obt_cops.split("\r\nOK")[0];
+        do_echoing("act = " + obt_cops.split(",")[3]);
+        return obt_cops.split(",")[3];
+    }
+    else
+    {
+        do_echoing("act = N.A.");
+        return "N.A.";
+    }
+}
+
+/* This method processes the +CEREG, +CGREG.
+
+ @return Stat from CxREG
+ */
+string get_registration_status(string reg_command)
+{
+    do_echoing("command " + reg_command);
+    command = reg_command;
+    resp = SENDAT("AT" + reg_command + "?", standard_waiting_time, "OK");
+
+    if (FIND(resp, reg_command + ": ") != -1)
+    {
+        resp = resp.split("\r\nOK")[0];
+        do_echoing("stat = " + resp.split(",")[1]);
+        return resp.split(",")[1];
+    }
+    else
+    {
+        do_echoing("ERROR; " + reg_command + ": " + resp);
+        STOP("get_registration_status ERROR");
+    }
+
+    return resp;
+}
+
+
+/* This method processes the +CEREG, +CGREG based on the act, 
+   also when act is "N.A." (set to value 20 to use the switch/case structure).
+   If something is not correct, stops the script.
+
+ @return Stat from CxREG
+ */
+string check_cxreg_from_cops_act()
+{
+int act_num;
+
+    if (act == "N.A.")
+        act_num = 20;
+    else
+        act_num = parseInt(act);
+
+    switch(act_num)
+    {
+        case 7:
+            return get_registration_status("+CEREG");
+        case 0:
+        case 2:
+        case 3:
+            return get_registration_status("+CGREG");
+        default:
+            if (act == "N.A.")
+            {
+                do_echoing("+COPS N.A.");
+                command = "";
+                return act;
+            }
+            else
+            {
+                do_echoing("Error in check_cxreg_from_cops_act");
+                STOP("check_cxreg_from_cops_act ERROR");
+            }
+    }
+
+return act;
+}
+
+/* This method enables the PDP context based on the cid configured.
+ */
+void enable_pdp_context()
+{
+    do_echoing("Enable PDP context");
+    SENDAT("AT+CGACT=1," + cid, 10*standard_waiting_time, "OK");
+    PAUSE(standard_waiting_time);
+}
+
+/* Check the CS registration as reported in the CM
+ */
+void cs_registration()
+{
+    int stat_num;
+
+    stat = get_registration_status("+CREG");
+    stat_num = parseInt(stat);
+
+    switch(stat_num)
+    {
+        case 1:
+        case 5:
+        case 9:
+        case 10:
+            do_echoing("Module registered CS: SMS & Voice(CSFB)");
+            break;
+        case 6:
+        case 7:
+            do_echoing("Module registered CS: SMS only");
+            break;
+        default:
+            do_echoing("Switching to recovery procedure for CS");
+            recovery_procedure();
+    }
+}
+
+/* Get the value of +CESQ command.
+ */
+void get_cesq()
+{
+    resp = SENDAT("AT+CESQ", 3*standard_waiting_time, "OK");
+
+    if (FIND(resp, "+CESQ: ") != -1)
+        cesq = (resp.split("\r\nOK")[0]).split("+CESQ: ")[1];
+    else
+        cesq = "N.A.";
+}
+
+/* Check if the value of +CESQ, in the current RAT, has some parameters in bad conditions.
+   The RAT is obtained by the act parameter also when act is "N.A." (set to value 20 to use the switch/case structure).
+   If something is not correct, stops the script.
+
+ @return true if a parameter of +CESQ is in bad condition, otherwise false.
+*/
+bool is_cesq_in_bad_signal_condition(string act_value)
+{
+    if (cesq == "N.A.")
+    {
+        do_echoing("+CESQ N.A. in is_cesq_in_bad_signal_condition");
+        return true;
+    }
+    else
+    {
+        int act_num;
+        int signal_strenght;
+        int signal_quality;
+
+        if (act_value == "N.A.")
+            act_num = 20;
+        else
+            act_num = parseInt(act_value);
+
+        switch(act_num)
+        {
+            case 0:
+            case 3:
+                do_echoing("CESQ in 2G");
+                signal_strenght = parseInt(cesq.split(",")[0]);
+                signal_quality = parseInt(cesq.split(",")[1]);
+
+                if ((signal_strenght < max_bad_strenght_2G) || (signal_strenght == 99))
+                    return true;
+                else if (signal_quality > min_bad_quality_2G)
+                    return true;
+                else
+                    return false;
+            case 2:
+                do_echoing("CESQ in 3G");
+                signal_strenght = parseInt(cesq.split(",")[2]);
+                signal_quality = parseInt(cesq.split(",")[3]);
+
+                if ((signal_strenght < max_bad_strenght_3G) || (signal_strenght == 255))
+                    return true;
+                else if ((signal_quality < max_bad_quality_3G) || (signal_quality == 255))
+                    return true;
+                else
+                    return false;
+            case 7:
+                do_echoing("CESQ in 4G");
+                signal_strenght = parseInt(cesq.split(",")[5]);
+                signal_quality = parseInt(cesq.split(",")[4]);
+
+                if ((signal_strenght < max_bad_strenght_4G) || (signal_strenght == 255))
+                    return true;
+                else if ((signal_quality < max_bad_quality_4G) || (signal_quality == 255))
+                    return true;
+                else
+                    return false;
+            case 20:
+                do_echoing("<act> N.A. in is_cesq_in_bad_signal_condition; CESQ: "+resp);
+
+                act_value = "0";
+                if (is_cesq_in_bad_signal_condition(act_value))
+                {
+                    act_value = "2";
+                    if (is_cesq_in_bad_signal_condition(act_value))
+                    {
+                        act_value = "7";
+                        if (is_cesq_in_bad_signal_condition(act_value))
+                            return true;
+                        else
+                            return false;
+                    }
+                    else
+                        return false;
+                }
+                else
+                    return false;
+           default:
+                do_echoing("Error in is_cesq_in_bad_signal_condition");
+                STOP("is_cesq_in_bad_signal_condition ERROR");
+        }
+    }
+
+    return true;
+}
+
+/* Performs +COPS=0 command.
+ */
+void cops_0()
+{
+    SENDAT("AT+COPS=0", 10*standard_waiting_time, "OK");
+    PAUSE(2*standard_waiting_time);
+}
+
+/* Performs +CFUN=0/1 cycle, waiting the "pause_time" interval of time.
+
+@param pause_time (time of inteval in ms)
+ */
+void cfun_0_1_cycle(int pause_time)
+{
+    SENDAT("AT+CFUN=0", 10*standard_waiting_time, "OK");
+    PAUSE(pause_time);
+    SENDAT("AT+CFUN=1", 10*standard_waiting_time, "OK");
+}
+
+/* Check if the reject cause is persistent and requires a reboot of the module.
+   If something is not correct, stops the script.
+
+ @return true if the reject cause is persistent, otherwise false.
+*/
+bool check_reject_cause()
+{
+    if (command == "+CEREG")
+    {
+        resp = SENDAT("AT+CEREG?", standard_waiting_time, "OK");
+
+        if (FIND(resp, "+CEREG: ") != -1)
+        {
+            resp = resp.split("\r\nOK")[0];
+            resp = resp.split(",")[6];
+        }
+        else
+        {
+            do_echoing("ERROR; +CEREG: " + resp);
+            STOP("check_reject_cause ERROR");
+        }
+
+        int resp_num = parseInt(resp);
+        switch (resp_num)
+        {
+            case 3:
+            case 6:
+            case 7:
+            case 8:
+                return true;
+            default:
+                return false;
+        }
+    }
+    else if (command == "+CGREG")
+    {
+        resp = SENDAT("AT+CEER", standard_waiting_time, "OK");
+
+        if (FIND(resp, "+CEER: ") != -1)
+            resp = resp.split("\r\nOK")[0].split("+CEER: ")[1];
+        else
+        {
+            do_echoing("ERROR; +CEER: " + resp);
+            STOP("check_reject_cause ERROR");
+        }
+        
+        if (resp == "\"IMSI UNKNOWN IN HLR\"")
+            return true;
+        else if (resp ==  "\"ILLEGAL MS\"")
+            return true;
+        else if (resp ==  "\"ILLEGAL ME\"")
+            return true;
+        else if (resp ==  "\"GPRS SERVICES NOT ALLOWED\"")
+            return true;
+        else if (resp ==  "\"GPRS SERVICES AND NON-GPRS SERVICES NOT ALLOWED\"")
+            return true;
+        else
+            return false;
+    }
+    else
+    {
+        do_echoing("error: command");
+        STOP("check_reject_cause ERROR");
+    }
+
+    return true;
+}
+
+/* Executes the recovery procedure as reported in the CM for CS.
+   Change the entry point of the function "boot_sequence".
+   If something is not correct, stops the script.
+ */
+void recovery_procedure_cs()
+{
+int stat_num;
+bool bad_signal_or_no_mno_cs = true;
+
+    stat_num = parseInt(stat);
+
+    switch(stat_num)
+    {
+        case 0:
+        case 2:
+        case 8:
+            do_echoing("Stat = "+ stat + "; CS");
+
+            while (bad_signal_or_no_mno_cs)
+            {
+                get_cesq();
+                if (is_cesq_in_bad_signal_condition(act))
+                {
+                    first_time_MNO = true;
+
+                    if (first_time_bad_signal)
+                    {
+                        first_time_bad_signal = false;
+                        resp = SENDAT("AT+COPS=?", 180*standard_waiting_time, "OK");
+                        
+                        if (FIND(resp, "+COPS: ") != -1)
+                        {
+                            resp = (resp.split("\r\nOK")[0]).split("+COPS: (")[1];
+                            array<string> strArr = resp.split("),(");
+
+                            bool no_mno_cs = true;
+                            for (int i=0;i<(strArr.length()-1);i++)
+                            {
+                                if ((strArr[i].split(",")[0] == "1") || (strArr[i].split(",")[0] == "2"))
+                                {
+                                    no_mno_cs = false;
+                                    break;
+                                }
+                            }
+
+                            if (no_mno_cs)
+                            {
+                                PAUSE(10*standard_waiting_time);
+                                continue;
+                             }
+                            else
+                            {
+                                bad_signal_or_no_mno_cs = false;
+                                continue;
+                            }
+                        }
+                        else
+                        {
+                            PAUSE(10*standard_waiting_time);
+                            continue;
+                        }
+                    }
+                    else
+                    {
+                        PAUSE(10*standard_waiting_time);
+                        continue;
+                    }
+                }
+                else
+                    bad_signal_or_no_mno_cs = false;
+            }
+
+            first_time_bad_signal = true;
+                    
+            if (first_time_MNO)
+            {
+                first_time_MNO = false;
+                timer_min_funct = 5*standard_waiting_time;
+                cops_0();
+                entry_point = 2;
+            }
+            else
+            {
+                if (timer_min_funct < 100)
+                    timer_min_funct = timer_min_funct*2;
+
+                cfun_0_1_cycle(timer_min_funct);
+                entry_point = 2;
+            }
+            break;
+        case 3:
+            do_echoing("Stat = 3; CS");
+            cfun_0_1_cycle(2*standard_waiting_time);
+            entry_point = 2;
+            break;
+        case 4:
+            do_echoing("Stat = 4; CS");
+            entry_point = 2;
+            break;
+        default:
+            do_echoing("Error in recovery_procedure; CS");
+            STOP("recovery_procedure ERROR");
+    }
+}
+
+/* Executes the recovery procedure as reported in the CM for PS.
+   Change the entry point of the function "boot_sequence".
+   If something is not correct, stops the script.
+ */
+void recovery_procedure_ps()
+{
+int stat_num;
+bool bad_signal_or_no_mno_ps = true;
+
+    if (stat == "N.A.")
+        stat_num = 20;
+    else
+        stat_num = parseInt(stat);
+
+    switch(stat_num)
+    {
+        case 20:
+        case 0:
+        case 2:
+        case 8:
+            do_echoing("Stat = "+ stat + "; PS");
+
+            while (bad_signal_or_no_mno_ps)
+            {
+                get_cesq();
+                if (is_cesq_in_bad_signal_condition(act))
+                {
+                    first_time_MNO = true;
+
+                    if (first_time_bad_signal)
+                    {
+                        first_time_bad_signal = false;
+                        resp = SENDAT("AT+COPS=?", 180*standard_waiting_time, "OK");
+
+                        if (FIND(resp, "+COPS: ") != -1)
+                        {
+                            resp = (resp.split("\r\nOK")[0]).split("+COPS: (")[1];
+                            array<string> strArr = resp.split("),(");
+
+                            bool no_mno_ps = true;
+                            for (int i=0;i<(strArr.length()-1);i++)
+                            {
+                                if ((strArr[i].split(",")[0] == "1") || (strArr[i].split(",")[0] == "2"))
+                                {
+                                    no_mno_ps = false;
+                                    break;
+                                }
+                            }
+
+                            if (no_mno_ps)
+                            {
+                                PAUSE(10*standard_waiting_time);
+                                continue;
+                             }
+                            else
+                            {
+                                bad_signal_or_no_mno_ps = false;
+                                continue;
+                            }
+                        }
+                        else
+                        {
+                            PAUSE(10*standard_waiting_time);
+                            continue;
+                        }
+                    }
+                    else
+                    {
+                        PAUSE(10*standard_waiting_time);
+                        continue;
+                    }
+                }
+                else
+                    bad_signal_or_no_mno_ps = false;
+            }
+
+            first_time_bad_signal = true;
+                    
+            if (first_time_MNO)
+            {
+                first_time_MNO = false;
+                timer_min_funct = 5*standard_waiting_time;
+                cops_0();
+                entry_point = 2;
+            }
+            else
+            {
+                if (timer_min_funct < 100)
+                    timer_min_funct = timer_min_funct*2;
+
+                cfun_0_1_cycle(timer_min_funct);
+                entry_point = 2;
+            }
+            break;
+        case 3:
+            do_echoing("Stat = 3; PS");
+            if (check_reject_cause())
+            {
+                reboot_module();
+                entry_point = 0;
+            }
+            else
+            {
+                cfun_0_1_cycle(2*standard_waiting_time);
+                entry_point = 2;
+            }
+            break;
+        case 4:
+            do_echoing("Stat = 4; PS");
+            entry_point = 2;
+            break;
+        default:
+            do_echoing("Error in recovery_procedure; PS");
+            STOP("recovery_procedure ERROR");
+    }
+}
+
+/* Executes the recovery procedure as reported in the CM, both for CS and PS.
+   Change the entry point of the function "boot_sequence".
+   If something is not correct, stops the script.
+ */
+void recovery_procedure()
+{
+    if (command == "+CREG")
+    {
+        recovery_procedure_cs();
+    }
+    else
+    {
+        recovery_procedure_ps();
+    }
+}
+
+/* Boot sequence of the CM.
+   If something is not correct, stops the script.
+*/
+void boot_sequence()
+{
+    switch(entry_point)
+    {
+        case 0:
+            check_pin();
+            check_set_persistent_conf();
+            init_urcs();
+            entry_point = 2;
+        case 2:
+            obt_cops = check_cops();
+            act = act_from_cops();
+            stat = check_cxreg_from_cops_act();
+            
+            if ((stat == "1")||(stat == "5"))
+            {
+                do_echoing("Module registered PS");
+                first_time_MNO = true;
+
+                if (act != "7")
+                    enable_pdp_context();
+                else if (vzw_mno)
+                    enable_pdp_context();
+                    
+                if (req_cs_registration)
+                    cs_registration();
+
+                PAUSE(product_condition);
+            }
+            else
+            {
+                do_echoing("Switching to recovery procedure for PS");
+                recovery_procedure();
+            }
+            break;
+        default:
+            do_echoing("Error in boot_sequence");
+            STOP("boot_sequence ERROR");
+    }
+}
+
+/* Main function where m-center starts.
+   Executes the boot sequence in an infinite loop.
+ */
+void main()
+{
+    while (true)
+        boot_sequence();
+}
