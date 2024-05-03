@@ -4,6 +4,8 @@
 
 The latest version of m-center release can be downloaded from [here](https://www.u-blox.com/en/product/m-center).
 
+Visit the [Wiki page](https://github.com/u-blox/m-center/wiki) for further instuctions and details on the scripts use.
+
 ![m-center_Main_01](https://user-images.githubusercontent.com/6113690/194055231-b26950f1-14fb-48bf-b230-da8ef966e819.png)
 
 

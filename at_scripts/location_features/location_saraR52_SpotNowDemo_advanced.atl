@@ -1,0 +1,194 @@
+/*******************************************************************************
+*  Copyright (c) 2020 u-blox AG, Thalwil, Switzerland.
+*
+* Licensed under the Apache License, Version 2.0 (the "License");
+* you may not use this file except in compliance with the License.
+* You may obtain a copy of the License at
+*
+* http://www.apache.org/licenses/LICENSE-2.0
+*
+* Unless required by applicable law or agreed to in writing, software
+* distributed under the License is distributed on an "AS IS" BASIS,
+* WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+* See the License for the specific language governing permissions and
+* limitations under the License.
+******************************************************************************
+* Synopsis:     location_saraR52_SpotNowDemo_advanced.atl
+* Topic:        location_features
+* Version:      1.0
+* Author:       dtro
+* Description:
+*       This script has the purpose to demonstrate the use of SpotNow.
+*       The script send a SpotNow position request counter_spotnow times
+*       every pause_between_spotnow_request ms.
+*       The script needs a valid SpotNow ZTP set that can be set with the
+*       +UGLAASZTP AT command (info in UBX-22003096).
+*       To setup the EVK-R5 double UART please refer to the EVK user
+*       guide (UBX-19042592).
+*       In addition, the SpotNow tunneling is enabled in the AUX UART
+*       port to inspect the UBX strings provided by the sensor.
+*       The script configures the baudrate to 115200.
+*       m-center AT interface must be configured to 115200.
+******************************************************************************
+* Modules:      SARA-R520
+* Tested on:    SARA-R520
+******************************************************************************/
+
+// defined global variable
+string command, resp, resp1;
+
+int generic_timeout = 10000; //[ms]
+int spotnow_timeout = 30; //[s]
+int spotnow_accuracy = 10; //[m]
+int pause_between_spotnow_request = 3600000; //[ms]
+int counter_spotnow = 10;
+int max_number_retry_registration = 30; //max number of retry for registration
+int max_number_uuloc_urc = 10; //max number of received +UULOC
+
+string greeting_text = "Start!";
+
+string spotnow_command = "AT+ULOC=2,16,1," + spotnow_timeout + "," + spotnow_accuracy; //script created for mode and response_type 2
+
+
+void init()
+{
+    ECHO("*************************************************************************************************************");
+    ECHO("This script needs an internet connection and a valid SpotNow token");
+    ECHO("*************************************************************************************************************");
+
+    command = "AT&V";
+    resp = SENDAT(command, generic_timeout, "OK");
+
+    command = "AT+CSGT?";
+    resp = resp + SENDAT(command, generic_timeout, "OK");
+
+    if (FIND(resp, "IPR:" + baudrate) == -1 || resp.findFirst(greeting_text) == -1) {
+
+        command = "AT+CSGT=1,\""+ greeting_text + "\"";
+        resp = SENDAT(command, generic_timeout, "OK");
+
+        command = "AT+IPR=115200";
+        resp = SENDAT(command, generic_timeout, "OK");
+
+        command = "AT&W";
+        resp = SENDAT(command, generic_timeout, "OK");
+
+        command = "AT+CFUN=16";
+        resp = SENDAT(command, generic_timeout, "OK");
+        
+        resp = WAIT(greeting_text, generic_timeout * 10);
+        PAUSE(500);
+    }
+
+    command = "AT+USIO?";
+    resp = SENDAT(command, generic_timeout, "OK");
+
+    command = "AT+UGPRF?";
+    resp = resp + SENDAT(command, generic_timeout, "OK");
+
+    if (FIND(resp, "4,*4") == -1 || resp.findFirst("+UGPRF: 1") == -1) {
+
+        command = "AT+USIO=4";
+        resp = SENDAT(command, generic_timeout, "OK");
+
+        command = "AT+UGPRF=1";
+        resp = SENDAT(command, generic_timeout, "OK");
+
+        command = "AT+CFUN=16";
+        resp = SENDAT(command, generic_timeout, "OK");
+        
+        resp = WAIT(greeting_text, generic_timeout * 10);
+        PAUSE(500);
+    }
+
+    // enable LOC URCs
+    command = "AT+ULOCIND=1";
+    resp = SENDAT(command, generic_timeout, "OK");
+
+    // enable network URCs
+    command = "AT+CEREG=2;+CREG=2;+CGREG=2;+CSCON=1;+CGEREP=2,1;+CMEE=2";
+    resp = SENDAT(command, generic_timeout, "OK");
+}
+
+
+void wait_for_registration_polling(void)
+{
+    string command, command_creg, command_cereg, command_cgreg, resp;
+    ECHO("Waiting for registration");
+    
+    int counter_cycle = 0;
+    bool registered = false;
+    command_cereg = "AT+CEREG?";
+    command_cgreg = "AT+CGREG?";
+    
+    while (!registered) {
+        string status;
+        int stat;
+
+        resp = SENDAT(command_cereg, generic_timeout, "OK");
+        status = resp.split(": ")[1];
+        status = status.split("\r\nOK")[0];
+        stat = parseInt(status.split(",")[1]);
+        
+        if (stat == 1 || stat == 5) {
+            registered = true;
+            ECHO("*************************************************************************************************************");
+            ECHO("Registered in PS domain");
+            ECHO("*************************************************************************************************************");
+            break;
+        }
+
+        resp = SENDAT(command_cgreg, generic_timeout, "OK");
+        status = resp.split(": ")[1];
+        status = status.split("\r\nOK")[0];
+        stat = parseInt(status.split(",")[1]);
+        
+        if (stat == 1 || stat == 5) {
+            registered = true;
+            ECHO("*************************************************************************************************************");
+            ECHO("Registered in PS domain");
+            ECHO("*************************************************************************************************************");
+            break;
+        }
+
+        if (counter_cycle < max_number_retry_registration) {
+            counter_cycle++;
+        } else {
+            ECHO("*************************************************************************************************************");
+            ECHO("Registration status to be checked, stopping the script...");
+            STOP("*************************************************************************************************************");
+        }
+
+        PAUSE(5000);
+    }
+}
+
+
+void main()
+{
+    ECHO("*************************************************************************************************************");
+    ECHO("REMEMBER TO HAVE ALREADY SET THE ZTP SERVICE with +UGLAASZTP AT command!");
+    ECHO("*************************************************************************************************************");
+    init();
+
+    for (int i = 0; i < counter_spotnow; i++) {
+        wait_for_registration_polling();
+        command = spotnow_command;
+        resp = SENDAT(command, generic_timeout, "OK");
+
+        bool uuloc_found = false;
+        int counter = 0;
+        //worst case scenario
+        while (!uuloc_found && counter < max_number_uuloc_urc) {
+            resp = WAIT("+UULOC", spotnow_timeout * 1000);
+            if (FIND(resp, "+UULOC: ") != -1) {
+                uuloc_found = true;
+                ECHO("*************************************************************************************************************");
+                ECHO("ULOC position received!");
+                ECHO("*************************************************************************************************************");
+            }
+            counter++;
+        }
+        PAUSE(pause_between_spotnow_request);
+    }
+}
