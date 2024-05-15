@@ -1,0 +1,555 @@
+/*******************************************************************************
+*  Copyright (c) 2020 u-blox AG, Thalwil, Switzerland.
+*
+* Licensed under the Apache License, Version 2.0 (the "License");
+* you may not use this file except in compliance with the License.
+* You may obtain a copy of the License at
+*
+* http://www.apache.org/licenses/LICENSE-2.0
+*
+* Unless required by applicable law or agreed to in writing, software
+* distributed under the License is distributed on an "AS IS" BASIS,
+* WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+* See the License for the specific language governing permissions and
+* limitations under the License.
+******************************************************************************
+* Synopsis:     ipApp_laraR6_saraR422_moving_cel_scan.atl
+* Topic:        internet_application
+* Version:      0.2
+* Author:       dtro, asci
+* Description:
+*       This script collects all the cells visible from the module.
+*       If the test is performed in movement, the script allert when test
+*       will be performed to stop the car.
+*       If LARA-R6 is used, there is the necessary to connect the GNSS ADP
+*       on the cellular EVB.
+*       Output format: $SQCS_<SUCCESS/FAILURE>_<TIME>_<MODULE>_<GNSS_FIX>_
+*       <NEIGHBOR_CELLS>.
+******************************************************************************
+* Modules:      SARA-R422M10S, LARA-R6
+* Tested on:    SARA-R422M10S, LARA-R6
+******************************************************************************/
+
+//****************************************************************************/
+//--------- CONFIGURABLE PARAMETERS NEEDED FOR THE DRIVE TEST ----------------/
+//****************************************************************************/
+
+// modem type with case
+// 1 - M1 for SARA-R422M10S
+// 2 - 2G for SARA-R422M10S
+// 4 - CAT1 for LARA-R6
+int modem_type = 4;
+
+// distance in which the user can move without returning in an invalid scan
+float number_distance_valid = 0.000050;
+
+// APN for initial default bearer
+string apn_initial_def_bearer = "";
+//****************************************************************************/
+
+datetime valDateTime;
+string command, resp, module;
+
+// used object for file
+file f;
+
+// GNSS iteration cycles
+int iteration_number = 20000;
+int aiding_type = 0;
+int gnss_system = 67;
+int standard_waiting_time = 2000;
+
+// max number of retry for registration
+int max_number_retry_registration = 500;
+
+// timer for updating GNSS
+int time_update_gnss = 2000;
+
+// pause in finding a fix
+int pause_find_fix = 1000;
+
+string gnss_command ="AT+UGPS=1," + aiding_type + "," + gnss_system;
+string deep_cell_scan_command = "AT+UCFSCAN=";
+string urat_set_R422 = "7,8,9";
+string urat_set_R6 = "3,2,0";
+
+string output_file = "CEL_full_scan_comparison_" + valDateTime.get_hour() +"mtype" + modem_type + ".txt";
+string gui_text_2_show = "Press \"OK\" or \"Cancel\" when in static condition!";
+
+
+/* Initilize the modem and set the command to use for the cell scan.
+*/
+void modem_initialization (void)
+{
+    SENDAT("AT", 200, "OK");
+    PAUSE(1000);
+    
+    module = SENDAT("ATI0", standard_waiting_time, "OK");
+    module = module.split("\r\nOK")[0];
+    if ((FIND(module, "SARA") == -1) && (modem_type == 1 || modem_type == 2)) {
+        ECHO("*************************************************************************************************************");
+        ECHO("Error in modem initialization");
+        STOP("*************************************************************************************************************");
+    } else if ((FIND(module, "LARA") == -1) && (modem_type == 4)) {
+        ECHO("*************************************************************************************************************");
+        ECHO("Error in modem initialization");
+        STOP("*************************************************************************************************************");
+    }
+
+    SENDAT("ATI9", standard_waiting_time, "OK");
+
+    SENDAT("ATE0", 2*standard_waiting_time, "OK");
+
+    if (modem_type == 1 || modem_type == 2){
+        handle_rat(urat_set_R422);
+    } else if (modem_type == 4) {
+        handle_rat(urat_set_R6);
+    }
+
+    SENDAT("AT+COPS=0,0", 150*standard_waiting_time, "OK");
+    command = "AT+CEREG=3;+CREG=2;+CGREG=2;+CSCON=1;+CGEREP=2,1;+CMEE=2";
+    SENDAT(command, 2*standard_waiting_time, "OK");
+    PAUSE(1000);
+    command = "AT+CGDCONT=1,\"IP\",\"" + apn_initial_def_bearer + "\"";
+    SENDAT(command, standard_waiting_time, "OK");
+    SENDAT("AT+CFUN=1", 90*standard_waiting_time, "OK");
+
+    if (modem_type == 1 || modem_type == 4) {
+        deep_cell_scan_command = deep_cell_scan_command + "7";
+    } else if (modem_type == 2) {
+        deep_cell_scan_command = deep_cell_scan_command + "0";
+    }
+
+    wait_for_registration_polling();
+}
+
+
+/* set the module RAT
+@param rat_id RAT to set
+*/
+void handle_rat(string rat_id) 
+{
+    SENDAT("AT+CFUN=0", 90*standard_waiting_time, "OK");
+    PAUSE(1000);
+    command = "AT+URAT=" + rat_id;
+    SENDAT(command, 10*standard_waiting_time, "OK");
+
+    ECHO("*************************************************************************************************************");
+    ECHO("RAT SETTING:" + rat_id);
+    ECHO("*************************************************************************************************************");
+}
+
+
+/* checks for registration and exits once registered
+*/
+void wait_for_registration_polling(void)
+{
+    ECHO("Check module registration");
+
+    int counter_cycle = 0;
+    bool registered = false;
+
+    while (!registered) {
+
+        resp = SENDAT("AT+COPS?", standard_waiting_time, "OK");
+
+        if (FIND(resp, "+COPS: 0,0,") != -1) {
+            registered = true;
+            break;
+        }
+
+        if (counter_cycle < max_number_retry_registration) {
+            counter_cycle++;
+        } else {
+            ECHO("*************************************************************************************************************");
+            ECHO("Registration status to be checked, stopping the script...");
+            STOP("*************************************************************************************************************");
+        }
+
+        PAUSE(2*standard_waiting_time);
+    }
+}
+
+
+/* Get a GNSS fix and converts from NMEA to normal format.
+@return latitude and longitude
+ */
+string return_latitude_longitude_from_nmea() 
+{
+    string nmea = get_a_fix();
+
+    try {
+        string timestamp = nmea.split(',')[2];
+        double nmea_a = parseFloat(nmea.split(',')[4]);
+        double nmea_n = parseFloat(nmea.split(',')[6]);
+
+        int first_term_N = nmea_a / 100;
+        double second_term_N = ((nmea_a/100 - first_term_N) * 10 )/ 6;
+        double coord_N = first_term_N + second_term_N;
+
+        int first_term_E = nmea_n / 100;
+        double second_term_E = ((nmea_n/100 - first_term_E) * 10 )/ 6;
+        double coord_E = first_term_E + second_term_E;
+
+        if (timestamp == "0" || timestamp == ""){
+            timestamp = "N.A.";
+        }
+        if (coord_N == 0 ){
+            return (timestamp + "_N.A.,N.A."); 
+        }
+
+        return (timestamp + "_" + coord_N + ":" + nmea.split(',')[5] + "," + coord_E + ":" + nmea.split(',')[7]); 
+    } catch {
+        ECHO("*************************************************************************************************************");
+        ECHO("BROKEN NMEA UGRMC response.");
+        ECHO("*************************************************************************************************************");
+        restart_script_initialization();
+        return "BROKEN NMEA UGRMC";
+    }
+}
+
+
+/* Reboots the module and waits for the first received reply to "AT".
+ */
+void reboot_module()
+{
+    SENDAT("AT+CFUN=16", 90*standard_waiting_time, "OK");
+    PAUSE(200);
+    bool module_is_off = true;
+    while (module_is_off)
+    {
+        resp = SENDAT("AT", 200, "OK");
+        if (FIND(resp, "OK") != -1) {
+            module_is_off = false;
+        }
+    }
+}
+
+
+/* Restarts the script due to a broken NMEA UGRMC.
+ */
+void restart_script_initialization()
+{
+    reboot_module();
+    modem_initialization();
+    start_gnss();
+    obtain_first_fix();
+}
+
+
+/* Write to output file a string.
+@param str_to_write
+ */
+void write_to_file(string str_to_write)
+{
+    if( f.open(output_file, "a") >= 0 ) 
+    {
+        f.writeString(str_to_write + "\n");
+        f.close();
+    } else {
+        ECHO("*************************************************************************************************************");
+        ECHO("UNABLE TO OPEN FILE!");
+        STOP("*************************************************************************************************************");
+    }
+}
+
+
+/* Show the DIAG for the cell scan
+ */
+void show_diag_4_cell_scan()
+{
+    UI_INPUT(gui_text_2_show);
+}
+
+
+/* Scan and get all the cells
+@return cell in the correct format
+ */
+string get_all_cells()
+{
+    string all_cells = "";
+    string return_cells;
+    int number_cell;
+
+    array<string> cells;
+
+    if ((modem_type == 1) || (modem_type == 2) || (modem_type == 4))
+    {
+        resp = SENDAT(deep_cell_scan_command, 100*standard_waiting_time, "OK");
+        all_cells = all_cells + resp.split("\r\nOK")[0];
+        if ((FIND(all_cells, "+UCFSCAN: " + deep_cell_scan_command.split("=")[1] + ",")!=-1))
+        {
+            try
+            {
+                number_cell = (resp.split(":")).length() - 1;
+                ECHO("Number of neighbor cells: " + number_cell);
+
+                for (int i = 0; i < number_cell - 1; i++)
+                {
+                    cells.insertLast(all_cells.split(": ")[i+1].split("\r\n")[0]);
+                }
+            }
+            catch
+            {
+                ECHO("*************************************************************************************************************");
+                ECHO("Jumped one neighbor cell scan iteration.");
+                ECHO("*************************************************************************************************************");
+            }
+        }
+        else
+        {
+            ECHO("*************************************************************************************************************");
+            ECHO("No one cell present.");
+            ECHO("*************************************************************************************************************");
+            
+            return_cells = "0_[[]]";
+        }
+    }
+    else
+    {
+        ECHO("*************************************************************************************************************");
+        ECHO("Invalid modem type. Stopping.");
+        STOP("*************************************************************************************************************");
+    }
+
+    // We are returning the number_cell and other cells details if present.
+    return_cells = number_cell + "_[";
+
+    for (int i = 0; i < cells.length(); i++)
+    {
+        return_cells = return_cells + "[" + cells[i] + "]";
+    }
+
+    return_cells = return_cells + "]";
+
+    return return_cells;
+}
+
+
+/* Get timestamp seconds
+@return current time in seconds
+ */
+int get_s_time()
+{
+    datetime valDateTime;
+    int val_time_hours = valDateTime.get_hour();
+    int val_time_minutes = valDateTime.get_minute();
+    int val_time_seconds = valDateTime.get_second();
+
+    return (val_time_hours * 3600) + (val_time_minutes * 60) + val_time_seconds;
+}
+
+
+/* Delete a file
+@param file_name to delete
+ */
+void delete_file(string file_name)
+{
+    resp = SENDAT("AT+ULSTFILE=0", 2*standard_waiting_time, "OK");
+
+    if (FIND(resp, file_name) != -1) {
+        command = "AT+UDELFILE=\"" + file_name + "\"";
+        SENDAT(command, 2*standard_waiting_time, "OK");
+    }
+}
+
+
+/* Calculates the if the user has moved too much
+@param initial_pos
+@param final_pos
+@return if coordinates are inside the number_distance_valid bound
+ */
+bool are_points_in_bound(string initial_pos, string final_pos)
+{
+    if (FIND(initial_pos, "N.A.") != -1 or FIND(final_pos, "N.A.") != -1) {
+        return false;
+    } else {
+        string [] temp = initial_pos.split(':');
+        float lat1 = parseFloat(temp[0].split('_')[1]);
+        float lon1 = parseFloat(temp[1].split(',')[1]);
+
+        temp = final_pos.split(':');
+        float lat2 = parseFloat(temp[0].split('_')[1]);
+        float lon2 = parseFloat(temp[1].split(',')[1]);
+
+        float e_distance = ((lat1 - lat2) * (lat1 - lat2)) + ((lon1 - lon2) * (lon1 - lon2));
+        ECHO("e_distance: " + e_distance);
+
+        if (e_distance > number_distance_valid) {
+            return false;
+        } else {
+            return true;
+        }
+    }
+}
+
+
+
+/* Write inside a file
+@param file_name to write in
+@param file_content what to write
+ */
+void write_file(string file_name, string file_content)
+{
+    command = "AT+UDWNFILE=\"" + file_name + "\"" + "," + file_content.length();
+    SENDAT(command, standard_waiting_time, ">");
+    resp = SENDTEXT(file_content); 
+    if (FIND(resp,"ERROR") != -1){
+        ECHO("*************************************************************************************************************");
+        ECHO("ERROR in writing a file.");
+        STOP("*************************************************************************************************************");
+    }
+    PAUSE(2000);
+}
+
+
+/* Get cell info and write them to a file
+goal is to:
+-get the initial position
+-show dialog to allert the user
+-perform deep cell scan
+-check the final position with initial position
+-write down obtained info
+ */
+void get_info()
+{
+    for (int i = 0; i < iteration_number; i++) {
+        
+        string final_result, initial_pos, final_pos;
+
+        show_diag_4_cell_scan();
+
+        // format 075438.00_45.5936:N,12.2055:E
+        initial_pos = return_latitude_longitude_from_nmea();
+        
+        int initial_time = get_s_time();
+
+        string all_local_cells = get_all_cells();
+        int spent_time = get_s_time() - initial_time;
+
+        final_pos = return_latitude_longitude_from_nmea();
+
+        bool is_in_bound = are_points_in_bound(initial_pos, final_pos);
+
+        if (is_in_bound) {
+            final_result = "SUCCESS";
+        } else {
+            final_result = "FAILURE";
+        }
+
+        string info =  "$SQCS" + "_" + final_result + "_" + spent_time + "_" + module + "_" + final_pos + "_" + all_local_cells;
+
+        ECHO(info);
+        write_to_file(info);
+
+        PAUSE(time_update_gnss);
+    }
+}
+
+
+/* Get a GNSS fix
+@return full UGRMC reply
+ */
+string get_a_fix()
+{
+    resp = SENDAT("AT+UGRMC?", 15*standard_waiting_time, "OK");
+    if (FIND(resp, "+UGRMC:") != -1){
+        return resp.split("+UGRMC:")[1];
+    } else {
+        return "N.A.";
+    }
+}
+
+/* map the i2c in case of not a combo GNSS CEL modem
+ */
+void map_i2c()
+{
+    resp = SENDAT("AT+UGPIOC?", 15*standard_waiting_time, "OK");
+    if (FIND(resp, "23,3") == -1 && FIND(resp, "24,4") == -1){
+        SENDAT("AT+UGPIOC=23,3", standard_waiting_time, "OK");
+        SENDAT("AT+UGPIOC=24,4", standard_waiting_time, "OK");
+    }
+}
+
+
+/* Set and start the GNSS
+ */
+void start_gnss()
+{
+    if (modem_type == 4) {
+        map_i2c();
+    }
+    SENDAT("AT+UGIND=1", standard_waiting_time, "OK");
+    SENDAT("AT+UGRMC=1", standard_waiting_time, "OK");
+    SENDAT("AT+ULOCIND=1", standard_waiting_time, "OK");
+
+    ECHO("*************************************************************************************************************");
+    ECHO("STARTING GNSS");
+    ECHO("*************************************************************************************************************");
+
+    SENDAT(gnss_command, 6*standard_waiting_time, "OK");
+    PAUSE(2000);
+}
+
+
+/* Obtain the first valid GNSS fix
+ */
+void obtain_first_fix()
+{
+    bool do_loop = true;
+    int counter = 0;
+    string parse_a;
+
+    while (do_loop) {
+        try {
+            resp = get_a_fix();
+            PAUSE(pause_find_fix);
+            counter = counter + pause_find_fix;
+            parse_a = resp.split(',')[3];
+            if (FIND(parse_a, "A") != -1) {
+                ECHO("*************************************************************************************************************");
+                ECHO("FOUND FIX, taken time: " + counter);
+                ECHO("*************************************************************************************************************");
+                do_loop = false;
+            }
+        } catch {
+            ECHO("*************************************************************************************************************");
+            ECHO("Malformed UGRMC string received.");
+            ECHO("*************************************************************************************************************");
+        }
+    }
+}
+
+
+/* main function
+ */
+void main()
+{
+    ECHO("*************************************************************************************************************");
+    ECHO("REMEMBER TO CONFIGURE: the module type used for this execution.");
+    ECHO("*************************************************************************************************************");
+    ECHO("");
+    ECHO("");
+    ECHO("*************************************************************************************************************");
+    ECHO("REMEMBER TO CONFIGURE: the correct APN address to be used for this execution.");
+    ECHO("*************************************************************************************************************");
+
+    modem_initialization();
+    start_gnss();
+    obtain_first_fix();
+
+    get_info();
+
+    ECHO("*************************************************************************************************************");
+    ECHO("TURNING OFF THE GPS");
+    ECHO("*************************************************************************************************************");
+
+    SENDAT("AT+UGPS=0", 10*standard_waiting_time, "OK");
+    PAUSE(1000);
+
+    ECHO("*************************************************************************************************************");
+    ECHO("POWERING OFF");
+    ECHO("*************************************************************************************************************");
+
+    SENDAT("AT+CPWROFF", 10*standard_waiting_time,  "OK");
+}

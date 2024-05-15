@@ -18,11 +18,15 @@
 * Version:      1.0
 * Author:       bkha, asci
 * Description:
-*       This script has the purpose to test the SMS behavior with proper connected
-*       SIM and antenna.
+*       This script has the purpose to test the SMS behavior in TEXT mode 
+*       with proper connected SIM and antenna. 
+*       The script first sends a new TEXT message and display all the messages
+*       in TEXT mode. After that it reads and deletes the first message
+*       (number #0) in the list. The operations is repeated a number of times
+*       equal to the parameter "loop-count".
 ******************************************************************************
 * Modules:      All Products
-* Tested on:    LARA-R2, LARA-R6
+* Tested on:    LARA-R2, LARA-R6, LEXI-R10
 ******************************************************************************/
 
 
@@ -40,7 +44,7 @@ void SMS_sending(int i){
     // setting text mode
     SendAtCommand("AT+CMGF=1", 100, "OK");
     // set the number to which sms should be sent
-    string phone_number_cmd = "AT+CMGS=\"" + phone_number + "\"";
+    string phone_number_cmd = "AT+CMGW=\"" + phone_number + "\"";
     SendAtCommand(phone_number_cmd ,1000, ">");
     // reset the string
     string body = sms_body;
