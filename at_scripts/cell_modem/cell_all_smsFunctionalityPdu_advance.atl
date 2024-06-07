@@ -20,10 +20,11 @@
 * Description:
 *       This script has the purpose to test the SMS behavior in PDU mode 
 *       with set character GSM 7-bit and proper connected SIM and antenna.
-*       The script first reads and deletes the first message (number #0) in the
-*       list. After that it sends a new PDU message and display all the
-*       messages in PDU mode. The operations is repeated a number of times
-*       equal to the parameter "loop-count".
+*       The script first reads and deletes the first message (number #0) in 
+*       the list. After that, it stores a new PDU message on the module, 
+*       displaies all the messages in PDU mode and sends the new PDU message. 
+*       The operations is repeated a number of times equal to the parameter
+*       "loop-count".
 ******************************************************************************
 * Modules:      All Products
 * Tested on:    LARA-R6, LEXI-R10 
@@ -32,9 +33,9 @@
 
 //----configuration settings------//
 
-string sms_PDU_body = "039121430100038166F6000004E374F80D";
-int lenght_sms = 13;
-int loop_count = 50;
+string sms_PDU_body = "039121430100038166F6000004E374F80D";  // Set the PDU message;
+int lenght_sms = 13;                                         // Set the PDU's length in octets without the Service Center's address;
+int loop_count = 50;                                         // Set the number of sms messages to send;
 
 //--------------------------------//
 
@@ -42,29 +43,30 @@ int loop_count = 50;
 void SMS_sending()
 {
     // setting PDU mode
-    SendAtCommand("AT+CMGF=0", 100, "OK");
+    SENDAT("AT+CMGF=0", 100, "OK");
     // set the number of bytes of the PDU message without the phone number
     string lenght_sms_cmd  ="AT+CMGW=" + lenght_sms;
-    SendAtCommand(lenght_sms_cmd, 1000, ">");
+    SENDAT(lenght_sms_cmd, 1000, ">");
     // reset the string
     string body = sms_PDU_body;
     body = body + 1;
     body[body.length() - 1] = 26;
     // set the body of PDU message.
-    SendAtCommand(body, 180000, "OK");
+    SENDAT(body, 180000, "OK");
 }
 
 // sms deleting
 void SMS_reading_and_deleting()
 {
-    SendAtCommand("AT+CMGR=0", 1000, "OK");
-    SendAtCommand("AT+CMGD=0", 1000, "OK");
+    SENDAT("AT+CMGR=0", 1000, "OK");
+    SENDAT("AT+CMGD=0", 1000, "OK");
 }
 
 // display all messages
 void SMS_display_all_messages()
 {
-    SendAtCommand("AT+CMGL=4", 1000, "OK");
+    SENDAT("AT+CMGL=4", 1000, "OK");
+    SENDAT("AT+CMSS=0", 2000, "OK");
 }
 
 void main()
@@ -75,7 +77,7 @@ void main()
     ECHO("*************************************************************************************************************");
     // set character set GSM 7-bit default alphabet
     string gsm = "GSM";
-    SendAtCommand("AT+CSCS=\"" + gsm + "\"", 1000, "OK");
+    SENDAT("AT+CSCS=\"" + gsm + "\"", 1000, "OK");
 
     for (int i = 0; i < loop_count; i++)
     {
