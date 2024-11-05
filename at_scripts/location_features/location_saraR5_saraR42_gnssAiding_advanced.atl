@@ -24,8 +24,8 @@
 *       greeting text can be activated using the command AT+CSGT=1,"Start!"
 *       and using a fixed baud rate. 
 ******************************************************************************
-* Modules:      SARA-R510M8S, SARA-R422M8S
-* Tested on:    SARA-R510M8S, SARA-R422M8S
+* Modules:      SARA-R510M8S, SARA-R422M8S, SARA-R520M10
+* Tested on:    SARA-R510M8S, SARA-R422M8S, SARA-R520M10
 ******************************************************************************/
 
 // iteration cycles
@@ -34,8 +34,9 @@ int max_iteration = 200;
 // modem type
 // 0 - SARA-R510M8S
 // 1 - SARA-R422M8S
+// 2 - SARA-R520M10S
 
-int modem_type = 0;
+int modem_type = 2;
 
 // aiding type to be configured, values allowed are:
 // • 0 (default value): no aiding
@@ -147,16 +148,27 @@ void wait_for_registration()
         }
     }
 
-    command = "AT+CGACT=1,1";
-    resp = SENDAT(command, 10000, "OK");
-    if (modem_type == 0)
+    if (modem_type != 2)
     {
         command = "AT+UPSD=0,0,0";
         resp = SENDAT(command, 10000, "OK");
         command = "AT+UPSD=0,100,1";
         resp = SENDAT(command, 10000, "OK");
-        command = "AT+UPSDA=0,3";
-        resp = SENDAT(command, 10000, "OK");
+
+        if (0 == modem_type)
+        {
+            command = "AT+UPSDA=0,3";
+            resp = SENDAT(command, 10000, "OK");
+        }
+        else if (1 == modem_type)
+        {
+            command = "AT+CGACT=1,1";
+            resp = SENDAT(command, 10000, "OK");
+        }
+        else
+        {
+            STOP("ERROR: modem_type is not existing");
+        }
     }
 }
 
@@ -168,6 +180,7 @@ void main()
     ECHO("*************************************************************************************************************");
     ECHO("This script needs 'Start!' greeting message active on boot");
     ECHO("The greeting text can be actived using the command +CSGT=1,\"Start!\" and using a fixed baud rate (+IPR)");
+    ECHO("On SARA-R5 you need also to store the data on the active profile (AT&W)");
     ECHO("");
     ECHO("");
     ECHO("*************************************************************************************************************");

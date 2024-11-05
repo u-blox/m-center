@@ -27,13 +27,13 @@
 *
 *       The wake-up and publish script choices are:
 *       Steps: Turn On, Connect, Publish message, wait for ACK, Pwr_off
-*       powerMng_saraR5_lpwa_wake_up_and_publish_QoS1_pwr_off_advanced.atl
+*       powerMng_saraR5_lpwa_wake_up_and_publish_QoS1Pwr_off_advanced.atl
 *           or
 *       Steps: Turn on, Publish message, Pwr_off
-*       powerMng_saraR5_lpwa_wake_up_and_publish_QoS-1_pwr_off_advanced.atl
+*       powerMng_saraR5_lpwa_wake_up_and_publish_QoS-1Pwr_off_advanced.atl
 ******************************************************************************
-* Modules:      SARA-R510-01B
-* Tested on:    SARA-R510-01B
+* Modules:      SARA-R5
+* Tested on:    SARA-R510-01B, SARA-R52
 ******************************************************************************/
 
 AT+CGMI

@@ -23,7 +23,7 @@
 *               the results easy to parse.
 ******************************************************************************
 * Modules:      SARA-R5, SARA-R42, LARA-R6
-* Tested on:    SARA-R5, SARA-R42, LARA-R6
+* Tested on:    SARA-R50_R51, SARA-R42, LARA-R6, SARA-R52
 ******************************************************************************/
 
 
@@ -31,17 +31,19 @@
 int iteration_number = 1000;
 
 // modem type
-// 0 - SARA-R5
+// 0 - SARA-R50_R51
 //      if chosen, the script encapsuletes and returns the +CESQ and the +UCELLINFO AT command reply
 // 1 - SARA-R42
-//      if chosen, the script encapsuletes and returns the +CESQ AT command reply
+//      if chosen, the script encapsuletes and returns the +CESQ and the +UCFSCAN AT command reply
 // 2 - LARA-R6
 //      if chosen, the script encapsuletes and returns the +CESQ AT command reply
-int modem_type = 2;
+// 3 - SARA-R52
+//      if chosen, the script encapsuletes and returns the +CESQ and the +UCELLINFO AT command reply
+int modem_type = 3;
 
 // flag for the multirat module
-// true: if the used module is a multirat module
-// false: if the used module is not a multirat module
+// true: if the used module is a multirat module (SARA-R422, LARA-R60xx, LARA-R60xxD, LARA-R68xx (except R6824), LARA-R68xxD (except R6824D))
+// false: if the used module is not a multirat module (SARA-R5, LARA-R64xx, LARA-R64xxD, LARA-R6824, LARA-R6824D)
 bool multi_rat_module = true;
 
 // flag for the combo module (i.e. availability of an internal GNSS receiver)
@@ -76,10 +78,17 @@ int umnoprof_set = 90;
 int max_number_retry_registration = 30;
 
 // RAT to set
+// Possible values are:
+// LARA-R64xx, LARA-R64xxD, LARA-R6824, LARA-R6824D - 3
+// LARA-R60xx, LARA-R60xxD, LARA-R68xx (except R6824), LARA-R68xxD (except R6824D) - 0, 2, 3
+// SARA-R422 - 7, 8, 9
+// SARA-R500E - 7
+// SARA-R5xx (except R500E) - 7, 8
 int urat_set = 3;
 
 // APN for initial default bearer
-string apn_initial_def_bearer = "ibox.tim.it";
+string apn_initial_def_bearer = "<insert_APN_here>";
+
 
 // timer for updating GNSS
 int time_update_gnss = 10000;
@@ -167,9 +176,6 @@ void modem_initialization (void)
     PAUSE(200);
 
     if (FIND(resp,  apn_initial_def_bearer) == -1){
-        command = "AT+CFUN=4";
-        resp = SENDAT(command, 200,"OK");
-        PAUSE(1000);
         command = "AT+CGDCONT=1,\"IP\",\"" + apn_initial_def_bearer + "\"";
         resp = SENDAT(command, 200, "OK");
         PAUSE(1000);
@@ -183,7 +189,7 @@ void modem_initialization (void)
 
 void wait_for_registration_urc(void)
 {
-    string command, resp;
+    string command, resp, rat;
     ECHO("Waiting for registration");
     
     int counter_cycle = 0;
@@ -215,24 +221,46 @@ void wait_for_registration_urc(void)
         }
     }
 
-    command = "AT+CGACT=1,1";
-    resp = SENDAT(command, 10000, "OK");
-
-    if (modem_type == 0 || modem_type == 1) {
+    if (0 == modem_type || 1 == modem_type)
+    {
         command = "AT+UPSD=0,0,0";
         resp = SENDAT(command, 10000, "OK");
         command = "AT+UPSD=0,100,1";
         resp = SENDAT(command, 10000, "OK");
+
+        if (0 == modem_type)
+        {
+            command = "AT+UPSDA=0,3";
+            resp = SENDAT(command, 10000, "OK");
+        }
+        else if (1 == modem_type)
+        {
+            command = "AT+CGACT=1,1";
+            resp = SENDAT(command, 10000, "OK");
+        }
     }
-    if (modem_type == 0) {
-        command = "AT+UPSDA=0,3";
-        resp = SENDAT(command, 10000, "OK");
+    else if (2 == modem_type )
+    {
+        resp = SENDAT("AT+COPS?", 2000, 'OK');
+        rat = resp.split(',')[3].split('\r')[0];
+
+        if (rat != "7")
+        { 
+            if (SENDAT("AT+CGACT=1,1",5000,"OK") != "OK")
+            {
+                STOP("ERROR: unable to activate context");
+            }
+        }
+    }
+    else if (modem_type != 3)
+    {
+        STOP("ERROR: modem_type is not existing");
     }
 }
 
 void wait_for_registration_polling(void)
 {
-    string command, command_creg, command_cereg, command_cgreg, resp;
+    string command, command_creg, command_cereg, command_cgreg, resp, rat;
     ECHO("Waiting for registration");
     
     int counter_cycle = 0;
@@ -300,18 +328,40 @@ void wait_for_registration_polling(void)
         PAUSE(5000);
     }
 
-    command = "AT+CGACT=1,1";
-    resp = SENDAT(command, 10000, "OK");
-
-    if (modem_type == 0 || modem_type == 1) {
+    if (0 == modem_type || 1 == modem_type)
+    {
         command = "AT+UPSD=0,0,0";
         resp = SENDAT(command, 10000, "OK");
         command = "AT+UPSD=0,100,1";
         resp = SENDAT(command, 10000, "OK");
+
+        if (0 == modem_type)
+        {
+            command = "AT+UPSDA=0,3";
+            resp = SENDAT(command, 10000, "OK");
+        }
+        else if (1 == modem_type)
+        {
+            command = "AT+CGACT=1,1";
+            resp = SENDAT(command, 10000, "OK");
+        }
     }
-    if (modem_type == 0) {
-        command = "AT+UPSDA=0,3";
-        resp = SENDAT(command, 10000, "OK");
+    else if (2 == modem_type )
+    {
+        resp = SENDAT("AT+COPS?", 2000, 'OK');
+        rat = resp.split(',')[3].split('\r')[0];
+
+        if (rat != "7")
+        { 
+            if (SENDAT("AT+CGACT=1,1",5000,"OK") != "OK")
+            {
+                STOP("ERROR: unable to activate context");
+            }
+        }
+    }
+    else if (modem_type != 3)
+    {
+        STOP("ERROR: modem_type is not existing");
     }
 }
 
@@ -500,14 +550,28 @@ void get_info()
         }
 
         array<string> cell_info;
-        if (modem_type == 0) {
+        if (modem_type == 0 || modem_type == 3) {
             cell_info = get_ucellinfo();
         }
         if (modem_type == 1) {
-            if (urat_set == 8) {
+            if (urat_set == 9) {// 2G
+                cell_info = get_ucfscan(0);
+            }
+            if (urat_set == 7) {// Cat-M1
+                cell_info = get_ucfscan(7);
+            }
+            if (urat_set == 8) {// NB-IoT
                 cell_info = get_ucfscan(9);
             }
-            if (urat_set == 7) {
+        }
+        if (modem_type == 2) {
+            if (urat_set == 0) {// 2G
+                cell_info = get_ucfscan(0);
+            }
+            if (urat_set == 2) {// 3G
+                cell_info = get_ucfscan(2);
+            }
+            if (urat_set == 3) {// LTE
                 cell_info = get_ucfscan(7);
             }
         }
@@ -515,35 +579,20 @@ void get_info()
         string info = pos + ","+ get_cesq();
 
         string creg_info, cereg_info, cgreg_info;
-        if (urat_set == 8) {
-            creg_info = get_creg();
-            cereg_info = get_cereg();
-        }
-        if (urat_set == 3) {
-            creg_info = get_creg();
-            cereg_info = get_cereg();
-            cgreg_info = get_cgreg();
-        }
+        creg_info = get_creg();
+        cereg_info = get_cereg();
+        cgreg_info = get_cgreg();
 
         // start to plot info
         ECHO(parse_start);
         ECHO(parsing_string + info);
 
-        if (urat_set == 8) {
-            ECHO(parsing_string + creg_info);
-            ECHO(parsing_string + cereg_info);
-        }
-        if (urat_set == 3) {
-            ECHO(parsing_string + creg_info);
-            ECHO(parsing_string + cereg_info);
-            ECHO(parsing_string + cgreg_info);
-        }
-        
+        ECHO(parsing_string + creg_info);
+        ECHO(parsing_string + cereg_info);
+        ECHO(parsing_string + cgreg_info);
 
-        if (modem_type == 1) {
-            for (int i = 0; i < cell_info.length(); i++) {
-                ECHO(parsing_string + cell_info[i]);
-            }
+        for (int i = 0; i < cell_info.length(); i++) {
+            ECHO(parsing_string + cell_info[i]);
         }
         
         ECHO(parse_end);
@@ -562,6 +611,7 @@ void main()
     ECHO("*************************************************************************************************************");
     ECHO("This script needs 'Start!' greeting message active on boot");
     ECHO("The greeting text can be actived using the command AT+CSGT=1,\"Start!\" and using a fixed baud rate (+IPR)");
+    ECHO("On SARA-R5 you need also to store the data on the active profile (AT&W)");
     ECHO("");
     ECHO("");
     ECHO("*************************************************************************************************************");

@@ -28,12 +28,19 @@
 *       This script assumes the module is in the power-off state and waits
 *       for the "Ready" greeting message after power on.
 *       
-*       You MUST configure the IdentityID parameter below from your Thingstream 
-*       thing device.
+*       You MUST configure the module and IdentityID parameter below from your  
+*       Thingstream thing device.
 ******************************************************************************
-* Modules:      SARA-R510-01B
-* Tested on:    SARA-R510-01B
+* Modules:      SARA-R5
+* Tested on:    SARA-R510-01B, SARA-R52
 ******************************************************************************/
+
+/*****************************************************************************/
+/* Please choose the modem type           */
+// 1 - SARA-R50_R51
+// 2 - SARA-R52
+int modem_type = 2;
+/*****************************************************************************/
 
 /*****************************************************************************/
 /* Please use your IdentityID parameter of the MQTT-Anywhere thing           */
@@ -63,9 +70,16 @@ AT+CEREG=5
 // Wait for the module to connect to the network again
 WAIT("+CEREG: ", 60000);
 
-// Activate the internal context
-AT+UPSD=0,0,0;+UPSD=0,100,1
-AT+UPSDA=0,3
+if (1 == modem_type)
+{
+    // Activate the internal context
+    AT+UPSD=0,0,0;+UPSD=0,100,1
+    AT+UPSDA=0,3
+}
+else if (modem_type != 2)
+{
+    STOP("ERROR: modem_type is not existing");
+}
 
 // Set the MQTT-SN profile (see above for parameters)
 SENDAT('AT+UMQTTSN=0,"' + client_id + '"', 1000, "OK");

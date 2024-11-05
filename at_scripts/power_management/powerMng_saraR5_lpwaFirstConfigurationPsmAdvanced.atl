@@ -27,14 +27,23 @@
 *       
 *       The wake-up and publish script choices are:
 *       Steps: Wake up, Connect, Publish message, wait for ACK, enter PSM
-*       powerMng_saraR5_lpwa_wake_up_and_publish_QoS1_psm_advanced.atl
+*       powerMng_saraR5_lpwa_wake_up_and_publish_QoS1Psm_advanced.atl
 *           or
 *       Steps: Wake up, Publish message, enter PSM
-*       powerMng_saraR5_lpwa_wake_up_and_publish_QoS-1_psm_advanced.atl
+*       powerMng_saraR5_lpwa_wake_up_and_publish_QoS-1Psm_advanced.atl
+*
+*       You MUST configure the module parameter below.
 ******************************************************************************
-* Modules:      SARA-R510-01B
-* Tested on:    SARA-R510-01B
+* Modules:      SARA-R5
+* Tested on:    SARA-R510-01B, SARA-R52
 ******************************************************************************/
+
+/*****************************************************************************/
+/* Please choose the modem type           */
+// 1 - SARA-R50_R51
+// 2 - SARA-R52
+int modem_type = 2;
+/*****************************************************************************/
 
 AT+CGMI
 AT+CGMM
@@ -60,8 +69,16 @@ AT+CEREG=5
 // Wait 30 seconds for registration 
 WAIT("+CEREG: ", 30000);
 
-// Configure the internal context
-AT+UPSD=0,0,0;+UPSD=0,100,1
+if (1 == modem_type)
+{
+    // Configure the internal context
+    AT+UPSD=0,0,0;+UPSD=0,100,1
+}
+else if (modem_type != 2)
+{
+    STOP("ERROR: modem_type is not existing");
+}
+
 
 // Set PSM for ZERO T3324 time
 AT+CPSMS=1,,,"00111000","00000000"

@@ -111,7 +111,7 @@ void enable_IP_stack_data_handling()
 }
 
 
-void modem_initialization (void)
+void modem_initialization(void)
 {
     // in case of R8 autobauding. If baudrate is enabled, "AT" will not be replied
     SENDAT("AT", 200, "OK");
@@ -253,18 +253,19 @@ string return_latitude_longitude_from_nmea()
         ECHO("*************************************************************************************************************");
         ECHO("BROKEN NMEA UGRMC response.");
         ECHO("*************************************************************************************************************");
-        restart_script_initialization();
+        script_initialization();
         return "BROKEN NMEA UGRMC";
     }
 }
 
 
-void restart_script_initialization()
+void script_initialization()
 {
     modem_initialization();
     wait_for_registration_polling();
     start_gnss();
     obtain_first_fix();
+    configure_secure_http();
 }
 
 
@@ -551,7 +552,6 @@ string http_post()
 
 void get_info()
 {
-    configure_secure_http();
     for (int i = 0; i < iteration_number; i++) {
         string all_local_cells = get_neighbor_cells();
         string final_result, pos, cesq;
@@ -639,10 +639,7 @@ void main()
     ECHO("REMEMBER TO CONFIGURE: the correct APN address to be used for this execution.");
     ECHO("*************************************************************************************************************");
 
-    modem_initialization();
-    wait_for_registration_polling();
-    start_gnss();
-    obtain_first_fix();
+    script_initialization();
 
     handle_file_to_send();
     get_info();

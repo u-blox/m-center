@@ -26,7 +26,7 @@
 *       https://www.u-blox.com/en/product/iot-sim-card
 ******************************************************************************
 * Modules:      SARA-R5, SARA-R42
-* Tested on:    SARA-R5, SARA-R42
+* Tested on:    SARA-R50_R51, SARA-R42, SARA-R52
 ******************************************************************************/
 
 // Variables
@@ -34,7 +34,7 @@ string command, resp, identity, product_in_use;
 
 // Configurable parameters
 identity = "identity:xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx";
-product_in_use = "saraR5"; // Possible options are "saraR5" or "saraR42" 
+product_in_use = "saraR52"; // Possible options are "saraR50_R51", "saraR52" or "saraR42" 
 
 // Initialization
 ECHO("*************************************************************************************************************");
@@ -63,22 +63,25 @@ ECHO("Registering to the network.");
 AT+CFUN=1
 PAUSE 10000
 
-AT+UPSD=0,0,0
-AT+UPSD=0,100,1
-if(product_in_use == "saraR5"){
-    resp = SENDAT("AT+UPSDA=0,3",10000,"OK");
-    if (FIND(resp,"ERROR") != -1){
-        STOP("Error in the context activation.");
+if(product_in_use != "saraR52")
+{
+    AT+UPSD=0,0,0
+    AT+UPSD=0,100,1
+    if(product_in_use == "saraR50_R51"){
+        resp = SENDAT("AT+UPSDA=0,3",10000,"OK");
+        if (FIND(resp,"ERROR") != -1){
+            STOP("Error in the context activation.");
+        }
     }
-}
-else if (product_in_use == "saraR42"){
-    resp = SENDAT("AT+CGACT=1,1",10000,"OK");
-    if (FIND(resp,"ERROR") != -1){
-        STOP("Error in the context activation.");
+    else if (product_in_use == "saraR42"){
+        resp = SENDAT("AT+CGACT=1,1",10000,"OK");
+        if (FIND(resp,"ERROR") != -1){
+            STOP("Error in the context activation.");
+        }
     }
-}
-else{
-    STOP("Wrong product configured.");
+    else{
+        STOP("Wrong product configured.");
+    }
 }
 
 // Collect module status
@@ -101,7 +104,7 @@ AT+UMQTTSN=10,1
 ECHO("Connecting...");
 command = "AT+UMQTTSNC=1";
 resp = SENDAT(command,300000,"+UUMQTTSNC:");
-resp=resp.split(':')[1];
+resp=resp.split("+UUMQTTSNC:")[1];
 
 if (FIND(resp,"1,1") == -1){
     STOP("Unable to connect");

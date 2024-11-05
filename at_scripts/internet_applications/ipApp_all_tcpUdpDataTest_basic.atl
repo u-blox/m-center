@@ -21,12 +21,12 @@
 *       This script has the purpose to test TCP and UDP data connections.
 ******************************************************************************
 * Modules:      All Products
-* Tested on:    LARA-R6, LARA-R2, SARA-R5, SARA-R42
+* Tested on:    LARA-R6, LARA-R2, SARA-R50_R51, SARA-R52, SARA-R42
 ******************************************************************************/
 
 // configuration
 // configure the product/module in use
-string productInUse = "laraR6";         // Possible options are "saraR5" , "saraR42" , "laraR2", "laraR6"
+string productInUse = "saraR52";        // Possible options are "saraR50_R51", "saraR52", "saraR42", "laraR2", "laraR6"
 string IPV          = 0;                //0: IPV4, 1: IPV6
 string rat;
 string resp;
@@ -46,27 +46,35 @@ void main()
     SENDAT("ATI9",genericTimeDelay,"OK");
     SENDAT("AT+UGPIOC=16,2",genericTimeDelay,"OK");
     SENDAT("AT+URAT?",genericTimeDelay,"OK");
-    SENDAT("AT+ULWM2M?",genericTimeDelay,"OK");         // command not supported by all modules
-    SENDAT("AT+UMNOPROF?",genericTimeDelay,"OK");       // command not supported by all modules
-    SENDAT("AT+USVCDOMAIN?",genericTimeDelay,"OK");     // command not supported by all modules
-    SENDAT("AT+CPSMS?",genericTimeDelay,"OK");          // command not supported by all modules
     SENDAT("AT+UPSV?",genericTimeDelay,"OK");
-    SENDAT("AT+UBANDMASK?",genericTimeDelay,"OK");      // command not supported by all modules
+
+    if(productInUse != "laraR2")
+    {
+        SENDAT("AT+ULWM2M?",genericTimeDelay,"OK");         // command not supported by all modules
+        SENDAT("AT+UMNOPROF?",genericTimeDelay,"OK");       // command not supported by all modules
+        SENDAT("AT+USVCDOMAIN?",genericTimeDelay,"OK");     // command not supported by all modules
+        SENDAT("AT+CPSMS?",genericTimeDelay,"OK");          // command not supported by all modules
+        SENDAT("AT+UBANDMASK?",genericTimeDelay,"OK");      // command not supported by all modules
+    }
     ECHO("******************** End   INIT ********************");
-    if(productInUse != "saraR5")
+    if(productInUse == "laraR2" || productInUse == "laraR6" || productInUse == "saraR42")
     {
         SENDAT("AT+CFUN=15",genericTimeDelay,"OK");
     }
-    else
+    else if(productInUse == "saraR50_R51" || productInUse == "saraR52")
     {
         SENDAT("AT+CFUN=16",genericTimeDelay,"OK");
     }
+    else
+    {
+        STOP("ERROR: productInUse is not existing");
+    }
 
-    SENDAT("AT+CFUN=1",genericTimeDelay,"OK");
     for(int i=1; i<maxCnt+1; i++)
     {
         ECHO("");
         ECHO("******************** Start Loop #"+i+" ********************");
+        SENDAT("AT+CFUN=1",genericTimeDelay,"OK");
         SENDAT("ATE0",genericTimeDelay,"OK");
         SENDAT("AT+CREG=2",genericTimeDelay,"OK");
         SENDAT("AT+CGREG=2",genericTimeDelay,"OK");
@@ -80,7 +88,7 @@ void main()
         SENDAT("AT+CREG?",genericTimeDelay,"OK");
         SENDAT("AT+CEREG?",genericTimeDelay,"OK");
 
-        if(productInUse == "laraR2" || productInUse == "saraR5" || productInUse == "saraR42")
+        if(productInUse == "laraR2" || productInUse == "saraR50_R51" || productInUse == "saraR42")
         {
             if (SENDAT("AT+UPSD=0,0," + IPV,1000,"OK") != "OK")
             {
@@ -93,7 +101,7 @@ void main()
             }
         }
         
-        if(productInUse == "laraR2" || productInUse == "saraR5")
+        if(productInUse == "laraR2" || productInUse == "saraR50_R51")
         {
             if(SENDAT("AT+UPSDA=0,3",150000,"OK") != "OK")
             {
